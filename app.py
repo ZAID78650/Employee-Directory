@@ -131,10 +131,18 @@ def record_metrics(response):
     return response
 
 
-# --- 1. Web UI Route ---
+# --- 1. Web UI Routes ---
 @app.route("/", methods=["GET"])
 def index():
     return render_template("index.html")
+
+
+@app.route("/auth", methods=["GET"])
+def auth_page():
+    """
+    Dedicated Login, Sign Up, and SSO Authentication Page
+    """
+    return render_template("auth.html")
 
 
 # --- 2. Mandatory Endpoints as specified in Practical Handout ---

@@ -139,15 +139,15 @@
 
           <!-- Auth Buttons Container (Switches dynamically based on session) -->
           <div id="authActionsContainer" class="flex items-center space-x-2">
-            <!-- Unauthenticated State Buttons -->
-            <button onclick="openAuthModal('login')" class="px-3.5 py-2 text-xs font-semibold rounded-xl text-slate-200 hover:text-white bg-slate-900 hover:bg-slate-800 border border-slate-700/80 transition flex items-center space-x-1.5 shadow-sm">
+            <!-- Dedicated Auth Page Link Buttons -->
+            <a href="/auth" class="px-3.5 py-2 text-xs font-semibold rounded-xl text-slate-200 hover:text-white bg-slate-900 hover:bg-slate-800 border border-slate-700/80 transition flex items-center space-x-1.5 shadow-sm">
               <i data-lucide="log-in" class="w-3.5 h-3.5 text-brand-400"></i>
-              <span>Login</span>
-            </button>
-            <button onclick="openAuthModal('register')" class="px-3.5 py-2 text-xs font-semibold rounded-xl text-white bg-gradient-to-r from-brand-600 to-indigo-600 hover:from-brand-500 hover:to-indigo-500 shadow-md shadow-brand-500/25 border border-brand-400/30 transition flex items-center space-x-1.5">
+              <span>Login Page</span>
+            </a>
+            <a href="/auth?mode=register" class="px-3.5 py-2 text-xs font-semibold rounded-xl text-white bg-gradient-to-r from-brand-600 to-indigo-600 hover:from-brand-500 hover:to-indigo-500 shadow-md shadow-brand-500/25 border border-brand-400/30 transition flex items-center space-x-1.5">
               <i data-lucide="user-plus" class="w-3.5 h-3.5"></i>
               <span>Create Account</span>
-            </button>
+            </a>
           </div>
 
         </div>
