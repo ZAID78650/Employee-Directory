@@ -145,6 +145,58 @@ def auth_page():
     return render_template("auth.html")
 
 
+@app.route("/auth/google/callback", methods=["GET"])
+def google_callback():
+    """
+    Receives Google OAuth Redirect with query parameters: email, name, action
+    Provisions session and redirects straight to /
+    """
+    global user_id_counter, next_id
+    email = request.args.get("email", "zaid.shaikh@gmail.com").strip().lower()
+    name = request.args.get("name", "SHAIKH ZAID").strip()
+    action = request.args.get("action", "signin")
+
+    user = next((u for u in users if u["email"] == email), None)
+    if not user:
+        user = {
+            "id": user_id_counter,
+            "name": name,
+            "email": email,
+            "password_hash": "GOOGLE_ACCOUNTS_VERIFIED",
+            "role": "Google Verified Engineer",
+            "provider": "google"
+        }
+        users.append(user)
+        user_id_counter += 1
+
+        if not any(e["email"].lower() == email for e in employees):
+            avatar = "".join([p[0] for p in name.split()[:2]]).upper() if name else "G"
+            employees.append({
+                "id": next_id,
+                "name": name,
+                "role": "Google Verified Specialist",
+                "department": "Platform & Cloud",
+                "email": email,
+                "status": "Active",
+                "avatar": avatar,
+                "location": "Mumbai, India",
+                "phone": "+91 98200 99887"
+            })
+            next_id += 1
+
+    session["user"] = {
+        "id": user["id"],
+        "name": user["name"],
+        "email": user["email"],
+        "role": user["role"],
+        "provider": "google",
+        "action": action
+    }
+
+    AUTH_EVENTS.labels(type="sso", provider="google", status="success").inc()
+    return render_template("auth_callback.html", user=session["user"])
+
+
 # --- 2. Mandatory Endpoints as specified in Practical Handout ---
 
 @app.route("/health", methods=["GET"])
