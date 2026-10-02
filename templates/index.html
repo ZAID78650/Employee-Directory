@@ -523,10 +523,16 @@
                   <p class="text-[11px] text-slate-400">Kubernetes & CI/CD deployment tracks</p>
                 </div>
               </div>
-              <span class="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center gap-1">
-                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 pulse-online"></span>
-                Live
-              </span>
+              <div class="flex items-center space-x-2">
+                <button onclick="triggerPipelineRun()" class="px-2.5 py-1 rounded-xl text-[10px] font-semibold bg-blue-500/15 hover:bg-blue-500/25 text-blue-300 border border-blue-500/30 transition flex items-center gap-1.5 shadow-sm" title="Trigger fresh deployment cycle">
+                  <i data-lucide="play" class="w-3 h-3 text-blue-400"></i>
+                  <span>Trigger Run</span>
+                </button>
+                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center gap-1">
+                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 pulse-online"></span>
+                  Live
+                </span>
+              </div>
             </div>
 
             <!-- Pipeline Stages List -->
@@ -602,7 +608,7 @@
               <div class="p-3.5 rounded-2xl bg-slate-900/80 border border-white/5 hover:border-white/10 transition">
                 <div class="flex items-center justify-between text-xs mb-2">
                   <div class="flex items-center space-x-2.5">
-                    <div class="w-6 h-6 rounded-full bg-blue-500/20 text-blue-400 flex items-center justify-center text-xs">
+                    <div id="pipeStage4Icon" class="w-6 h-6 rounded-full bg-blue-500/20 text-blue-400 flex items-center justify-center text-xs">
                       <i data-lucide="refresh-cw" class="w-3.5 h-3.5 animate-spin"></i>
                     </div>
                     <div>
@@ -611,12 +617,12 @@
                     </div>
                   </div>
                   <div class="text-right">
-                    <span class="font-mono text-blue-400 font-bold">75%</span>
-                    <p class="text-[10px] text-slate-500">24m ago</p>
+                    <span id="pipeStage4Pct" class="font-mono text-blue-400 font-bold">75%</span>
+                    <p id="pipeStage4Time" class="text-[10px] text-slate-500">24m ago</p>
                   </div>
                 </div>
                 <div class="w-full bg-slate-800 rounded-full h-1.5 overflow-hidden">
-                  <div class="bg-blue-500 h-1.5 rounded-full w-3/4"></div>
+                  <div id="pipeStage4Bar" class="bg-blue-500 h-1.5 rounded-full transition-all duration-500" style="width: 75%;"></div>
                 </div>
               </div>
 
@@ -624,7 +630,7 @@
               <div class="p-3.5 rounded-2xl bg-slate-900/80 border border-white/5 hover:border-white/10 transition">
                 <div class="flex items-center justify-between text-xs mb-2">
                   <div class="flex items-center space-x-2.5">
-                    <div class="w-6 h-6 rounded-full bg-slate-800 text-slate-400 flex items-center justify-center text-xs">
+                    <div id="pipeStage5Icon" class="w-6 h-6 rounded-full bg-slate-800 text-slate-400 flex items-center justify-center text-xs">
                       <i data-lucide="clock" class="w-3.5 h-3.5"></i>
                     </div>
                     <div>
@@ -633,11 +639,11 @@
                     </div>
                   </div>
                   <div class="text-right">
-                    <span class="font-mono text-slate-500 font-semibold">Pending</span>
+                    <span id="pipeStage5Pct" class="font-mono text-slate-500 font-semibold">Pending</span>
                   </div>
                 </div>
                 <div class="w-full bg-slate-800 rounded-full h-1.5 overflow-hidden">
-                  <div class="bg-slate-700 h-1.5 rounded-full w-0"></div>
+                  <div id="pipeStage5Bar" class="bg-slate-700 h-1.5 rounded-full transition-all duration-500" style="width: 0%;"></div>
                 </div>
               </div>
 
@@ -876,9 +882,9 @@
                   <div class="relative w-12 h-12 flex items-center justify-center">
                     <svg class="w-12 h-12 gauge-circle" viewBox="0 0 36 36">
                       <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#1e293b" stroke-width="3"/>
-                      <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#38bdf8" stroke-dasharray="38, 100" stroke-width="3"/>
+                      <path id="gaugeCpuPath" class="transition-all duration-700 ease-out" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#38bdf8" stroke-dasharray="38, 100" stroke-width="3"/>
                     </svg>
-                    <span class="absolute text-[11px] font-extrabold text-white font-mono">38%</span>
+                    <span id="gaugeCpuText" class="absolute text-[11px] font-extrabold text-white font-mono">38%</span>
                   </div>
                   <span class="text-[10px] text-slate-400 font-medium mt-1">CPU</span>
                 </div>
@@ -888,9 +894,9 @@
                   <div class="relative w-12 h-12 flex items-center justify-center">
                     <svg class="w-12 h-12 gauge-circle" viewBox="0 0 36 36">
                       <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#1e293b" stroke-width="3"/>
-                      <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#6366f1" stroke-dasharray="62, 100" stroke-width="3"/>
+                      <path id="gaugeMemPath" class="transition-all duration-700 ease-out" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#6366f1" stroke-dasharray="62, 100" stroke-width="3"/>
                     </svg>
-                    <span class="absolute text-[11px] font-extrabold text-white font-mono">62%</span>
+                    <span id="gaugeMemText" class="absolute text-[11px] font-extrabold text-white font-mono">62%</span>
                   </div>
                   <span class="text-[10px] text-slate-400 font-medium mt-1">Memory</span>
                 </div>
@@ -900,9 +906,9 @@
                   <div class="relative w-12 h-12 flex items-center justify-center">
                     <svg class="w-12 h-12 gauge-circle" viewBox="0 0 36 36">
                       <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#1e293b" stroke-width="3"/>
-                      <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#10b981" stroke-dasharray="48, 100" stroke-width="3"/>
+                      <path id="gaugeStoragePath" class="transition-all duration-700 ease-out" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#10b981" stroke-dasharray="48, 100" stroke-width="3"/>
                     </svg>
-                    <span class="absolute text-[11px] font-extrabold text-white font-mono">48%</span>
+                    <span id="gaugeStorageText" class="absolute text-[11px] font-extrabold text-white font-mono">48%</span>
                   </div>
                   <span class="text-[10px] text-slate-400 font-medium mt-1">Storage</span>
                 </div>
@@ -912,9 +918,9 @@
                   <div class="relative w-12 h-12 flex items-center justify-center">
                     <svg class="w-12 h-12 gauge-circle" viewBox="0 0 36 36">
                       <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#1e293b" stroke-width="3"/>
-                      <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#f59e0b" stroke-dasharray="22, 100" stroke-width="3"/>
+                      <path id="gaugeNetPath" class="transition-all duration-700 ease-out" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#f59e0b" stroke-dasharray="22, 100" stroke-width="3"/>
                     </svg>
-                    <span class="absolute text-[11px] font-extrabold text-white font-mono">22%</span>
+                    <span id="gaugeNetText" class="absolute text-[11px] font-extrabold text-white font-mono">22%</span>
                   </div>
                   <span class="text-[10px] text-slate-400 font-medium mt-1">Network</span>
                 </div>
@@ -941,7 +947,7 @@
             </div>
 
             <!-- Feed Events -->
-            <div class="space-y-3.5">
+            <div class="space-y-3.5" id="activityFeedContainer">
               
               <!-- Event 1 -->
               <div class="flex items-start space-x-3">
@@ -1656,6 +1662,7 @@
     }
 
     // 6. Real-time Prometheus Polling Engine (/metrics)
+    let totalScrapeRequests = 0;
     async function pollPrometheusMetrics() {
       try {
         const res = await fetch('/metrics');
@@ -1669,19 +1676,232 @@
           total += parseFloat(match[1]) || 0;
         }
 
-        if (total > 0) {
-          const kpiCalls = document.getElementById('kpiTotalEmployees');
-          // If total requests available, update live
+        if (total > 0 && total !== totalScrapeRequests) {
+          totalScrapeRequests = total;
         }
       } catch (e) {}
     }
 
-    function updateKPIs() {
-      const kpiEmp = document.getElementById('kpiTotalEmployees');
-      if (kpiEmp) kpiEmp.textContent = employeesData.length > 0 ? (employeesData.length > 5 ? 48 : employeesData.length) : 48;
+    // 7. Smooth KPI Counter Animation
+    function animateValue(id, start, end, duration = 1000) {
+      const obj = document.getElementById(id);
+      if (!obj) return;
+      let startTimestamp = null;
+      const step = (timestamp) => {
+        if (!startTimestamp) startTimestamp = timestamp;
+        const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+        obj.textContent = Math.floor(progress * (end - start) + start);
+        if (progress < 1) {
+          window.requestAnimationFrame(step);
+        } else {
+          obj.textContent = end;
+        }
+      };
+      window.requestAnimationFrame(step);
     }
 
-    // 7. Command Palette
+    function initKPICounters() {
+      animateValue('kpiTotalEmployees', 0, 48, 1200);
+      animateValue('kpiActiveServices', 0, 12, 1000);
+      animateValue('kpiPipelines', 0, 8, 800);
+      animateValue('kpiInfrastructure', 0, 6, 800);
+    }
+
+    function updateKPIs() {
+      const kpiEmp = document.getElementById('kpiTotalEmployees');
+      if (kpiEmp && employeesData.length > 0) {
+        kpiEmp.textContent = employeesData.length > 5 ? 48 : employeesData.length;
+      }
+    }
+
+    // 8. Dynamic Resource Gauges Engine (CPU, Memory, Storage, Network)
+    function updateResourceGauges() {
+      const cpu = Math.floor(36 + Math.random() * 8); // 36-43%
+      const mem = Math.floor(61 + Math.random() * 5); // 61-65%
+      const storage = 48; // stable 48%
+      const net = Math.floor(20 + Math.random() * 7); // 20-26%
+
+      const cpuPath = document.getElementById('gaugeCpuPath');
+      const cpuText = document.getElementById('gaugeCpuText');
+      if (cpuPath && cpuText) {
+        cpuPath.setAttribute('stroke-dasharray', `${cpu}, 100`);
+        cpuText.textContent = `${cpu}%`;
+      }
+
+      const memPath = document.getElementById('gaugeMemPath');
+      const memText = document.getElementById('gaugeMemText');
+      if (memPath && memText) {
+        memPath.setAttribute('stroke-dasharray', `${mem}, 100`);
+        memText.textContent = `${mem}%`;
+      }
+
+      const stPath = document.getElementById('gaugeStoragePath');
+      const stText = document.getElementById('gaugeStorageText');
+      if (stPath && stText) {
+        stPath.setAttribute('stroke-dasharray', `${storage}, 100`);
+        stText.textContent = `${storage}%`;
+      }
+
+      const netPath = document.getElementById('gaugeNetPath');
+      const netText = document.getElementById('gaugeNetText');
+      if (netPath && netText) {
+        netPath.setAttribute('stroke-dasharray', `${net}, 100`);
+        netText.textContent = `${net}%`;
+      }
+    }
+
+    // 9. Automated DevOps Pipeline Runner & Progression
+    let pipelineProgress = 75;
+    let pipelineStage = 4; // Stage 4: Deploy to K8s
+
+    function runPipelineStep() {
+      const p4Bar = document.getElementById('pipeStage4Bar');
+      const p4Pct = document.getElementById('pipeStage4Pct');
+      const p4Icon = document.getElementById('pipeStage4Icon');
+      const p5Bar = document.getElementById('pipeStage5Bar');
+      const p5Pct = document.getElementById('pipeStage5Pct');
+      const p5Icon = document.getElementById('pipeStage5Icon');
+
+      if (!p4Bar || !p5Bar) return;
+
+      if (pipelineStage === 4) {
+        pipelineProgress += 5;
+        if (pipelineProgress > 100) pipelineProgress = 100;
+
+        p4Bar.style.width = `${pipelineProgress}%`;
+        p4Pct.textContent = `${pipelineProgress}%`;
+
+        if (pipelineProgress === 100) {
+          p4Bar.className = "bg-emerald-500 h-1.5 rounded-full transition-all duration-500";
+          p4Pct.className = "font-mono text-emerald-400 font-bold";
+          p4Icon.className = "w-6 h-6 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-xs";
+          p4Icon.innerHTML = `<i data-lucide="check" class="w-3.5 h-3.5"></i>`;
+
+          // Transition to Stage 5
+          pipelineStage = 5;
+          pipelineProgress = 15;
+          p5Bar.className = "bg-blue-500 h-1.5 rounded-full transition-all duration-500";
+          p5Bar.style.width = `${pipelineProgress}%`;
+          p5Pct.className = "font-mono text-blue-400 font-bold";
+          p5Pct.textContent = "Running (15%)";
+          p5Icon.className = "w-6 h-6 rounded-full bg-blue-500/20 text-blue-400 flex items-center justify-center text-xs";
+          p5Icon.innerHTML = `<i data-lucide="refresh-cw" class="w-3.5 h-3.5 animate-spin"></i>`;
+          lucide.createIcons();
+          pushActivityEvent("Deploy to K8s Completed", "frontend-service deployed successfully to cluster", "success", "check-circle");
+        }
+      } else if (pipelineStage === 5) {
+        pipelineProgress += 20;
+        if (pipelineProgress > 100) pipelineProgress = 100;
+
+        p5Bar.style.width = `${pipelineProgress}%`;
+        p5Pct.textContent = pipelineProgress === 100 ? "100%" : `Running (${pipelineProgress}%)`;
+
+        if (pipelineProgress === 100) {
+          p5Bar.className = "bg-emerald-500 h-1.5 rounded-full transition-all duration-500";
+          p5Pct.className = "font-mono text-emerald-400 font-bold";
+          p5Icon.className = "w-6 h-6 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-xs";
+          p5Icon.innerHTML = `<i data-lucide="check" class="w-3.5 h-3.5"></i>`;
+          lucide.createIcons();
+
+          pipelineStage = 6;
+          pushActivityEvent("DevOps Pipeline Passed", "All 5 stages completed (CI/CD build-frontend-1042)", "success", "check");
+        }
+      }
+    }
+
+    function triggerPipelineRun() {
+      pipelineStage = 4;
+      pipelineProgress = 40;
+
+      const p4Bar = document.getElementById('pipeStage4Bar');
+      const p4Pct = document.getElementById('pipeStage4Pct');
+      const p4Icon = document.getElementById('pipeStage4Icon');
+      const p5Bar = document.getElementById('pipeStage5Bar');
+      const p5Pct = document.getElementById('pipeStage5Pct');
+      const p5Icon = document.getElementById('pipeStage5Icon');
+
+      if (p4Bar && p4Pct && p4Icon) {
+        p4Bar.className = "bg-blue-500 h-1.5 rounded-full transition-all duration-500";
+        p4Bar.style.width = "40%";
+        p4Pct.className = "font-mono text-blue-400 font-bold";
+        p4Pct.textContent = "40%";
+        p4Icon.className = "w-6 h-6 rounded-full bg-blue-500/20 text-blue-400 flex items-center justify-center text-xs";
+        p4Icon.innerHTML = `<i data-lucide="refresh-cw" class="w-3.5 h-3.5 animate-spin"></i>`;
+      }
+
+      if (p5Bar && p5Pct && p5Icon) {
+        p5Bar.className = "bg-slate-700 h-1.5 rounded-full transition-all duration-500";
+        p5Bar.style.width = "0%";
+        p5Pct.className = "font-mono text-slate-500 font-semibold";
+        p5Pct.textContent = "Pending";
+        p5Icon.className = "w-6 h-6 rounded-full bg-slate-800 text-slate-400 flex items-center justify-center text-xs";
+        p5Icon.innerHTML = `<i data-lucide="clock" class="w-3.5 h-3.5"></i>`;
+      }
+      lucide.createIcons();
+      pushActivityEvent("Pipeline Triggered", "User initiated manual build & deploy run #1043", "info", "play");
+    }
+
+    // 10. Live Dynamic Activity Feed Injector
+    const telemetryEvents = [
+      { title: "Prometheus Harvester Scrape", detail: "Scraped /metrics (200 OK in 0.8ms)", type: "teal", icon: "activity" },
+      { title: "Cluster Heartbeat", detail: "Worker node worker-01 acknowledged healthy", type: "success", icon: "check-circle" },
+      { title: "Service Health Ping", detail: "GET /health responded status: Healthy", type: "blue", icon: "heart-pulse" },
+      { title: "Gateway Traffic Route", detail: "48 requests routed across internal ingress", type: "purple", icon: "git-commit" }
+    ];
+    let telemetryIndex = 0;
+
+    function pushActivityEvent(title, detail, type = "info", icon = "activity") {
+      const container = document.getElementById('activityFeedContainer');
+      if (!container) return;
+
+      const colorMap = {
+        success: { bg: 'bg-emerald-500/20', text: 'text-emerald-400', icon: icon || 'check-circle' },
+        info: { bg: 'bg-blue-500/20', text: 'text-blue-400', icon: icon || 'info' },
+        teal: { bg: 'bg-teal-500/20', text: 'text-teal-400', icon: icon || 'activity' },
+        purple: { bg: 'bg-purple-500/20', text: 'text-purple-400', icon: icon || 'git-commit' },
+        blue: { bg: 'bg-sky-500/20', text: 'text-sky-400', icon: icon || 'server' }
+      };
+
+      const cfg = colorMap[type] || colorMap.info;
+      const el = document.createElement('div');
+      el.className = "flex items-start space-x-3 transition-all duration-500 transform -translate-y-2 opacity-0";
+      el.innerHTML = `
+        <div class="w-7 h-7 rounded-xl ${cfg.bg} ${cfg.text} flex items-center justify-center flex-shrink-0 text-xs mt-0.5">
+          <i data-lucide="${cfg.icon}" class="w-4 h-4"></i>
+        </div>
+        <div class="min-w-0 flex-1">
+          <p class="text-xs font-bold text-white truncate">${title}</p>
+          <p class="text-[11px] text-slate-400 truncate">${detail}</p>
+          <span class="text-[10px] text-slate-500 font-mono">Just now</span>
+        </div>
+      `;
+
+      container.insertBefore(el, container.firstChild);
+      lucide.createIcons();
+
+      setTimeout(() => {
+        el.classList.remove('-translate-y-2', 'opacity-0');
+      }, 50);
+
+      while (container.children.length > 6) {
+        container.removeChild(container.lastChild);
+      }
+    }
+
+    function injectPeriodicTelemetry() {
+      const ev = telemetryEvents[telemetryIndex % telemetryEvents.length];
+      telemetryIndex++;
+      pushActivityEvent(ev.title, ev.detail, ev.type, ev.icon);
+    }
+
+    function clearActivityNotice() {
+      const container = document.getElementById('activityFeedContainer');
+      if (container) {
+        container.innerHTML = `<div class="py-4 text-center text-xs text-slate-500">Activity log cleared. Listening for incoming events...</div>`;
+      }
+    }
+
+    // 11. Command Palette
     function openCommandPalette() {
       document.getElementById('commandPaletteModal').classList.remove('hidden');
       document.getElementById('cmdPaletteInput').focus();
@@ -1712,7 +1932,7 @@
       }
     });
 
-    // 8. Navigation Switcher
+    // 12. Navigation Switcher
     function switchNavSection(sec) {
       currentSection = sec;
       const navLinks = ['dashboard', 'directory', 'orchestration', 'infrastructure', 'monitoring', 'security', 'reports', 'settings'];
@@ -1737,7 +1957,7 @@
       }
     }
 
-    // 9. Profile & Notifications Dropdowns
+    // 13. Dropdowns & Controls
     function toggleProfileDropdown() {
       document.getElementById('profileDropdownMenu')?.classList.toggle('hidden');
     }
@@ -1771,6 +1991,7 @@
         fetch('/items');
       }
       pollPrometheusMetrics();
+      pushActivityEvent("Traffic Spike Simulated", "Dispatched 8 concurrent API requests to /health & /items", "purple", "zap");
       alert("Traffic burst dispatched to GET /health and GET /items! Check /metrics for updated counters.");
     }
 
@@ -1788,8 +2009,12 @@
     document.addEventListener('DOMContentLoaded', () => {
       lucide.createIcons();
       initTeamActivityChart();
+      initKPICounters();
       loadEmployees();
       setInterval(pollPrometheusMetrics, 3000);
+      setInterval(updateResourceGauges, 2500);
+      setInterval(runPipelineStep, 3500);
+      setInterval(injectPeriodicTelemetry, 18000);
     });
   </script>
 </body>
