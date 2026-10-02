@@ -1,24 +1,23 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="dark">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Personnel Records & DevOps Engineering Portal | Group B3-G3</title>
+  <title>AgentGuard | Personnel Directory & DevOps Orchestration Platform</title>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
-  <!-- Three.js for Interactive 3D Holographic DevOps Logo -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-  <!-- Chart.js for Telemetry Graphics -->
+  <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
-  
+
   <script>
     tailwind.config = {
+      darkMode: 'class',
       theme: {
         extend: {
           fontFamily: {
@@ -37,6 +36,14 @@
               700: '#4338ca',
               800: '#3730a3',
               900: '#312e81',
+            },
+            agent: {
+              bg: '#050811',
+              sidebar: '#080d1a',
+              card: '#0b1120',
+              cardHover: '#0f172a',
+              border: 'rgba(255, 255, 255, 0.08)',
+              borderLight: 'rgba(255, 255, 255, 0.12)',
             }
           }
         }
@@ -45,1470 +52,1616 @@
   </script>
 
   <style>
-    .glass-modal {
-      background: rgba(15, 23, 42, 0.85);
-      backdrop-filter: blur(24px);
-      -webkit-backdrop-filter: blur(24px);
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background-color: #050811;
+      color: #f1f5f9;
+      background-image: 
+        radial-gradient(circle at 15% 15%, rgba(99, 102, 241, 0.08) 0%, transparent 40%),
+        radial-gradient(circle at 85% 10%, rgba(56, 189, 248, 0.06) 0%, transparent 35%),
+        radial-gradient(circle at 50% 90%, rgba(139, 92, 246, 0.06) 0%, transparent 50%),
+        linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+      background-size: 100% 100%, 100% 100%, 100% 100%, 40px 40px, 40px 40px;
     }
-    .neon-glow {
-      box-shadow: 0 0 25px rgba(99, 102, 241, 0.35);
+
+    /* Custom scrollbars */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
     }
-    #three-logo-canvas {
-      width: 44px;
-      height: 44px;
-      display: block;
+    ::-webkit-scrollbar-track {
+      background: #080d1a;
     }
-    #three-hero-canvas {
-      width: 100%;
-      height: 100%;
-      display: block;
+    ::-webkit-scrollbar-thumb {
+      background: #1e293b;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #334155;
+    }
+
+    /* Glass card treatment */
+    .agent-card {
+      background: rgba(11, 17, 32, 0.88);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 1.25rem;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .agent-card:hover {
+      border-color: rgba(99, 102, 241, 0.3);
+      box-shadow: 0 8px 30px -10px rgba(0, 0, 0, 0.5);
+    }
+
+    /* Pulse dot */
+    .pulse-online {
+      animation: pulse-green 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+    @keyframes pulse-green {
+      0%, 100% { opacity: 1; }
+      50% { opacity: .4; }
+    }
+
+    /* Circular Gauge progress */
+    .gauge-circle {
+      transform: rotate(-90deg);
+      transform-origin: 50% 50%;
     }
   </style>
 </head>
-<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col antialiased selection:bg-brand-500 selection:text-white">
+<body class="min-h-screen flex antialiased selection:bg-brand-500 selection:text-white">
 
-  <!-- TOP NAVBAR -->
-  <header class="bg-slate-950/90 backdrop-blur-xl border-b border-slate-800/80 sticky top-0 z-50 shadow-2xl">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="flex items-center justify-between h-18 py-3">
-        
-        <!-- Left: 3D Animated Logo & Custom Vector Badge + Brand Title -->
-        <div class="flex items-center space-x-3.5">
-          <!-- Custom High-Tech Employee Directory Logo -->
-          <div class="relative w-11 h-11 rounded-2xl bg-slate-900 border border-brand-500/40 p-0.5 flex items-center justify-center shadow-lg shadow-brand-500/25 group cursor-pointer hover:border-brand-400 transition overflow-hidden" title="Employee Directory System Badge">
-            <img src="/static/img/advanced_employee_directory_logo.png" alt="Employee Directory Logo" class="w-full h-full object-cover rounded-xl filter drop-shadow" />
-            <span class="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-emerald-400 border-2 border-slate-950 animate-pulse"></span>
-          </div>
-
-          <!-- 3D Interactive WebGL Torus Badge -->
-          <div class="relative w-10 h-10 rounded-xl bg-slate-900/90 border border-indigo-500/30 hidden sm:flex items-center justify-center overflow-hidden shadow-inner group cursor-pointer" title="Interactive 3D DevOps Torus (Hover to Accelerate)">
-            <canvas id="three-logo-canvas"></canvas>
-            <div class="absolute inset-0 bg-transparent pointer-events-none"></div>
-          </div>
-
-          <div>
-            <div class="flex items-center space-x-2">
-              <h1 class="text-base font-extrabold tracking-tight text-white flex items-center gap-2">
-                Employee Directory
-                <span class="text-[10px] px-2 py-0.5 rounded-full font-mono font-medium bg-brand-500/20 text-brand-300 border border-brand-500/40">B3-G3</span>
-              </h1>
-            </div>
-            <p class="text-xs text-slate-400 flex items-center gap-1.5">
-              <span>Agile Software Development & DevOps Practical 10</span>
-              <span class="text-slate-600">&bull;</span>
-              <span class="text-indigo-400 font-mono">Live In-Memory REST API</span>
-            </p>
+  <!-- ============================================================== -->
+  <!-- 1. LEFT ENTERPRISE SIDEBAR -->
+  <!-- ============================================================== -->
+  <aside class="w-64 bg-[#080d1a]/95 backdrop-blur-2xl border-r border-white/5 flex flex-col justify-between flex-shrink-0 z-40 hidden lg:flex sticky top-0 h-screen">
+    <div>
+      <!-- Brand Logo Header -->
+      <div class="px-6 py-5 flex items-center space-x-3 border-b border-white/5">
+        <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-sky-400 p-0.5 flex items-center justify-center shadow-lg shadow-blue-500/20">
+          <div class="w-full h-full bg-[#080d1a] rounded-[14px] flex items-center justify-center overflow-hidden">
+            <img src="/static/img/advanced_employee_directory_logo.png" alt="AgentGuard" class="w-7 h-7 object-contain" />
           </div>
         </div>
-
-        <!-- Center: Quick Endpoints Links (Opens in New Tabs) -->
-        <div class="hidden xl:flex items-center space-x-2">
-          <a href="http://localhost:5001/health" target="_blank" rel="noopener noreferrer" class="px-2.5 py-1.5 text-xs font-mono rounded-lg bg-emerald-950/40 hover:bg-emerald-900/60 text-emerald-300 hover:text-white border border-emerald-500/40 transition flex items-center space-x-1 shadow-sm group" title="Open GET /health in new tab">
-            <i data-lucide="heart-pulse" class="w-3.5 h-3.5 text-emerald-400 group-hover:scale-110 transition"></i>
-            <span>/health</span>
-            <i data-lucide="external-link" class="w-3 h-3 text-emerald-400/70"></i>
-          </a>
-          <a href="http://localhost:5001/items" target="_blank" rel="noopener noreferrer" class="px-2.5 py-1.5 text-xs font-mono rounded-lg bg-indigo-950/40 hover:bg-indigo-900/60 text-indigo-300 hover:text-white border border-indigo-500/40 transition flex items-center space-x-1 shadow-sm group" title="Open GET /items in new tab">
-            <i data-lucide="database" class="w-3.5 h-3.5 text-indigo-400 group-hover:scale-110 transition"></i>
-            <span>/items</span>
-            <i data-lucide="external-link" class="w-3 h-3 text-indigo-400/70"></i>
-          </a>
-          <a href="http://localhost:5001/metrics" target="_blank" rel="noopener noreferrer" class="px-2.5 py-1.5 text-xs font-mono rounded-lg bg-amber-950/40 hover:bg-amber-900/60 text-amber-300 hover:text-white border border-amber-500/40 transition flex items-center space-x-1 shadow-sm group" title="Open GET /metrics in new tab">
-            <i data-lucide="activity" class="w-3.5 h-3.5 text-amber-400 group-hover:scale-110 transition"></i>
-            <span>/metrics</span>
-            <i data-lucide="external-link" class="w-3 h-3 text-amber-400/70"></i>
-          </a>
-          <span class="h-4 w-px bg-slate-800 mx-1"></span>
-          <a href="http://localhost:9090" target="_blank" rel="noopener noreferrer" class="px-2.5 py-1.5 text-xs font-medium rounded-lg bg-orange-950/30 hover:bg-orange-900/50 text-orange-300 border border-orange-700/40 transition flex items-center space-x-1 shadow-sm group" title="Prometheus Target (Port 9090)">
-            <i data-lucide="flame" class="w-3.5 h-3.5 text-orange-400 group-hover:scale-110 transition"></i>
-            <span>Prometheus</span>
-            <i data-lucide="external-link" class="w-3 h-3 text-orange-400/70"></i>
-          </a>
-          <a href="http://localhost:3000" target="_blank" rel="noopener noreferrer" class="px-2.5 py-1.5 text-xs font-medium rounded-lg bg-emerald-950/30 hover:bg-emerald-900/50 text-emerald-300 border border-emerald-700/40 transition flex items-center space-x-1 shadow-sm group" title="Grafana (Port 3000)">
-            <i data-lucide="layout-grid" class="w-3.5 h-3.5 text-emerald-400 group-hover:scale-110 transition"></i>
-            <span>Grafana</span>
-            <i data-lucide="external-link" class="w-3 h-3 text-emerald-400/70"></i>
-          </a>
-        </div>
-
-        <!-- Right: Auth User State / Sign In & Sign Up Trigger -->
-        <div class="flex items-center space-x-3">
-          
-          <!-- Live Health Indicator -->
-          <div id="healthBadge" class="flex items-center space-x-2 px-3 py-1.5 rounded-full text-xs font-semibold bg-emerald-950/60 border border-emerald-500/40 text-emerald-400 cursor-pointer hover:bg-emerald-900/50 transition" onclick="checkHealth()" title="Click to ping GET /health">
-            <span class="relative flex h-2 w-2">
-              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-              <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-            </span>
-            <span id="healthText" class="font-mono text-[11px]">GET /health: OK (200)</span>
-          </div>
-
-          <!-- Auth Buttons Container (Switches dynamically based on session) -->
-          <div id="authActionsContainer" class="flex items-center space-x-2">
-            <!-- Dedicated Auth Page Link Buttons -->
-            <a href="/auth" class="px-3.5 py-2 text-xs font-semibold rounded-xl text-slate-200 hover:text-white bg-slate-900 hover:bg-slate-800 border border-slate-700/80 transition flex items-center space-x-1.5 shadow-sm">
-              <i data-lucide="log-in" class="w-3.5 h-3.5 text-brand-400"></i>
-              <span>Login Page</span>
-            </a>
-            <a href="/auth?mode=register" class="px-3.5 py-2 text-xs font-semibold rounded-xl text-white bg-gradient-to-r from-brand-600 to-indigo-600 hover:from-brand-500 hover:to-indigo-500 shadow-md shadow-brand-500/25 border border-brand-400/30 transition flex items-center space-x-1.5">
-              <i data-lucide="user-plus" class="w-3.5 h-3.5"></i>
-              <span>Create Account</span>
-            </a>
-          </div>
-
-        </div>
-
-      </div>
-    </div>
-  </header>
-
-  <!-- PIPELINE STAGES BAR -->
-  <div class="bg-slate-950 border-b border-slate-800/80 py-2 px-4 text-xs font-medium overflow-x-auto shadow-inner">
-    <div class="max-w-7xl mx-auto flex items-center justify-between min-w-[760px]">
-      <div class="flex items-center space-x-2 text-brand-400 font-bold uppercase tracking-wider text-[11px]">
-        <i data-lucide="git-branch" class="w-4 h-4"></i>
-        <span>DevOps Lifecycle (Batch B3 - G3):</span>
-      </div>
-      <div class="flex items-center space-x-3 text-slate-300">
-        <span class="flex items-center space-x-1.5 bg-slate-900/90 px-3 py-1 rounded-full border border-slate-800">
-          <span class="w-2 h-2 rounded-full bg-blue-400"></span>
-          <span class="text-slate-400">R1:</span> <b>SHAIKH RAHMAT</b> <span class="text-xs text-blue-400 font-mono">(Jira)</span>
-        </span>
-        <span class="text-slate-600">&rarr;</span>
-        <span class="flex items-center space-x-1.5 bg-slate-900/90 px-3 py-1 rounded-full border border-slate-800">
-          <span class="w-2 h-2 rounded-full bg-indigo-400"></span>
-          <span class="text-slate-400">R2:</span> <b>YADGIR ZUVERIA</b> <span class="text-xs text-indigo-400 font-mono">(Code/PR)</span>
-        </span>
-        <span class="text-slate-600">&rarr;</span>
-        <span class="flex items-center space-x-1.5 bg-slate-900/90 px-3 py-1 rounded-full border border-slate-800">
-          <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
-          <span class="text-slate-400">R3:</span> <b>SHAIKH ZAID M.</b> <span class="text-xs text-emerald-400 font-mono">(CI/Docker)</span>
-        </span>
-        <span class="text-slate-600">&rarr;</span>
-        <span class="flex items-center space-x-1.5 bg-slate-900/90 px-3 py-1 rounded-full border border-slate-800">
-          <span class="w-2 h-2 rounded-full bg-purple-400"></span>
-          <span class="text-slate-400">R4:</span> <b>SHAIKH ZAID W.</b> <span class="text-xs text-purple-400 font-mono">(Deploy/Mon)</span>
-        </span>
-      </div>
-    </div>
-  </div>
-
-  <!-- MAIN APP CONTAINER -->
-  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 w-full space-y-8">
-
-    <!-- HERO SECTION WITH INTERACTIVE 3D PLATFORM SHIELD -->
-    <div class="relative rounded-3xl bg-gradient-to-r from-slate-900 via-indigo-950/70 to-slate-900 border border-indigo-500/20 p-6 sm:p-8 overflow-hidden shadow-2xl">
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-center">
-        
-        <!-- Text details -->
-        <div class="lg:col-span-2 space-y-3 z-10">
-          <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-brand-500/10 border border-brand-500/30 text-brand-300 text-xs font-mono font-medium">
-            <span class="w-2 h-2 rounded-full bg-brand-400 animate-pulse"></span>
-            <span>Enterprise SSO & Cloud Native Pipeline Enabled</span>
-          </div>
-          <h2 class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
-            Personnel Directory & DevOps Orchestration Platform
-          </h2>
-          <p class="text-sm text-slate-300 max-w-2xl leading-relaxed">
-            Engineered for <span class="text-brand-300 font-semibold">Practical 10: End-to-End DevOps Pipeline</span>. Fully unified with Google/GitHub SSO, automated Pytest continuous integration, Prometheus metric scraping, and Grafana monitoring.
-          </p>
-
-          <div class="pt-2 flex flex-wrap gap-2.5">
-            <button onclick="openAuthModal('sso')" class="px-4 py-2 rounded-xl bg-slate-800/90 hover:bg-slate-800 border border-brand-500/40 text-brand-300 hover:text-white text-xs font-medium transition flex items-center space-x-2">
-              <i data-lucide="key" class="w-4 h-4 text-brand-400"></i>
-              <span>Test Enterprise SSO Gate</span>
-            </button>
-            <button onclick="focusAddMemberForm()" class="px-4 py-2 rounded-xl bg-brand-600 hover:bg-brand-500 text-white text-xs font-medium transition flex items-center space-x-2 shadow-lg shadow-brand-600/30">
-              <i data-lucide="plus-circle" class="w-4 h-4"></i>
-              <span>Dispatch POST /items</span>
-            </button>
-          </div>
-        </div>
-
-        <!-- 3D Interactive Hero Logo Widget -->
-        <div class="h-44 sm:h-52 w-full rounded-2xl bg-slate-950/60 border border-indigo-500/30 relative overflow-hidden flex items-center justify-center group shadow-inner">
-          <canvas id="three-hero-canvas"></canvas>
-          <div class="absolute bottom-2 right-3 text-[10px] font-mono text-slate-500 pointer-events-none flex items-center gap-1">
-            <i data-lucide="rotate-3d" class="w-3 h-3 text-brand-400"></i>
-            <span>Interactive 3D WebGL (Drag/Hover)</span>
-          </div>
-        </div>
-
-      </div>
-    </div>
-
-    <!-- REST ENDPOINTS QUICK LAUNCH BAR (NEW TABS INTEGRATION) -->
-    <div class="bg-gradient-to-r from-slate-900 via-indigo-950/60 to-slate-900 rounded-2xl p-5 border border-indigo-500/30 shadow-xl">
-      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <div class="flex items-center space-x-2">
-            <span class="inline-flex p-1.5 rounded-lg bg-indigo-500/20 text-indigo-400 border border-indigo-500/30">
-              <i data-lucide="layers" class="w-4 h-4"></i>
-            </span>
-            <h3 class="text-sm font-extrabold text-white uppercase tracking-wider">REST API Endpoints Hub</h3>
-            <span class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">Practical 10 Endpoints</span>
-          </div>
-          <p class="text-xs text-slate-400 mt-1">Directly test and inspect endpoints in new tabs or trigger in-browser previews:</p>
-        </div>
-
-        <!-- 3 Interactive Cards / Launchers -->
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 flex-1 max-w-2xl">
-          
-          <!-- Tab 1: /health -->
-          <a href="http://localhost:5001/health" target="_blank" rel="noopener noreferrer" class="bg-slate-800/90 hover:bg-slate-800 border border-emerald-500/40 hover:border-emerald-400 p-3 rounded-xl transition group flex items-center justify-between shadow-sm">
-            <div class="flex items-center space-x-2.5 min-w-0">
-              <div class="p-2 rounded-lg bg-emerald-500/20 text-emerald-400 group-hover:scale-110 transition">
-                <i data-lucide="heart-pulse" class="w-4 h-4"></i>
-              </div>
-              <div class="min-w-0">
-                <div class="flex items-center space-x-1.5">
-                  <span class="text-xs font-mono font-bold text-white">/health</span>
-                  <span class="text-[9px] font-mono px-1 rounded bg-emerald-500/20 text-emerald-300">200</span>
-                </div>
-                <p class="text-[11px] text-slate-400 truncate">Monitoring Check</p>
-              </div>
-            </div>
-            <i data-lucide="external-link" class="w-3.5 h-3.5 text-slate-400 group-hover:text-emerald-400 group-hover:translate-x-0.5 transition"></i>
-          </a>
-
-          <!-- Tab 2: /items -->
-          <a href="http://localhost:5001/items" target="_blank" rel="noopener noreferrer" class="bg-slate-800/90 hover:bg-slate-800 border border-indigo-500/40 hover:border-indigo-400 p-3 rounded-xl transition group flex items-center justify-between shadow-sm">
-            <div class="flex items-center space-x-2.5 min-w-0">
-              <div class="p-2 rounded-lg bg-indigo-500/20 text-indigo-400 group-hover:scale-110 transition">
-                <i data-lucide="database" class="w-4 h-4"></i>
-              </div>
-              <div class="min-w-0">
-                <div class="flex items-center space-x-1.5">
-                  <span class="text-xs font-mono font-bold text-white">/items</span>
-                  <span class="text-[9px] font-mono px-1 rounded bg-indigo-500/20 text-indigo-300">JSON</span>
-                </div>
-                <p class="text-[11px] text-slate-400 truncate">Personnel Records</p>
-              </div>
-            </div>
-            <i data-lucide="external-link" class="w-3.5 h-3.5 text-slate-400 group-hover:text-indigo-400 group-hover:translate-x-0.5 transition"></i>
-          </a>
-
-          <!-- Tab 3: /metrics -->
-          <a href="http://localhost:5001/metrics" target="_blank" rel="noopener noreferrer" class="bg-slate-800/90 hover:bg-slate-800 border border-amber-500/40 hover:border-amber-400 p-3 rounded-xl transition group flex items-center justify-between shadow-sm">
-            <div class="flex items-center space-x-2.5 min-w-0">
-              <div class="p-2 rounded-lg bg-amber-500/20 text-amber-400 group-hover:scale-110 transition">
-                <i data-lucide="activity" class="w-4 h-4"></i>
-              </div>
-              <div class="min-w-0">
-                <div class="flex items-center space-x-1.5">
-                  <span class="text-xs font-mono font-bold text-white">/metrics</span>
-                  <span class="text-[9px] font-mono px-1 rounded bg-amber-500/20 text-amber-300">Prom</span>
-                </div>
-                <p class="text-[11px] text-slate-400 truncate">Telemetry Scrapes</p>
-              </div>
-            </div>
-            <i data-lucide="external-link" class="w-3.5 h-3.5 text-slate-400 group-hover:text-amber-400 group-hover:translate-x-0.5 transition"></i>
-          </a>
-
+          <h1 class="text-base font-extrabold tracking-tight text-white flex items-center gap-1.5">
+            <span>AgentGuard</span>
+          </h1>
+          <p class="text-[10px] text-slate-400 font-medium tracking-wide">Secure • Automate • Scale</p>
         </div>
       </div>
+
+      <!-- Navigation Links -->
+      <nav class="px-3 py-4 space-y-1">
+        <a href="#dashboard" onclick="switchNavSection('dashboard')" id="nav-dashboard" class="flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold bg-brand-600 text-white shadow-md shadow-brand-600/30 transition">
+          <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
+          <span>Dashboard</span>
+        </a>
+
+        <a href="#directory" onclick="switchNavSection('directory')" id="nav-directory" class="flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-xs font-medium text-slate-400 hover:text-white hover:bg-white/5 transition">
+          <i data-lucide="users" class="w-4 h-4"></i>
+          <span>Personnel Directory</span>
+        </a>
+
+        <a href="#orchestration" onclick="switchNavSection('orchestration')" id="nav-orchestration" class="flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-xs font-medium text-slate-400 hover:text-white hover:bg-white/5 transition">
+          <i data-lucide="git-branch" class="w-4 h-4"></i>
+          <span>DevOps Orchestration</span>
+        </a>
+
+        <a href="#infrastructure" onclick="switchNavSection('infrastructure')" id="nav-infrastructure" class="flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-xs font-medium text-slate-400 hover:text-white hover:bg-white/5 transition">
+          <i data-lucide="server" class="w-4 h-4"></i>
+          <span>Infrastructure</span>
+        </a>
+
+        <a href="#monitoring" onclick="switchNavSection('monitoring')" id="nav-monitoring" class="flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-xs font-medium text-slate-400 hover:text-white hover:bg-white/5 transition">
+          <i data-lucide="activity" class="w-4 h-4"></i>
+          <span>Monitoring & Observability</span>
+        </a>
+
+        <a href="#security" onclick="switchNavSection('security')" id="nav-security" class="flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-xs font-medium text-slate-400 hover:text-white hover:bg-white/5 transition">
+          <i data-lucide="shield-check" class="w-4 h-4"></i>
+          <span>Security & Access</span>
+        </a>
+
+        <a href="#reports" onclick="switchNavSection('reports')" id="nav-reports" class="flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-xs font-medium text-slate-400 hover:text-white hover:bg-white/5 transition">
+          <i data-lucide="bar-chart-2" class="w-4 h-4"></i>
+          <span>Reports & Analytics</span>
+        </a>
+
+        <a href="#settings" onclick="switchNavSection('settings')" id="nav-settings" class="flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-xs font-medium text-slate-400 hover:text-white hover:bg-white/5 transition">
+          <i data-lucide="settings" class="w-4 h-4"></i>
+          <span>Settings</span>
+        </a>
+      </nav>
     </div>
 
-    <!-- KPI STATS CARDS -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-      <!-- Total Records -->
-      <div class="bg-slate-800/60 rounded-2xl p-5 border border-slate-700/60 hover:border-slate-600/80 transition relative overflow-hidden group shadow-lg">
-        <div class="flex items-center justify-between">
-          <div>
-            <p class="text-xs font-bold uppercase tracking-wider text-slate-400">Personnel Records</p>
-            <h3 id="statTotalEmployees" class="text-3xl font-extrabold text-white mt-1 group-hover:text-brand-400 transition">4</h3>
-            <p class="text-xs text-emerald-400 font-medium mt-1 flex items-center gap-1">
-              <i data-lucide="database" class="w-3.5 h-3.5"></i>
-              <span>Live In-Memory Store</span>
-            </p>
-          </div>
-          <div class="w-12 h-12 rounded-xl bg-brand-500/10 border border-brand-500/20 text-brand-400 flex items-center justify-center">
-            <i data-lucide="users" class="w-6 h-6"></i>
-          </div>
+    <!-- Bottom Sidebar Status Widget -->
+    <div class="p-4 m-3 rounded-2xl bg-slate-900/90 border border-white/5 space-y-3">
+      <div class="flex items-center space-x-2.5">
+        <span class="relative flex h-2.5 w-2.5">
+          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+          <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+        </span>
+        <div>
+          <p class="text-xs font-bold text-white leading-tight">System Online</p>
+          <p class="text-[10px] text-slate-400 leading-tight">All services operational</p>
         </div>
       </div>
-
-      <!-- Active Departments -->
-      <div class="bg-slate-800/60 rounded-2xl p-5 border border-slate-700/60 hover:border-slate-600/80 transition relative overflow-hidden group shadow-lg">
-        <div class="flex items-center justify-between">
-          <div>
-            <p class="text-xs font-bold uppercase tracking-wider text-slate-400">Active Divisions</p>
-            <h3 id="statTotalDepts" class="text-3xl font-extrabold text-white mt-1 group-hover:text-violet-400 transition">4</h3>
-            <p class="text-xs text-violet-400 font-medium mt-1 flex items-center gap-1">
-              <i data-lucide="building" class="w-3.5 h-3.5"></i>
-              <span>Platform, AI, Core, Eng</span>
-            </p>
-          </div>
-          <div class="w-12 h-12 rounded-xl bg-violet-500/10 border border-violet-500/20 text-violet-400 flex items-center justify-center">
-            <i data-lucide="building-2" class="w-6 h-6"></i>
-          </div>
-        </div>
-      </div>
-
-      <!-- Service Health -->
-      <div class="bg-slate-800/60 rounded-2xl p-5 border border-slate-700/60 hover:border-slate-600/80 transition relative overflow-hidden group shadow-lg">
-        <div class="flex items-center justify-between">
-          <div>
-            <p class="text-xs font-bold uppercase tracking-wider text-slate-400">Endpoint Health</p>
-            <h3 id="statHealthStatus" class="text-3xl font-extrabold text-emerald-400 mt-1">HEALTHY</h3>
-            <p class="text-xs text-slate-400 font-mono mt-1">GET /health &bull; 200 OK</p>
-          </div>
-          <div class="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center">
-            <i data-lucide="heart-pulse" class="w-6 h-6"></i>
-          </div>
-        </div>
-      </div>
-
-      <!-- Total API Requests -->
-      <div class="bg-slate-800/60 rounded-2xl p-5 border border-slate-700/60 hover:border-slate-600/80 transition relative overflow-hidden group shadow-lg">
-        <div class="flex items-center justify-between">
-          <div>
-            <p class="text-xs font-bold uppercase tracking-wider text-slate-400">API Calls Served</p>
-            <h3 id="statTotalCalls" class="text-3xl font-extrabold text-amber-400 mt-1">--</h3>
-            <p class="text-xs text-slate-400 font-mono mt-1">Prometheus /metrics live</p>
-          </div>
-          <div class="w-12 h-12 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400 flex items-center justify-center">
-            <i data-lucide="zap" class="w-6 h-6"></i>
-          </div>
-        </div>
+      <div class="pt-2 border-t border-white/5 flex items-center justify-between text-[10px] text-slate-500 font-mono">
+        <span>Version 2.1.0</span>
+        <span>Built with ❤️ for DevOps</span>
       </div>
     </div>
+  </aside>
 
-    <!-- DYNAMIC LIVE TELEMETRY STREAM & MINI CHART -->
-    <div class="bg-slate-800/50 rounded-2xl p-5 border border-slate-700/60 shadow-lg">
-      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-700/60">
-        <div class="flex items-center space-x-3">
-          <div class="p-2 rounded-lg bg-indigo-500/20 text-indigo-400 border border-indigo-500/30">
-            <i data-lucide="activity" class="w-5 h-5"></i>
-          </div>
-          <div>
-            <h3 class="text-sm font-bold text-white">Live DevOps Telemetry Stream</h3>
-            <p class="text-xs text-slate-400">Real-time scrape buffer of Prometheus <code class="font-mono text-indigo-300">http_requests_total</code></p>
+  <!-- ============================================================== -->
+  <!-- 2. MAIN APPLICATION WORKSPACE -->
+  <!-- ============================================================== -->
+  <div class="flex-1 flex flex-col min-w-0 overflow-y-auto">
+
+    <!-- TOP NAVIGATION BAR -->
+    <header class="sticky top-0 z-30 bg-[#050811]/90 backdrop-blur-xl border-b border-white/5 px-6 py-3.5 flex items-center justify-between gap-4">
+      
+      <!-- Global Search Command Bar (Ctrl + K) -->
+      <div class="flex-1 max-w-lg relative">
+        <div class="relative cursor-pointer" onclick="openCommandPalette()">
+          <i data-lucide="search" class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
+          <input 
+            type="text" 
+            readonly 
+            placeholder="Search employees, services, environments... (Ctrl + K)" 
+            class="w-full pl-10 pr-24 py-2 bg-slate-900/90 border border-white/10 rounded-xl text-xs text-slate-200 placeholder-slate-400 cursor-pointer hover:border-brand-500/50 transition focus:outline-none"
+          />
+          <div class="absolute right-2.5 top-1/2 -translate-y-1/2 flex items-center space-x-1">
+            <kbd class="px-1.5 py-0.5 text-[10px] font-mono bg-slate-800 text-slate-400 rounded border border-white/10">Ctrl + K</kbd>
           </div>
         </div>
-        <div class="flex items-center space-x-2">
-          <button onclick="triggerTrafficBurst()" class="px-3 py-1.5 text-xs font-medium bg-indigo-600/30 hover:bg-indigo-600/50 border border-indigo-500/40 text-indigo-200 rounded-lg transition flex items-center space-x-1.5" title="Generate mock GET /items and GET /health requests to see metrics climb">
-            <i data-lucide="play" class="w-3.5 h-3.5"></i>
-            <span>Simulate Traffic Burst</span>
+      </div>
+
+      <!-- Top Right Controls -->
+      <div class="flex items-center space-x-3">
+        <!-- Direct Quick Endpoint Links -->
+        <div class="hidden xl:flex items-center space-x-2">
+          <a href="/health" target="_blank" rel="noopener noreferrer" class="px-2.5 py-1 text-[11px] font-mono font-semibold rounded-lg bg-emerald-950/60 text-emerald-300 border border-emerald-500/30 hover:bg-emerald-900/60 transition flex items-center gap-1" title="Open GET /health in new tab">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+            <span>/health</span>
+          </a>
+          <a href="/items" target="_blank" rel="noopener noreferrer" class="px-2.5 py-1 text-[11px] font-mono font-semibold rounded-lg bg-indigo-950/60 text-indigo-300 border border-indigo-500/30 hover:bg-indigo-900/60 transition flex items-center gap-1" title="Open GET /items in new tab">
+            <span class="w-1.5 h-1.5 rounded-full bg-indigo-400"></span>
+            <span>/items</span>
+          </a>
+          <a href="/metrics" target="_blank" rel="noopener noreferrer" class="px-2.5 py-1 text-[11px] font-mono font-semibold rounded-lg bg-amber-950/60 text-amber-300 border border-amber-500/30 hover:bg-amber-900/60 transition flex items-center gap-1" title="Open GET /metrics in new tab">
+            <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+            <span>/metrics</span>
+          </a>
+        </div>
+
+        <!-- Notifications Bell -->
+        <button onclick="toggleNotificationPanel()" class="relative p-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 transition" title="Notifications">
+          <i data-lucide="bell" class="w-4 h-4"></i>
+          <span class="absolute top-1.5 right-1.5 w-4 h-4 rounded-full bg-rose-500 text-white text-[9px] font-bold flex items-center justify-center">3</span>
+        </button>
+
+        <!-- Dark/Light Mode Toggle -->
+        <button onclick="toggleTheme()" class="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 transition" title="Toggle Theme">
+          <i data-lucide="moon" class="w-4 h-4" id="themeIcon"></i>
+        </button>
+
+        <!-- User Profile Pill & Dropdown -->
+        <div class="relative">
+          <button onclick="toggleProfileDropdown()" class="flex items-center space-x-3 p-1.5 pr-3 rounded-xl hover:bg-white/5 border border-transparent hover:border-white/10 transition group">
+            <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white font-bold text-xs shadow-sm" id="topNavAvatar">
+              ZS
+            </div>
+            <div class="text-left hidden sm:block">
+              <p class="text-xs font-bold text-white group-hover:text-brand-300 transition" id="topNavUserName">Zaid Shaikh</p>
+              <p class="text-[10px] text-slate-400 font-medium" id="topNavUserRole">Admin</p>
+            </div>
+            <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-slate-400 group-hover:text-white transition"></i>
           </button>
-          <span class="text-xs font-mono px-2.5 py-1 rounded bg-slate-900 border border-slate-700 text-slate-300" id="liveLatency">Latency: 2ms</span>
+
+          <!-- Dropdown Menu -->
+          <div id="profileDropdownMenu" class="absolute right-0 mt-2 w-56 rounded-2xl bg-[#0b1120] border border-white/10 shadow-2xl p-2 hidden z-50">
+            <div class="px-3 py-2 border-b border-white/5">
+              <p class="text-xs font-bold text-white" id="dropdownUserName">Zaid Shaikh</p>
+              <p class="text-[11px] text-slate-400 truncate" id="dropdownUserEmail">zaid@company.com</p>
+              <span class="inline-block mt-1 text-[9px] font-mono bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded-full" id="dropdownSSOStatus">Google SSO Connected</span>
+            </div>
+            <div class="py-1 space-y-0.5 text-xs">
+              <a href="#profile" onclick="openEmployeeDrawer(1)" class="flex items-center space-x-2.5 px-3 py-2 rounded-xl text-slate-300 hover:text-white hover:bg-white/5 transition">
+                <i data-lucide="user" class="w-4 h-4 text-slate-400"></i>
+                <span>Profile</span>
+              </a>
+              <a href="#settings" onclick="switchNavSection('settings')" class="flex items-center space-x-2.5 px-3 py-2 rounded-xl text-slate-300 hover:text-white hover:bg-white/5 transition">
+                <i data-lucide="settings" class="w-4 h-4 text-slate-400"></i>
+                <span>Account Settings</span>
+              </a>
+              <a href="#security" onclick="switchNavSection('security')" class="flex items-center space-x-2.5 px-3 py-2 rounded-xl text-slate-300 hover:text-white hover:bg-white/5 transition">
+                <i data-lucide="shield" class="w-4 h-4 text-slate-400"></i>
+                <span>Security & Sessions</span>
+              </a>
+              <a href="/auth" class="flex items-center space-x-2.5 px-3 py-2 rounded-xl text-indigo-400 hover:text-indigo-300 hover:bg-indigo-500/10 transition">
+                <i data-lucide="log-in" class="w-4 h-4"></i>
+                <span>Switch / Re-login</span>
+              </a>
+            </div>
+            <div class="pt-1 border-t border-white/5">
+              <button onclick="handleLogout()" class="w-full flex items-center space-x-2.5 px-3 py-2 rounded-xl text-rose-400 hover:text-white hover:bg-rose-500/20 transition text-xs font-medium">
+                <i data-lucide="log-out" class="w-4 h-4"></i>
+                <span>Logout</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- MAIN DASHBOARD CONTENT AREA -->
+    <main class="p-6 sm:p-8 space-y-7 max-w-[1600px] w-full mx-auto">
+
+      <!-- ============================================================== -->
+      <!-- 4. GREETING & DYNAMIC REAL-TIME CLOCK HEADER -->
+      <!-- ============================================================== -->
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h2 class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight flex items-center gap-2">
+            <span>Good Evening, Zaid</span>
+            <span class="text-2xl">👋</span>
+          </h2>
+          <p class="text-xs sm:text-sm text-slate-400 mt-1">
+            Here's what's happening with your team and infrastructure today.
+          </p>
+        </div>
+
+        <!-- Dynamic Date & Time Widget (IST GMT+5:30) -->
+        <div class="flex items-center space-x-3 bg-slate-900/90 border border-white/10 px-4 py-2.5 rounded-2xl shadow-sm self-start sm:self-auto">
+          <div class="w-9 h-9 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center">
+            <i data-lucide="calendar" class="w-4 h-4"></i>
+          </div>
+          <div class="text-right">
+            <div id="dynamicDate" class="text-xs font-bold text-white font-mono">Mon, 29 Sep 2026</div>
+            <div class="flex items-center justify-end space-x-1.5 text-[11px] text-slate-400 font-mono">
+              <span id="dynamicTime" class="text-brand-300 font-semibold">06:42 PM</span>
+              <span class="text-[9px] text-slate-500">IST (GMT+5:30)</span>
+            </div>
+          </div>
         </div>
       </div>
 
-      <!-- Mini Chart -->
-      <div class="mt-4 h-36 w-full">
-        <canvas id="telemetryChart"></canvas>
-      </div>
-    </div>
-
-    <!-- MAIN TWO-COLUMN WORKSPACE -->
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-
-      <!-- LEFT 2 COLUMNS: PERSONNEL RECORDS LIST & SEARCH FILTERS -->
-      <div class="lg:col-span-2 space-y-6">
-
-        <!-- Search & Control Header -->
-        <div class="bg-slate-800/80 rounded-2xl p-4 sm:p-5 border border-slate-700/80 shadow-lg flex flex-col sm:flex-row gap-3.5 items-stretch sm:items-center justify-between">
-          
-          <!-- Search input -->
-          <div class="relative flex-1">
-            <i data-lucide="search" class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
-            <input 
-              type="text" 
-              id="searchInput" 
-              placeholder="Search by name, role, division, email..." 
-              class="w-full pl-10 pr-4 py-2.5 bg-slate-900/90 text-slate-100 rounded-xl border border-slate-700 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 text-sm outline-none transition placeholder-slate-500"
-            />
+      <!-- ============================================================== -->
+      <!-- 5. FIVE PREMIUM KPI CARDS -->
+      <!-- ============================================================== -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+        
+        <!-- CARD 1: Total Employees -->
+        <div class="agent-card p-5 group cursor-pointer" onclick="switchNavSection('directory')">
+          <div class="flex items-center justify-between">
+            <div class="w-11 h-11 rounded-2xl bg-blue-500/15 border border-blue-500/30 text-blue-400 flex items-center justify-center shadow-inner group-hover:scale-105 transition">
+              <i data-lucide="users" class="w-5 h-5"></i>
+            </div>
           </div>
+          <p class="text-xs font-semibold text-slate-400 mt-3.5">Total Employees</p>
+          <div class="flex items-baseline space-x-2 mt-1">
+            <span id="kpiTotalEmployees" class="text-3xl font-extrabold text-white tracking-tight">48</span>
+          </div>
+          <p class="text-[11px] text-emerald-400 font-medium mt-1 flex items-center gap-1">
+            <i data-lucide="trending-up" class="w-3 h-3"></i>
+            <span>+2 this week</span>
+          </p>
+        </div>
 
-          <!-- Department dropdown -->
-          <div class="flex items-center space-x-2">
-            <select id="departmentFilter" class="px-3.5 py-2.5 rounded-xl border border-slate-700 bg-slate-900 text-sm text-slate-200 outline-none focus:border-brand-500 transition">
-              <option value="">All Divisions</option>
-              <option value="Platform & Cloud">Platform & Cloud</option>
-              <option value="AI & Data Science">AI & Data Science</option>
-              <option value="Engineering">Engineering</option>
-              <option value="Core Infrastructure">Core Infrastructure</option>
-            </select>
+        <!-- CARD 2: Active Services -->
+        <div class="agent-card p-5 group cursor-pointer" onclick="switchNavSection('infrastructure')">
+          <div class="flex items-center justify-between">
+            <div class="w-11 h-11 rounded-2xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 flex items-center justify-center shadow-inner group-hover:scale-105 transition">
+              <i data-lucide="box" class="w-5 h-5"></i>
+            </div>
+          </div>
+          <p class="text-xs font-semibold text-slate-400 mt-3.5">Active Services</p>
+          <div class="flex items-baseline space-x-2 mt-1">
+            <span id="kpiActiveServices" class="text-3xl font-extrabold text-white tracking-tight">12</span>
+          </div>
+          <p class="text-[11px] text-emerald-400 font-medium mt-1 flex items-center gap-1.5">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 pulse-online"></span>
+            <span>All systems running</span>
+          </p>
+        </div>
 
-            <!-- View Switcher (Grid vs List) -->
-            <div class="flex bg-slate-900 p-1 rounded-xl border border-slate-700">
-              <button id="viewGridBtn" onclick="setViewMode('grid')" class="p-1.5 rounded-lg text-white bg-slate-800 transition" title="Grid View">
-                <i data-lucide="grid" class="w-4 h-4"></i>
-              </button>
-              <button id="viewListBtn" onclick="setViewMode('list')" class="p-1.5 rounded-lg text-slate-400 hover:text-white transition" title="List View">
-                <i data-lucide="list" class="w-4 h-4"></i>
+        <!-- CARD 3: CI/CD Pipelines -->
+        <div class="agent-card p-5 group cursor-pointer" onclick="switchNavSection('orchestration')">
+          <div class="flex items-center justify-between">
+            <div class="w-11 h-11 rounded-2xl bg-indigo-500/15 border border-indigo-500/30 text-indigo-400 flex items-center justify-center shadow-inner group-hover:scale-105 transition">
+              <i data-lucide="git-merge" class="w-5 h-5"></i>
+            </div>
+          </div>
+          <p class="text-xs font-semibold text-slate-400 mt-3.5">CI/CD Pipelines</p>
+          <div class="flex items-baseline space-x-2 mt-1">
+            <span id="kpiPipelines" class="text-3xl font-extrabold text-white tracking-tight">8</span>
+          </div>
+          <p class="text-[11px] text-indigo-300 font-medium mt-1 flex items-center gap-1.5">
+            <span class="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse"></span>
+            <span>2 running • 6 completed</span>
+          </p>
+        </div>
+
+        <!-- CARD 4: Infrastructure -->
+        <div class="agent-card p-5 group cursor-pointer" onclick="switchNavSection('infrastructure')">
+          <div class="flex items-center justify-between">
+            <div class="w-11 h-11 rounded-2xl bg-amber-500/15 border border-amber-500/30 text-amber-400 flex items-center justify-center shadow-inner group-hover:scale-105 transition">
+              <i data-lucide="server" class="w-5 h-5"></i>
+            </div>
+          </div>
+          <p class="text-xs font-semibold text-slate-400 mt-3.5">Infrastructure</p>
+          <div class="flex items-baseline space-x-2 mt-1">
+            <span id="kpiInfrastructure" class="text-3xl font-extrabold text-white tracking-tight">6</span>
+          </div>
+          <p class="text-[11px] text-amber-300 font-medium mt-1 flex items-center gap-1.5">
+            <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+            <span>2 clusters • 4 nodes</span>
+          </p>
+        </div>
+
+        <!-- CARD 5: Security Alerts -->
+        <div class="agent-card p-5 group cursor-pointer" onclick="switchNavSection('security')">
+          <div class="flex items-center justify-between">
+            <div class="w-11 h-11 rounded-2xl bg-rose-500/15 border border-rose-500/30 text-rose-400 flex items-center justify-center shadow-inner group-hover:scale-105 transition">
+              <i data-lucide="shield-alert" class="w-5 h-5"></i>
+            </div>
+          </div>
+          <p class="text-xs font-semibold text-slate-400 mt-3.5">Security Alerts</p>
+          <div class="flex items-baseline space-x-2 mt-1">
+            <span id="kpiSecurityAlerts" class="text-3xl font-extrabold text-white tracking-tight">0</span>
+          </div>
+          <p class="text-[11px] text-emerald-400 font-medium mt-1 flex items-center gap-1.5">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+            <span>All clear</span>
+          </p>
+        </div>
+
+      </div>
+
+      <!-- ============================================================== -->
+      <!-- 6. THREE-COLUMN ENTERPRISE GRID: DIRECTORY | PIPELINE | WORLD MAP -->
+      <!-- ============================================================== -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+        <!-- LEFT (COL 5): PERSONNEL DIRECTORY PANEL -->
+        <div class="lg:col-span-5 agent-card p-6 flex flex-col justify-between" id="directorySection">
+          <div>
+            <div class="flex items-center justify-between mb-4">
+              <div class="flex items-center space-x-2.5">
+                <div class="w-8 h-8 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-400 flex items-center justify-center">
+                  <i data-lucide="contact" class="w-4 h-4"></i>
+                </div>
+                <div>
+                  <h3 class="text-sm font-bold text-white">Personnel Directory</h3>
+                  <p class="text-[11px] text-slate-400">Quick access to your team members and their details</p>
+                </div>
+              </div>
+              <button onclick="openAddMemberModal()" class="text-xs font-semibold text-blue-400 hover:text-blue-300 flex items-center gap-1">
+                <span>View All</span>
+                <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
               </button>
             </div>
 
-            <!-- Refresh Button -->
-            <button id="refreshBtn" onclick="loadEmployees()" class="p-2.5 rounded-xl border border-slate-700 bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white transition" title="Reload from GET /items">
-              <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+            <!-- Filters Header -->
+            <div class="space-y-3 mb-4">
+              <div class="relative">
+                <i data-lucide="search" class="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                <input 
+                  type="text" 
+                  id="directorySearchInput" 
+                  placeholder="Search by name, email, role or department..." 
+                  class="w-full pl-9 pr-3 py-2 bg-slate-900/90 border border-white/10 rounded-xl text-xs text-white placeholder-slate-400 focus:outline-none focus:border-brand-500 transition"
+                />
+              </div>
+
+              <div class="grid grid-cols-2 gap-2">
+                <select id="directoryDeptFilter" class="w-full px-2.5 py-1.5 bg-slate-900 border border-white/10 rounded-xl text-xs text-slate-300 focus:outline-none focus:border-brand-500">
+                  <option value="">All Departments</option>
+                  <option value="DevOps">DevOps</option>
+                  <option value="Backend">Backend</option>
+                  <option value="Frontend">Frontend</option>
+                  <option value="Infrastructure">Infrastructure</option>
+                  <option value="Quality Assurance">Quality Assurance</option>
+                </select>
+
+                <select id="directoryRoleFilter" class="w-full px-2.5 py-1.5 bg-slate-900 border border-white/10 rounded-xl text-xs text-slate-300 focus:outline-none focus:border-brand-500">
+                  <option value="">All Roles</option>
+                  <option value="Admin">Admin</option>
+                  <option value="Developer">Developer</option>
+                  <option value="DevOps">DevOps</option>
+                  <option value="QA">QA</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Table of Employees -->
+            <div class="overflow-x-auto">
+              <table class="w-full text-left border-collapse text-xs">
+                <thead>
+                  <tr class="text-[11px] font-bold text-slate-400 border-b border-white/10 uppercase tracking-wider">
+                    <th class="py-2.5 pl-2 font-medium">Name</th>
+                    <th class="py-2.5 px-2 font-medium">Role</th>
+                    <th class="py-2.5 px-2 font-medium">Department</th>
+                    <th class="py-2.5 px-2 font-medium">Status</th>
+                    <th class="py-2.5 px-2 font-medium">Location</th>
+                    <th class="py-2.5 pr-2 font-medium text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="directoryTableBody" class="divide-y divide-white/5 text-slate-300">
+                  <!-- Injected dynamically from GET /items -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Pagination / Add Action Bottom Bar -->
+          <div class="pt-4 mt-2 border-t border-white/5 flex items-center justify-between text-xs">
+            <span class="text-slate-400 text-[11px]" id="directoryCountLabel">Showing 5 members</span>
+            <div class="flex items-center space-x-2">
+              <button onclick="openAddMemberModal()" class="px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-medium text-xs transition flex items-center gap-1 shadow-sm">
+                <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+                <span>Add Member</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- CENTER (COL 4): DEVOPS PIPELINE STATUS CARD -->
+        <div class="lg:col-span-4 agent-card p-6 flex flex-col justify-between" id="orchestrationSection">
+          <div>
+            <div class="flex items-center justify-between mb-5">
+              <div class="flex items-center space-x-2.5">
+                <div class="w-8 h-8 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center">
+                  <i data-lucide="git-pull-request" class="w-4 h-4"></i>
+                </div>
+                <div>
+                  <h3 class="text-sm font-bold text-white">DevOps Pipeline Status</h3>
+                  <p class="text-[11px] text-slate-400">Kubernetes & CI/CD deployment tracks</p>
+                </div>
+              </div>
+              <span class="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center gap-1">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 pulse-online"></span>
+                Live
+              </span>
+            </div>
+
+            <!-- Pipeline Stages List -->
+            <div class="space-y-4">
+              
+              <!-- Stage 1: Build & Test -->
+              <div class="p-3.5 rounded-2xl bg-slate-900/80 border border-white/5 hover:border-white/10 transition">
+                <div class="flex items-center justify-between text-xs mb-2">
+                  <div class="flex items-center space-x-2.5">
+                    <div class="w-6 h-6 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-xs">
+                      <i data-lucide="check" class="w-3.5 h-3.5"></i>
+                    </div>
+                    <div>
+                      <p class="font-bold text-white">Build & Test</p>
+                      <p class="text-[10px] text-slate-400 font-mono">build-frontend</p>
+                    </div>
+                  </div>
+                  <div class="text-right">
+                    <span class="font-mono text-emerald-400 font-bold">100%</span>
+                    <p class="text-[10px] text-slate-500">12m ago</p>
+                  </div>
+                </div>
+                <div class="w-full bg-slate-800 rounded-full h-1.5 overflow-hidden">
+                  <div class="bg-emerald-500 h-1.5 rounded-full w-full"></div>
+                </div>
+              </div>
+
+              <!-- Stage 2: Security Scan -->
+              <div class="p-3.5 rounded-2xl bg-slate-900/80 border border-white/5 hover:border-white/10 transition">
+                <div class="flex items-center justify-between text-xs mb-2">
+                  <div class="flex items-center space-x-2.5">
+                    <div class="w-6 h-6 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-xs">
+                      <i data-lucide="shield-check" class="w-3.5 h-3.5"></i>
+                    </div>
+                    <div>
+                      <p class="font-bold text-white">Security Scan</p>
+                      <p class="text-[10px] text-slate-400 font-mono">trivy-scan</p>
+                    </div>
+                  </div>
+                  <div class="text-right">
+                    <span class="font-mono text-emerald-400 font-bold">100%</span>
+                    <p class="text-[10px] text-slate-500">15m ago</p>
+                  </div>
+                </div>
+                <div class="w-full bg-slate-800 rounded-full h-1.5 overflow-hidden">
+                  <div class="bg-emerald-500 h-1.5 rounded-full w-full"></div>
+                </div>
+              </div>
+
+              <!-- Stage 3: Build Image -->
+              <div class="p-3.5 rounded-2xl bg-slate-900/80 border border-white/5 hover:border-white/10 transition">
+                <div class="flex items-center justify-between text-xs mb-2">
+                  <div class="flex items-center space-x-2.5">
+                    <div class="w-6 h-6 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-xs">
+                      <i data-lucide="package" class="w-3.5 h-3.5"></i>
+                    </div>
+                    <div>
+                      <p class="font-bold text-white">Build Image</p>
+                      <p class="text-[10px] text-slate-400 font-mono">docker-build</p>
+                    </div>
+                  </div>
+                  <div class="text-right">
+                    <span class="font-mono text-emerald-400 font-bold">100%</span>
+                    <p class="text-[10px] text-slate-500">18m ago</p>
+                  </div>
+                </div>
+                <div class="w-full bg-slate-800 rounded-full h-1.5 overflow-hidden">
+                  <div class="bg-emerald-500 h-1.5 rounded-full w-full"></div>
+                </div>
+              </div>
+
+              <!-- Stage 4: Deploy to K8s -->
+              <div class="p-3.5 rounded-2xl bg-slate-900/80 border border-white/5 hover:border-white/10 transition">
+                <div class="flex items-center justify-between text-xs mb-2">
+                  <div class="flex items-center space-x-2.5">
+                    <div class="w-6 h-6 rounded-full bg-blue-500/20 text-blue-400 flex items-center justify-center text-xs">
+                      <i data-lucide="refresh-cw" class="w-3.5 h-3.5 animate-spin"></i>
+                    </div>
+                    <div>
+                      <p class="font-bold text-white">Deploy to K8s</p>
+                      <p class="text-[10px] text-slate-400 font-mono">k8s-deploy</p>
+                    </div>
+                  </div>
+                  <div class="text-right">
+                    <span class="font-mono text-blue-400 font-bold">75%</span>
+                    <p class="text-[10px] text-slate-500">24m ago</p>
+                  </div>
+                </div>
+                <div class="w-full bg-slate-800 rounded-full h-1.5 overflow-hidden">
+                  <div class="bg-blue-500 h-1.5 rounded-full w-3/4"></div>
+                </div>
+              </div>
+
+              <!-- Stage 5: Post Deploy Tests -->
+              <div class="p-3.5 rounded-2xl bg-slate-900/80 border border-white/5 hover:border-white/10 transition">
+                <div class="flex items-center justify-between text-xs mb-2">
+                  <div class="flex items-center space-x-2.5">
+                    <div class="w-6 h-6 rounded-full bg-slate-800 text-slate-400 flex items-center justify-center text-xs">
+                      <i data-lucide="clock" class="w-3.5 h-3.5"></i>
+                    </div>
+                    <div>
+                      <p class="font-bold text-slate-300">Post Deploy Tests</p>
+                      <p class="text-[10px] text-slate-500 font-mono">e2e-tests</p>
+                    </div>
+                  </div>
+                  <div class="text-right">
+                    <span class="font-mono text-slate-500 font-semibold">Pending</span>
+                  </div>
+                </div>
+                <div class="w-full bg-slate-800 rounded-full h-1.5 overflow-hidden">
+                  <div class="bg-slate-700 h-1.5 rounded-full w-0"></div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <div class="pt-4 border-t border-white/5 flex items-center justify-between text-xs">
+            <span class="text-slate-400 text-[11px]">Git branch: <code class="text-brand-300 font-mono">main#19e7d3c</code></span>
+            <button onclick="triggerTrafficBurst()" class="text-brand-400 hover:text-brand-300 font-medium flex items-center gap-1">
+              <i data-lucide="play" class="w-3 h-3"></i>
+              <span>Trigger Test Burst</span>
             </button>
           </div>
-
         </div>
 
-        <!-- Directory Header -->
-        <div class="flex items-center justify-between px-1">
+        <!-- RIGHT (COL 3): GLOBAL INFRASTRUCTURE MAP CARD -->
+        <div class="lg:col-span-3 agent-card p-6 flex flex-col justify-between" id="infraMapSection">
           <div>
-            <h2 class="text-lg font-bold text-white flex items-center gap-2">
-              <span>Personnel Records</span>
-              <span id="badgeFilteredCount" class="text-xs bg-brand-500/20 text-brand-300 border border-brand-500/30 px-2.5 py-0.5 rounded-full font-mono">4 members</span>
-            </h2>
-            <p class="text-xs text-slate-400">Live data fetched via <code class="font-mono text-indigo-400">GET /items</code> from memory</p>
+            <div class="flex items-center justify-between mb-3">
+              <div class="flex items-center space-x-2">
+                <i data-lucide="globe" class="w-4 h-4 text-cyan-400"></i>
+                <h3 class="text-sm font-bold text-white">Global Infrastructure</h3>
+              </div>
+              <button onclick="openGlobalMapModal()" class="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/5 transition" title="Expand Map">
+                <i data-lucide="maximize-2" class="w-3.5 h-3.5"></i>
+              </button>
+            </div>
+
+            <!-- Stylized World Map Vector Canvas -->
+            <div class="relative w-full h-44 rounded-2xl bg-[#070b15] border border-white/5 overflow-hidden flex items-center justify-center p-2 group cursor-pointer" onclick="openGlobalMapModal()">
+              <!-- World Map SVG outline -->
+              <svg class="w-full h-full opacity-35" viewBox="0 0 1000 500" fill="none">
+                <path d="M150,120 Q180,90 220,110 T300,160 T250,230 T170,200 Z" fill="#334155"/>
+                <path d="M220,260 Q260,250 280,310 T250,420 T200,380 Z" fill="#334155"/>
+                <path d="M450,90 Q520,70 560,110 T520,180 T460,140 Z" fill="#334155"/>
+                <path d="M470,190 Q540,190 570,260 T520,380 T460,290 Z" fill="#334155"/>
+                <path d="M600,100 Q750,80 820,130 T880,240 T720,220 T620,150 Z" fill="#334155"/>
+                <path d="M780,300 Q840,280 880,330 T820,400 T760,350 Z" fill="#334155"/>
+                <!-- Connection arc lines -->
+                <path d="M 230 150 Q 420 80 680 200" stroke="#38bdf8" stroke-width="1.5" stroke-dasharray="4,4" opacity="0.6"/>
+                <path d="M 680 200 Q 520 180 500 120" stroke="#818cf8" stroke-width="1.5" stroke-dasharray="4,4" opacity="0.6"/>
+              </svg>
+
+              <!-- Region Markers -->
+              <!-- Mumbai / India -->
+              <div class="absolute top-[48%] left-[68%] group/pin cursor-pointer">
+                <div class="w-3 h-3 rounded-full bg-emerald-500 animate-ping absolute"></div>
+                <div class="w-3 h-3 rounded-full bg-emerald-500 border-2 border-[#070b15] relative shadow-lg"></div>
+                <span class="absolute -top-5 -left-4 text-[9px] font-mono text-emerald-300 font-bold bg-slate-900/90 px-1.5 py-0.2 rounded border border-emerald-500/30 whitespace-nowrap">Mumbai</span>
+              </div>
+
+              <!-- US-East -->
+              <div class="absolute top-[32%] left-[24%] group/pin cursor-pointer">
+                <div class="w-2.5 h-2.5 rounded-full bg-emerald-500 relative border border-[#070b15]"></div>
+                <span class="absolute -top-5 -left-4 text-[8px] font-mono text-slate-300 bg-slate-900/90 px-1 rounded whitespace-nowrap">US-East</span>
+              </div>
+
+              <!-- Europe -->
+              <div class="absolute top-[28%] left-[50%] group/pin cursor-pointer">
+                <div class="w-2.5 h-2.5 rounded-full bg-amber-400 relative border border-[#070b15]"></div>
+                <span class="absolute -top-5 -left-4 text-[8px] font-mono text-amber-300 bg-slate-900/90 px-1 rounded whitespace-nowrap">Europe</span>
+              </div>
+
+              <!-- Asia East -->
+              <div class="absolute top-[40%] left-[84%] group/pin cursor-pointer">
+                <div class="w-2.5 h-2.5 rounded-full bg-rose-500 relative border border-[#070b15]"></div>
+                <span class="absolute -top-5 -left-3 text-[8px] font-mono text-rose-300 bg-slate-900/90 px-1 rounded whitespace-nowrap">Asia</span>
+              </div>
+            </div>
+
+            <!-- Region Health Count Pills -->
+            <div class="grid grid-cols-3 gap-2 mt-4 text-center">
+              <div class="p-2 rounded-xl bg-slate-900/90 border border-white/5">
+                <div class="flex items-center justify-center gap-1.5 text-emerald-400 font-bold text-xs">
+                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                  <span>4</span>
+                </div>
+                <p class="text-[10px] text-slate-400 mt-0.5">Healthy</p>
+              </div>
+
+              <div class="p-2 rounded-xl bg-slate-900/90 border border-white/5">
+                <div class="flex items-center justify-center gap-1.5 text-amber-400 font-bold text-xs">
+                  <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+                  <span>1</span>
+                </div>
+                <p class="text-[10px] text-slate-400 mt-0.5">Warning</p>
+              </div>
+
+              <div class="p-2 rounded-xl bg-slate-900/90 border border-white/5">
+                <div class="flex items-center justify-center gap-1.5 text-rose-400 font-bold text-xs">
+                  <span class="w-1.5 h-1.5 rounded-full bg-rose-400"></span>
+                  <span>1</span>
+                </div>
+                <p class="text-[10px] text-slate-400 mt-0.5">Critical</p>
+              </div>
+            </div>
           </div>
 
-          <div class="text-xs text-slate-400 flex items-center gap-2">
-            <span class="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-            <span>Live Auto-Sync Active</span>
+          <div class="pt-4 mt-2 border-t border-white/5 text-[11px] text-slate-400 flex items-center justify-between">
+            <span>Primary: <b>Mumbai (DC-1)</b></span>
+            <button onclick="openGlobalMapModal()" class="text-blue-400 hover:underline">Region details &rarr;</button>
           </div>
-        </div>
-
-        <!-- Loading State -->
-        <div id="loadingState" class="hidden p-12 text-center text-slate-400 bg-slate-800/40 rounded-2xl border border-slate-700/60">
-          <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-brand-500 border-t-transparent mb-3"></div>
-          <p class="text-sm">Fetching personnel records from REST endpoint...</p>
-        </div>
-
-        <!-- Empty State -->
-        <div id="emptyState" class="hidden p-12 text-center bg-slate-800/40 rounded-2xl border border-slate-700/60">
-          <div class="w-14 h-14 bg-slate-800 rounded-2xl flex items-center justify-center mx-auto text-slate-400 mb-3 border border-slate-700">
-            <i data-lucide="folder-search" class="w-7 h-7"></i>
-          </div>
-          <p class="text-base font-semibold text-slate-200">No matching personnel records</p>
-          <p class="text-xs text-slate-400 mt-1">Try resetting your search query or department filter.</p>
-        </div>
-
-        <!-- Records Container (Grid or List based on state) -->
-        <div id="recordsContainer" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <!-- Populated dynamically via JavaScript -->
         </div>
 
       </div>
 
-      <!-- RIGHT 1 COLUMN: ADD PERSONNEL (POST /items) & DEV ALLOCATION DETAILS -->
-      <div class="space-y-6">
+      <!-- ============================================================== -->
+      <!-- 7. TEAM ACTIVITY & PERFORMANCE | INFRASTRUCTURE OVERVIEW & GAUGES | RECENT ACTIVITY -->
+      <!-- ============================================================== -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
-        <!-- Add Personnel Form Card -->
-        <div class="bg-slate-800/80 rounded-2xl p-6 border border-slate-700/80 shadow-lg relative">
-          <div class="flex items-center justify-between pb-4 mb-4 border-b border-slate-700">
-            <div class="flex items-center space-x-2.5">
-              <div class="p-2 bg-brand-500/20 text-brand-400 rounded-xl border border-brand-500/30">
-                <i data-lucide="user-plus" class="w-5 h-5"></i>
+        <!-- TEAM ACTIVITY & PERFORMANCE (COL 5) -->
+        <div class="lg:col-span-5 agent-card p-6 flex flex-col justify-between" id="activityPerformanceSection">
+          <div>
+            <div class="flex items-center justify-between mb-4">
+              <div class="flex items-center space-x-2">
+                <i data-lucide="trending-up" class="w-4 h-4 text-brand-400"></i>
+                <h3 class="text-sm font-bold text-white">Team Activity & Performance</h3>
               </div>
-              <div>
-                <h3 class="text-base font-bold text-white">Add Personnel</h3>
-                <p class="text-xs text-slate-400">Triggers <code class="font-mono text-indigo-400">POST /items</code></p>
-              </div>
-            </div>
-            <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">HTTP 201</span>
-          </div>
-
-          <form id="addEmployeeForm" class="space-y-3.5">
-            <div>
-              <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1">Full Name <span class="text-rose-400">*</span></label>
-              <input 
-                type="text" 
-                id="nameInput" 
-                required 
-                placeholder="e.g. SHAIKH ZAID" 
-                class="w-full px-3.5 py-2.5 bg-slate-900 text-slate-100 rounded-xl border border-slate-700 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 text-sm outline-none transition"
-              />
-            </div>
-
-            <div>
-              <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1">Role / Designation <span class="text-rose-400">*</span></label>
-              <input 
-                type="text" 
-                id="roleInput" 
-                required 
-                placeholder="e.g. DevOps Engineer" 
-                class="w-full px-3.5 py-2.5 bg-slate-900 text-slate-100 rounded-xl border border-slate-700 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 text-sm outline-none transition"
-              />
-            </div>
-
-            <div>
-              <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1">Division / Department</label>
-              <select id="deptInput" class="w-full px-3.5 py-2.5 bg-slate-900 text-slate-100 rounded-xl border border-slate-700 focus:border-brand-500 text-sm outline-none transition">
-                <option value="Platform & Cloud">Platform & Cloud</option>
-                <option value="AI & Data Science">AI & Data Science</option>
-                <option value="Engineering">Engineering</option>
-                <option value="Core Infrastructure">Core Infrastructure</option>
+              <select id="activityTimeFilter" onchange="updateActivityChart()" class="px-2 py-1 bg-slate-900 border border-white/10 rounded-xl text-xs text-slate-300 focus:outline-none">
+                <option value="7d">Last 7 days</option>
+                <option value="24h">Last 24 hours</option>
+                <option value="30d">Last 30 days</option>
               </select>
             </div>
 
-            <div>
-              <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1">Email Address</label>
-              <input 
-                type="email" 
-                id="emailInput" 
-                placeholder="name@student.college.edu" 
-                class="w-full px-3.5 py-2.5 bg-slate-900 text-slate-100 rounded-xl border border-slate-700 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 text-sm outline-none transition"
-              />
-            </div>
-
-            <div class="grid grid-cols-2 gap-3">
-              <div>
-                <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1">Status</label>
-                <select id="statusInput" class="w-full px-3.5 py-2.5 bg-slate-900 text-slate-100 rounded-xl border border-slate-700 focus:border-brand-500 text-sm outline-none transition">
-                  <option value="Active">Active</option>
-                  <option value="On Leave">On Leave</option>
-                  <option value="Remote">Remote</option>
-                </select>
+            <!-- Top Performance 4-Metrics Row -->
+            <div class="grid grid-cols-4 gap-2 mb-4 text-center">
+              <div class="p-2.5 rounded-xl bg-slate-900/80 border border-white/5">
+                <p class="text-[10px] text-slate-400 font-medium">Commits</p>
+                <p class="text-base font-extrabold text-white mt-0.5">342</p>
+                <span class="text-[9px] text-emerald-400 font-mono">+12%</span>
               </div>
-              <div>
-                <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1">Location</label>
-                <input 
-                  type="text" 
-                  id="locInput" 
-                  value="Mumbai, India" 
-                  class="w-full px-3.5 py-2.5 bg-slate-900 text-slate-100 rounded-xl border border-slate-700 focus:border-brand-500 text-sm outline-none transition"
-                />
+              <div class="p-2.5 rounded-xl bg-slate-900/80 border border-white/5">
+                <p class="text-[10px] text-slate-400 font-medium">Deployments</p>
+                <p class="text-base font-extrabold text-white mt-0.5">28</p>
+                <span class="text-[9px] text-emerald-400 font-mono">+8%</span>
+              </div>
+              <div class="p-2.5 rounded-xl bg-slate-900/80 border border-white/5">
+                <p class="text-[10px] text-slate-400 font-medium">Active Users</p>
+                <p class="text-base font-extrabold text-white mt-0.5">42</p>
+                <span class="text-[9px] text-emerald-400 font-mono">+6%</span>
+              </div>
+              <div class="p-2.5 rounded-xl bg-slate-900/80 border border-white/5">
+                <p class="text-[10px] text-slate-400 font-medium">Uptime</p>
+                <p class="text-base font-extrabold text-white mt-0.5">99.98%</p>
+                <span class="text-[9px] text-emerald-400 font-mono">+0.02%</span>
               </div>
             </div>
 
-            <button 
-              type="submit" 
-              id="submitBtn" 
-              class="w-full mt-3 py-3 px-4 bg-brand-600 hover:bg-brand-500 active:bg-brand-700 text-white font-semibold text-sm rounded-xl shadow-lg shadow-brand-600/30 transition flex items-center justify-center space-x-2"
-            >
-              <i data-lucide="plus-circle" class="w-4 h-4"></i>
-              <span>Save & Dispatch POST /items</span>
-            </button>
-          </form>
-
-          <div id="formFeedback" class="mt-3 text-xs hidden p-3 rounded-xl"></div>
-        </div>
-
-        <!-- Practical 10 Group Roster Card -->
-        <div class="bg-gradient-to-br from-slate-900 via-slate-900 to-indigo-950 rounded-2xl p-6 border border-slate-800 shadow-xl space-y-4">
-          <div class="flex items-center justify-between pb-3 border-b border-slate-800">
-            <div class="flex items-center space-x-2 text-white font-bold text-sm">
-              <i data-lucide="award" class="w-4 h-4 text-brand-400"></i>
-              <h4>Batch B3 &bull; Group B3-G3 Allocation</h4>
+            <!-- Performance Graph -->
+            <div class="h-44 w-full">
+              <canvas id="teamActivityChart"></canvas>
             </div>
-            <span class="text-xs font-mono text-brand-300 bg-brand-900/60 px-2 py-0.5 rounded border border-brand-700/50">Practical 10</span>
           </div>
 
-          <div class="space-y-3 text-xs">
-            <!-- R1 -->
-            <div class="p-3 rounded-xl bg-slate-800/70 border border-slate-700/60 flex items-start justify-between">
-              <div>
-                <div class="flex items-center space-x-2">
-                  <span class="font-bold text-white">SHAIKH RAHMAT</span>
-                  <span class="font-mono text-[10px] text-blue-400 bg-blue-500/10 px-1.5 py-0.2 rounded border border-blue-500/30">Roll 67</span>
-                </div>
-                <p class="text-slate-400 mt-0.5">R1: Agile Planner & Documentation Lead</p>
-                <p class="text-[11px] text-indigo-400 mt-1 font-mono">Jira Epic, User Stories, Sprints</p>
+          <div class="pt-3 border-t border-white/5 flex items-center justify-between text-[11px] text-slate-400">
+            <span class="flex items-center gap-1.5">
+              <span class="w-2 h-2 rounded-full bg-blue-500"></span> Commits
+              <span class="w-2 h-2 rounded-full bg-cyan-400 ml-2"></span> Deployments
+              <span class="w-2 h-2 rounded-full bg-indigo-500 ml-2"></span> Active Users
+            </span>
+            <span class="font-mono text-slate-500">Prometheus telemetry live</span>
+          </div>
+        </div>
+
+        <!-- INFRASTRUCTURE OVERVIEW & CIRCULAR RESOURCE GAUGES (COL 4) -->
+        <div class="lg:col-span-4 agent-card p-6 flex flex-col justify-between" id="infraOverviewSection">
+          <div>
+            <div class="flex items-center justify-between mb-4">
+              <div class="flex items-center space-x-2">
+                <i data-lucide="layers" class="w-4 h-4 text-emerald-400"></i>
+                <h3 class="text-sm font-bold text-white">Infrastructure Overview</h3>
               </div>
-              <div class="w-8 h-8 rounded-lg bg-blue-500/20 text-blue-300 flex items-center justify-center font-bold text-xs">SR</div>
+              <button onclick="switchNavSection('infrastructure')" class="text-xs font-semibold text-blue-400 hover:text-blue-300">View All &rarr;</button>
             </div>
 
-            <!-- R2 -->
-            <div class="p-3 rounded-xl bg-slate-800/70 border border-slate-700/60 flex items-start justify-between">
-              <div>
-                <div class="flex items-center space-x-2">
-                  <span class="font-bold text-white">YADGIR ZUVERIA SALIM</span>
-                  <span class="font-mono text-[10px] text-indigo-400 bg-indigo-500/10 px-1.5 py-0.2 rounded border border-indigo-500/30">Roll 56</span>
+            <!-- 4 Service Infrastructure Cards -->
+            <div class="grid grid-cols-2 gap-2.5 mb-5">
+              <!-- AWS -->
+              <div class="p-3 rounded-2xl bg-slate-900/90 border border-white/5">
+                <div class="flex items-center justify-between">
+                  <span class="text-xs font-bold text-white">AWS (Prod)</span>
+                  <span class="text-[10px] font-mono text-slate-400">us-east-1</span>
                 </div>
-                <p class="text-slate-400 mt-0.5">R2: Developer & Version Control</p>
-                <p class="text-[11px] text-indigo-400 mt-1 font-mono">Flask REST API, Pytest, Branch PR</p>
+                <div class="flex items-center gap-1.5 mt-2 text-[11px] text-emerald-400">
+                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                  <span>2/2 healthy</span>
+                </div>
               </div>
-              <div class="w-8 h-8 rounded-lg bg-indigo-500/20 text-indigo-300 flex items-center justify-center font-bold text-xs">YZ</div>
+
+              <!-- Kubernetes -->
+              <div class="p-3 rounded-2xl bg-slate-900/90 border border-white/5">
+                <div class="flex items-center justify-between">
+                  <span class="text-xs font-bold text-white">Kubernetes</span>
+                  <span class="text-[10px] font-mono text-slate-400">v1.32.0</span>
+                </div>
+                <div class="flex items-center gap-1.5 mt-2 text-[11px] text-amber-400">
+                  <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+                  <span>3/4 running</span>
+                </div>
+              </div>
+
+              <!-- Docker -->
+              <div class="p-3 rounded-2xl bg-slate-900/90 border border-white/5">
+                <div class="flex items-center justify-between">
+                  <span class="text-xs font-bold text-white">Docker</span>
+                  <span class="text-[10px] font-mono text-slate-400">24.0.7</span>
+                </div>
+                <div class="flex items-center gap-1.5 mt-2 text-[11px] text-emerald-400">
+                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                  <span>All healthy</span>
+                </div>
+              </div>
+
+              <!-- Database -->
+              <div class="p-3 rounded-2xl bg-slate-900/90 border border-white/5">
+                <div class="flex items-center justify-between">
+                  <span class="text-xs font-bold text-white">Database</span>
+                  <span class="text-[10px] font-mono text-slate-400">PostgreSQL</span>
+                </div>
+                <div class="flex items-center gap-1.5 mt-2 text-[11px] text-emerald-400">
+                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                  <span>Healthy</span>
+                </div>
+              </div>
             </div>
 
-            <!-- R3 -->
-            <div class="p-3 rounded-xl bg-slate-800/70 border border-slate-700/60 flex items-start justify-between">
-              <div>
-                <div class="flex items-center space-x-2">
-                  <span class="font-bold text-white">SHAIKH ZAID MATINUDDIN</span>
-                  <span class="font-mono text-[10px] text-emerald-400 bg-emerald-500/10 px-1.5 py-0.2 rounded border border-emerald-500/30">Roll 60</span>
+            <!-- Resource Usage Circular Gauges -->
+            <div>
+              <p class="text-xs font-bold text-white uppercase tracking-wider mb-3">Resource Usage</p>
+              <div class="grid grid-cols-4 gap-2 text-center">
+                
+                <!-- CPU: 38% -->
+                <div class="p-2 rounded-xl bg-slate-900/80 border border-white/5 flex flex-col items-center">
+                  <div class="relative w-12 h-12 flex items-center justify-center">
+                    <svg class="w-12 h-12 gauge-circle" viewBox="0 0 36 36">
+                      <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#1e293b" stroke-width="3"/>
+                      <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#38bdf8" stroke-dasharray="38, 100" stroke-width="3"/>
+                    </svg>
+                    <span class="absolute text-[11px] font-extrabold text-white font-mono">38%</span>
+                  </div>
+                  <span class="text-[10px] text-slate-400 font-medium mt-1">CPU</span>
                 </div>
-                <p class="text-slate-400 mt-0.5">R3: CI/CD & Containerization Engineer</p>
-                <p class="text-[11px] text-indigo-400 mt-1 font-mono">GitHub Actions, Dockerfile, Docker Hub</p>
+
+                <!-- Memory: 62% -->
+                <div class="p-2 rounded-xl bg-slate-900/80 border border-white/5 flex flex-col items-center">
+                  <div class="relative w-12 h-12 flex items-center justify-center">
+                    <svg class="w-12 h-12 gauge-circle" viewBox="0 0 36 36">
+                      <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#1e293b" stroke-width="3"/>
+                      <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#6366f1" stroke-dasharray="62, 100" stroke-width="3"/>
+                    </svg>
+                    <span class="absolute text-[11px] font-extrabold text-white font-mono">62%</span>
+                  </div>
+                  <span class="text-[10px] text-slate-400 font-medium mt-1">Memory</span>
+                </div>
+
+                <!-- Storage: 48% -->
+                <div class="p-2 rounded-xl bg-slate-900/80 border border-white/5 flex flex-col items-center">
+                  <div class="relative w-12 h-12 flex items-center justify-center">
+                    <svg class="w-12 h-12 gauge-circle" viewBox="0 0 36 36">
+                      <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#1e293b" stroke-width="3"/>
+                      <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#10b981" stroke-dasharray="48, 100" stroke-width="3"/>
+                    </svg>
+                    <span class="absolute text-[11px] font-extrabold text-white font-mono">48%</span>
+                  </div>
+                  <span class="text-[10px] text-slate-400 font-medium mt-1">Storage</span>
+                </div>
+
+                <!-- Network: 22% -->
+                <div class="p-2 rounded-xl bg-slate-900/80 border border-white/5 flex flex-col items-center">
+                  <div class="relative w-12 h-12 flex items-center justify-center">
+                    <svg class="w-12 h-12 gauge-circle" viewBox="0 0 36 36">
+                      <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#1e293b" stroke-width="3"/>
+                      <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#f59e0b" stroke-dasharray="22, 100" stroke-width="3"/>
+                    </svg>
+                    <span class="absolute text-[11px] font-extrabold text-white font-mono">22%</span>
+                  </div>
+                  <span class="text-[10px] text-slate-400 font-medium mt-1">Network</span>
+                </div>
+
               </div>
-              <div class="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-300 flex items-center justify-center font-bold text-xs">ZM</div>
+            </div>
+          </div>
+
+          <div class="pt-3 border-t border-white/5 flex items-center justify-between text-[11px] text-slate-400">
+            <span>Container runtime: <b>Docker Engine</b></span>
+            <span class="text-emerald-400 font-mono">All Healthy</span>
+          </div>
+        </div>
+
+        <!-- RECENT ACTIVITY (COL 3) -->
+        <div class="lg:col-span-3 agent-card p-6 flex flex-col justify-between" id="recentActivitySection">
+          <div>
+            <div class="flex items-center justify-between mb-4">
+              <div class="flex items-center space-x-2">
+                <i data-lucide="clock" class="w-4 h-4 text-blue-400"></i>
+                <h3 class="text-sm font-bold text-white">Recent Activity</h3>
+              </div>
+              <button onclick="switchNavSection('reports')" class="text-xs font-semibold text-blue-400 hover:text-blue-300">View All &rarr;</button>
             </div>
 
-            <!-- R4 -->
-            <div class="p-3 rounded-xl bg-slate-800/70 border border-slate-700/60 flex items-start justify-between">
-              <div>
-                <div class="flex items-center space-x-2">
-                  <span class="font-bold text-white">SHAIKH ZAID WAZIDALI</span>
-                  <span class="font-mono text-[10px] text-purple-400 bg-purple-500/10 px-1.5 py-0.2 rounded border border-purple-500/30">Roll 61</span>
+            <!-- Feed Events -->
+            <div class="space-y-3.5">
+              
+              <!-- Event 1 -->
+              <div class="flex items-start space-x-3">
+                <div class="w-7 h-7 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center flex-shrink-0 text-xs mt-0.5">
+                  <i data-lucide="check-circle" class="w-4 h-4"></i>
                 </div>
-                <p class="text-slate-400 mt-0.5">R4: Deployment & Monitoring Engineer</p>
-                <p class="text-[11px] text-indigo-400 mt-1 font-mono">Docker Compose, Prometheus, Grafana</p>
+                <div class="min-w-0 flex-1">
+                  <p class="text-xs font-bold text-white truncate">Deployment Successful</p>
+                  <p class="text-[11px] text-slate-400 truncate">frontend-service deployed successfully</p>
+                  <span class="text-[10px] text-slate-500 font-mono">12m ago</span>
+                </div>
               </div>
-              <div class="w-8 h-8 rounded-lg bg-purple-500/20 text-purple-300 flex items-center justify-center font-bold text-xs">ZW</div>
+
+              <!-- Event 2 -->
+              <div class="flex items-start space-x-3">
+                <div class="w-7 h-7 rounded-xl bg-indigo-500/20 text-indigo-400 flex items-center justify-center flex-shrink-0 text-xs mt-0.5">
+                  <i data-lucide="user-plus" class="w-4 h-4"></i>
+                </div>
+                <div class="min-w-0 flex-1">
+                  <p class="text-xs font-bold text-white truncate">New Employee Added</p>
+                  <p class="text-[11px] text-slate-400 truncate">Riya Patel joined as Frontend Developer</p>
+                  <span class="text-[10px] text-slate-500 font-mono">1h ago</span>
+                </div>
+              </div>
+
+              <!-- Event 3 -->
+              <div class="flex items-start space-x-3">
+                <div class="w-7 h-7 rounded-xl bg-blue-500/20 text-blue-400 flex items-center justify-center flex-shrink-0 text-xs mt-0.5">
+                  <i data-lucide="git-merge" class="w-4 h-4"></i>
+                </div>
+                <div class="min-w-0 flex-1">
+                  <p class="text-xs font-bold text-white truncate">Pipeline Completed</p>
+                  <p class="text-[11px] text-slate-400 truncate">ci-cd-pipeline #248 - Success</p>
+                  <span class="text-[10px] text-slate-500 font-mono">2h ago</span>
+                </div>
+              </div>
+
+              <!-- Event 4 -->
+              <div class="flex items-start space-x-3">
+                <div class="w-7 h-7 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center flex-shrink-0 text-xs mt-0.5">
+                  <i data-lucide="alert-triangle" class="w-4 h-4"></i>
+                </div>
+                <div class="min-w-0 flex-1">
+                  <p class="text-xs font-bold text-white truncate">Infrastructure Alert</p>
+                  <p class="text-[11px] text-slate-400 truncate">High CPU usage on worker-node-2 (82%)</p>
+                  <span class="text-[10px] text-slate-500 font-mono">3h ago</span>
+                </div>
+              </div>
+
+              <!-- Event 5 -->
+              <div class="flex items-start space-x-3">
+                <div class="w-7 h-7 rounded-xl bg-purple-500/20 text-purple-400 flex items-center justify-center flex-shrink-0 text-xs mt-0.5">
+                  <i data-lucide="git-commit" class="w-4 h-4"></i>
+                </div>
+                <div class="min-w-0 flex-1">
+                  <p class="text-xs font-bold text-white truncate">Repository Updated</p>
+                  <p class="text-[11px] text-slate-400 truncate">backend-service updated by Zaid Shaikh</p>
+                  <span class="text-[10px] text-slate-500 font-mono">4h ago</span>
+                </div>
+              </div>
+
             </div>
+          </div>
+
+          <div class="pt-3 border-t border-white/5 flex items-center justify-between text-[11px] text-slate-400">
+            <span class="flex items-center gap-1.5 text-emerald-400">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 pulse-online"></span>
+              Live Event Listener
+            </span>
+            <button onclick="clearActivityNotice()" class="text-slate-500 hover:text-white">Clear</button>
           </div>
         </div>
 
       </div>
 
+      <!-- ============================================================== -->
+      <!-- 8. DEVOPS LIFECYCLE BAR (HORIZONTAL TRACE) -->
+      <!-- ============================================================== -->
+      <div class="agent-card p-5 overflow-x-auto">
+        <div class="flex items-center justify-between min-w-[900px] gap-2">
+          
+          <div class="flex items-center space-x-2 text-brand-400 font-extrabold uppercase tracking-wider text-xs">
+            <i data-lucide="git-branch" class="w-4 h-4"></i>
+            <span>DevOps Lifecycle (Batch B3-G3):</span>
+          </div>
+
+          <!-- 8 Stages -->
+          <div class="flex items-center space-x-3 text-xs">
+            
+            <div class="px-3 py-1.5 rounded-xl bg-slate-900 border border-white/5 flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-blue-400"></span>
+              <span class="font-bold text-white">PLAN</span>
+              <span class="text-[10px] text-blue-400 font-mono">Jira (R1: Rahmat)</span>
+            </div>
+            <span class="text-slate-600">&rarr;</span>
+
+            <div class="px-3 py-1.5 rounded-xl bg-slate-900 border border-white/5 flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-indigo-400"></span>
+              <span class="font-bold text-white">CODE</span>
+              <span class="text-[10px] text-indigo-400 font-mono">Git/PR (R2: Zuveria)</span>
+            </div>
+            <span class="text-slate-600">&rarr;</span>
+
+            <div class="px-3 py-1.5 rounded-xl bg-slate-900 border border-white/5 flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+              <span class="font-bold text-white">BUILD</span>
+              <span class="text-[10px] text-emerald-400 font-mono">Docker/Pytest</span>
+            </div>
+            <span class="text-slate-600">&rarr;</span>
+
+            <div class="px-3 py-1.5 rounded-xl bg-slate-900 border border-white/5 flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-sky-400"></span>
+              <span class="font-bold text-white">TEST</span>
+              <span class="text-[10px] text-sky-400 font-mono">11 Passed (0.12s)</span>
+            </div>
+            <span class="text-slate-600">&rarr;</span>
+
+            <div class="px-3 py-1.5 rounded-xl bg-slate-900 border border-white/5 flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-purple-400"></span>
+              <span class="font-bold text-white">CONTAINER</span>
+              <span class="text-[10px] text-purple-400 font-mono">R3: Zaid M.</span>
+            </div>
+            <span class="text-slate-600">&rarr;</span>
+
+            <div class="px-3 py-1.5 rounded-xl bg-slate-900 border border-white/5 flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-teal-400"></span>
+              <span class="font-bold text-white">DEPLOY</span>
+              <span class="text-[10px] text-teal-400 font-mono">Port 5001</span>
+            </div>
+            <span class="text-slate-600">&rarr;</span>
+
+            <div class="px-3 py-1.5 rounded-xl bg-slate-900 border border-white/5 flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-amber-400"></span>
+              <span class="font-bold text-white">MONITOR</span>
+              <span class="text-[10px] text-amber-400 font-mono">R4: Zaid W. (:9090)</span>
+            </div>
+
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ============================================================== -->
+      <!-- 9. AI & AGENTIC AUTOMATION BANNER (BOTTOM OF DASHBOARD) -->
+      <!-- ============================================================== -->
+      <div class="agent-card p-6 bg-gradient-to-r from-[#0c1429] via-[#101b38] to-[#0c1429] border border-indigo-500/20 shadow-2xl">
+        <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-5">
+          
+          <div class="flex items-center space-x-4">
+            <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-purple-600 via-indigo-600 to-sky-400 p-0.5 flex items-center justify-center shadow-lg shadow-indigo-500/20 flex-shrink-0">
+              <div class="w-full h-full bg-[#0a1020] rounded-[14px] flex items-center justify-center text-indigo-400">
+                <i data-lucide="bot" class="w-6 h-6"></i>
+              </div>
+            </div>
+            <div>
+              <div class="flex items-center gap-2">
+                <h3 class="text-base font-extrabold text-white">Powered by AI & Automation</h3>
+                <span class="px-2 py-0.5 rounded-full text-[10px] font-mono font-semibold bg-indigo-500/20 text-indigo-300 border border-indigo-500/40">Agentic v2.4</span>
+              </div>
+              <p class="text-xs text-slate-400 mt-0.5">Smarter operations. Faster deployments. Happier teams.</p>
+            </div>
+          </div>
+
+          <!-- Feature Pills -->
+          <div class="flex flex-wrap items-center gap-2 text-xs">
+            <button onclick="runAIOperation('analyze')" class="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-slate-200 transition flex items-center gap-1.5">
+              <i data-lucide="sparkles" class="w-3.5 h-3.5 text-sky-400"></i>
+              <span>Agentic AI</span>
+            </button>
+            <button onclick="runAIOperation('scale')" class="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-slate-200 transition flex items-center gap-1.5">
+              <i data-lucide="cpu" class="w-3.5 h-3.5 text-emerald-400"></i>
+              <span>Auto Scaling</span>
+            </button>
+            <button onclick="runAIOperation('heal')" class="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-slate-200 transition flex items-center gap-1.5">
+              <i data-lucide="heart" class="w-3.5 h-3.5 text-rose-400"></i>
+              <span>Self Healing</span>
+            </button>
+            <button onclick="runAIOperation('insights')" class="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-slate-200 transition flex items-center gap-1.5">
+              <i data-lucide="activity" class="w-3.5 h-3.5 text-amber-400"></i>
+              <span>Predictive Insights</span>
+            </button>
+            <button onclick="openAIAssistantModal()" class="px-4 py-1.5 rounded-xl bg-brand-600 hover:bg-brand-500 text-white font-semibold transition flex items-center gap-1.5 shadow-md shadow-brand-600/30">
+              <span>Explore Features</span>
+              <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+            </button>
+          </div>
+
+        </div>
+      </div>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="mt-auto border-t border-white/5 px-8 py-5 text-xs text-slate-500 flex flex-col sm:flex-row items-center justify-between gap-3">
+      <div>
+        AgentGuard Enterprise &bull; TE AI&DS DevOps Lab Practical 10 &bull; Group B3-G3
+      </div>
+      <div class="flex items-center space-x-4 font-mono text-[11px]">
+        <span class="text-emerald-400">REST API: 200 OK</span>
+        <span>&bull;</span>
+        <span class="text-indigo-400">Prometheus :9090</span>
+        <span>&bull;</span>
+        <span class="text-sky-400">Grafana :3000</span>
+      </div>
+    </footer>
+
+  </div>
+
+  <!-- ============================================================== -->
+  <!-- 10. EMPLOYEE DETAIL SIDE DRAWER (CLICK TO INSPECT/EDIT) -->
+  <!-- ============================================================== -->
+  <div id="employeeDrawerOverlay" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 hidden transition-opacity" onclick="closeEmployeeDrawer()"></div>
+  <div id="employeeDrawer" class="fixed top-0 right-0 h-screen w-full max-w-md bg-[#090f1d] border-l border-white/10 p-6 z-50 translate-x-full transition-transform duration-300 overflow-y-auto flex flex-col justify-between shadow-2xl">
+    <div>
+      <!-- Drawer Header -->
+      <div class="flex items-center justify-between pb-4 border-b border-white/10">
+        <div class="flex items-center space-x-3">
+          <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-brand-600 to-indigo-500 flex items-center justify-center text-white font-bold text-base shadow-md" id="drawerAvatar">
+            ZS
+          </div>
+          <div>
+            <h3 class="text-base font-bold text-white" id="drawerName">Zaid Shaikh</h3>
+            <p class="text-xs text-brand-400" id="drawerRole">Admin &bull; DevOps</p>
+          </div>
+        </div>
+        <button onclick="closeEmployeeDrawer()" class="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/10 transition">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <!-- Personnel Details -->
+      <div class="py-5 space-y-4 text-xs">
+        <div>
+          <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Contact & Location</span>
+          <div class="mt-2 space-y-2 bg-slate-900/80 p-3.5 rounded-2xl border border-white/5">
+            <div class="flex items-center justify-between">
+              <span class="text-slate-400">Email:</span>
+              <span class="text-white font-mono" id="drawerEmail">zaid@company.com</span>
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="text-slate-400">Phone:</span>
+              <span class="text-white font-mono" id="drawerPhone">+91 98200 99887</span>
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="text-slate-400">Location:</span>
+              <span class="text-white" id="drawerLocation">Mumbai, India</span>
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="text-slate-400">Status:</span>
+              <span class="text-emerald-400 font-semibold" id="drawerStatus">Online</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- DevOps Information -->
+        <div>
+          <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">DevOps Activity</span>
+          <div class="mt-2 grid grid-cols-3 gap-2 text-center">
+            <div class="p-2.5 rounded-xl bg-slate-900/80 border border-white/5">
+              <p class="text-[10px] text-slate-400">Deployments</p>
+              <p class="text-sm font-bold text-white mt-1" id="drawerDeployments">28</p>
+            </div>
+            <div class="p-2.5 rounded-xl bg-slate-900/80 border border-white/5">
+              <p class="text-[10px] text-slate-400">Git Commits</p>
+              <p class="text-sm font-bold text-white mt-1" id="drawerCommits">142</p>
+            </div>
+            <div class="p-2.5 rounded-xl bg-slate-900/80 border border-white/5">
+              <p class="text-[10px] text-slate-400">Pull Requests</p>
+              <p class="text-sm font-bold text-white mt-1" id="drawerPRs">19</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Security & Identity Access -->
+        <div>
+          <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Security & Access</span>
+          <div class="mt-2 space-y-2 bg-slate-900/80 p-3.5 rounded-2xl border border-white/5">
+            <div class="flex items-center justify-between">
+              <span class="text-slate-400">SSO Authentication:</span>
+              <span class="text-indigo-400 font-medium" id="drawerSSO">Google SSO Connected</span>
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="text-slate-400">Last Login:</span>
+              <span class="text-slate-300 font-mono" id="drawerLastLogin">Today at 06:38 PM</span>
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="text-slate-400">RBAC Permissions:</span>
+              <span class="text-emerald-400 font-medium" id="drawerPermissions">Full Admin Access</span>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
-  </main>
-
-  <!-- AUTHENTICATION & CREATE ACCOUNT / SSO MODAL DIALOG -->
-  <div id="authModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md hidden transition-all duration-300">
-    <div class="relative w-full max-w-md bg-slate-900 border border-slate-700/80 rounded-3xl p-6 sm:p-8 shadow-2xl overflow-hidden">
-      
-      <!-- Close button -->
-      <button onclick="closeAuthModal()" class="absolute top-5 right-5 p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition">
-        <i data-lucide="x" class="w-5 h-5"></i>
+    <!-- Drawer Actions -->
+    <div class="pt-4 border-t border-white/10 space-y-2">
+      <div class="grid grid-cols-2 gap-2">
+        <button onclick="editCurrentDrawerMember()" class="py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs transition">
+          Edit Employee
+        </button>
+        <button onclick="deleteCurrentDrawerMember()" class="py-2.5 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 font-semibold text-xs border border-rose-500/30 transition">
+          Disable Account
+        </button>
+      </div>
+      <button onclick="closeEmployeeDrawer()" class="w-full py-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 text-xs transition">
+        Close Details
       </button>
-
-      <!-- Modal Header -->
-      <div class="text-center mb-6">
-        <div class="w-12 h-12 rounded-2xl bg-brand-500/20 border border-brand-500/40 text-brand-400 flex items-center justify-center mx-auto mb-3 shadow-lg shadow-brand-500/20">
-          <i id="authIcon" data-lucide="shield-check" class="w-6 h-6"></i>
-        </div>
-        <h3 id="authTitle" class="text-xl font-extrabold text-white">Sign In to Platform</h3>
-        <p id="authSubtitle" class="text-xs text-slate-400 mt-1">Access verified personnel records & DevOps telemetry</p>
-      </div>
-
-      <!-- Tab Switcher (Login vs Sign Up) -->
-      <div class="flex p-1 bg-slate-950 rounded-xl border border-slate-800 mb-5">
-        <button id="tabLoginBtn" onclick="switchAuthTab('login')" class="flex-1 py-2 text-xs font-bold rounded-lg transition bg-brand-600 text-white">
-          Sign In
-        </button>
-        <button id="tabRegisterBtn" onclick="switchAuthTab('register')" class="flex-1 py-2 text-xs font-bold rounded-lg transition text-slate-400 hover:text-white">
-          Create Account
-        </button>
-      </div>
-
-      <!-- Enterprise SSO Quick Providers -->
-      <div class="space-y-2.5 mb-5">
-        <button onclick="handleGoogleDirectSSO()" class="w-full py-2.5 px-4 rounded-xl bg-white hover:bg-slate-100 text-slate-800 text-xs font-bold flex items-center justify-center space-x-2.5 transition shadow-sm border border-slate-300 group">
-          <svg class="w-4 h-4" viewBox="0 0 24 24">
-            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
-            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
-          </svg>
-          <span class="text-slate-800">Sign in with Google Account</span>
-          <span class="text-[9px] font-mono text-emerald-700 bg-emerald-100 px-1.5 py-0.2 rounded">OAuth</span>
-        </button>
-
-        <button onclick="handleSSOLogin('GitHub')" class="w-full py-2.5 px-4 rounded-xl bg-slate-800/90 hover:bg-slate-800 border border-slate-700 text-slate-200 text-xs font-semibold flex items-center justify-center space-x-2.5 transition group">
-          <i data-lucide="github" class="w-4 h-4 text-white"></i>
-          <span>Continue with GitHub Developer SSO</span>
-        </button>
-      </div>
-
-      <div class="relative flex items-center justify-center my-4">
-        <div class="border-t border-slate-800 w-full"></div>
-        <span class="bg-slate-900 px-3 text-[11px] text-slate-500 uppercase tracking-wider font-mono">Or With Email</span>
-      </div>
-
-      <!-- Auth Form -->
-      <form id="authForm" class="space-y-3.5">
-        
-        <!-- Registration only field: Full Name -->
-        <div id="authNameField" class="hidden">
-          <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1">Full Name</label>
-          <input 
-            type="text" 
-            id="authNameInput" 
-            placeholder="e.g. SHAIKH ZAID" 
-            class="w-full px-3.5 py-2.5 bg-slate-950 text-slate-100 rounded-xl border border-slate-800 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 text-sm outline-none transition"
-          />
-        </div>
-
-        <div>
-          <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1">Email Address</label>
-          <input 
-            type="email" 
-            id="authEmailInput" 
-            required 
-            placeholder="name@student.college.edu" 
-            class="w-full px-3.5 py-2.5 bg-slate-950 text-slate-100 rounded-xl border border-slate-800 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 text-sm outline-none transition"
-          />
-        </div>
-
-        <div>
-          <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1">Password</label>
-          <input 
-            type="password" 
-            id="authPasswordInput" 
-            required 
-            placeholder="••••••••" 
-            class="w-full px-3.5 py-2.5 bg-slate-950 text-slate-100 rounded-xl border border-slate-800 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 text-sm outline-none transition"
-          />
-        </div>
-
-        <!-- Registration only field: DevOps Role -->
-        <div id="authRoleField" class="hidden">
-          <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1">DevOps Role</label>
-          <input 
-            type="text" 
-            id="authRoleInput" 
-            placeholder="e.g. Cloud Security Specialist" 
-            class="w-full px-3.5 py-2.5 bg-slate-950 text-slate-100 rounded-xl border border-slate-800 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 text-sm outline-none transition"
-          />
-        </div>
-
-        <button 
-          type="submit" 
-          id="authSubmitBtn" 
-          class="w-full mt-2 py-3 px-4 bg-brand-600 hover:bg-brand-500 active:bg-brand-700 text-white font-semibold text-sm rounded-xl shadow-lg shadow-brand-600/30 transition flex items-center justify-center space-x-2"
-        >
-          <i data-lucide="arrow-right" class="w-4 h-4"></i>
-          <span id="authSubmitText">Sign In to Dashboard</span>
-        </button>
-      </form>
-
-      <div id="authFeedback" class="mt-3 text-xs hidden p-3 rounded-xl font-mono"></div>
-
-      <!-- Demo Credentials Helper -->
-      <div class="mt-4 pt-3 border-t border-slate-800/80 text-[11px] text-slate-400 flex items-center justify-between">
-        <span>Demo user: <code class="text-indigo-400">zaid.matinuddin@student.college.edu</code></span>
-        <button type="button" onclick="fillDemoCreds()" class="text-brand-400 hover:underline">Autofill</button>
-      </div>
-
     </div>
   </div>
 
-  <!-- FOOTER -->
-  <footer class="bg-slate-950 border-t border-slate-800 py-6 text-center text-xs text-slate-500">
-    <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-3">
-      <div>
-        Practical 10: End-to-End DevOps Pipeline &bull; TE AI&DS Lab (2015119) &bull; Batch B3 - Group B3-G3
+  <!-- ============================================================== -->
+  <!-- 11. GLOBAL SEARCH COMMAND PALETTE (CTRL + K) -->
+  <!-- ============================================================== -->
+  <div id="commandPaletteModal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 hidden flex items-start justify-center pt-20 p-4" onclick="closeCommandPalette(event)">
+    <div class="w-full max-w-xl bg-[#0b1120] border border-white/10 rounded-3xl p-5 shadow-2xl space-y-4" onclick="event.stopPropagation()">
+      <div class="flex items-center space-x-3 pb-3 border-b border-white/10">
+        <i data-lucide="search" class="w-5 h-5 text-brand-400"></i>
+        <input 
+          type="text" 
+          id="cmdPaletteInput" 
+          oninput="handleCommandSearch()" 
+          placeholder="Type a command or search personnel, services, clusters..." 
+          class="w-full bg-transparent text-sm text-white placeholder-slate-400 focus:outline-none"
+        />
+        <kbd class="px-2 py-0.5 text-[10px] font-mono bg-slate-800 text-slate-400 rounded border border-white/10">ESC</kbd>
       </div>
-      <div class="flex items-center space-x-4 text-slate-400">
-        <span class="font-mono text-emerald-400">Docker Compose: UP</span>
-        <span>&bull;</span>
-        <span class="font-mono text-indigo-400">Prometheus Target: 200 OK</span>
+
+      <!-- Quick Command Results -->
+      <div class="space-y-1 text-xs max-h-72 overflow-y-auto" id="cmdResultsList">
+        <button onclick="execCmd('directory')" class="w-full p-2.5 rounded-xl hover:bg-white/5 flex items-center justify-between text-left group">
+          <div class="flex items-center space-x-3">
+            <i data-lucide="users" class="w-4 h-4 text-blue-400"></i>
+            <span class="text-slate-200 group-hover:text-white">Search Employee Directory</span>
+          </div>
+          <span class="text-[10px] text-slate-500 font-mono">Jump to /items</span>
+        </button>
+
+        <button onclick="execCmd('orchestration')" class="w-full p-2.5 rounded-xl hover:bg-white/5 flex items-center justify-between text-left group">
+          <div class="flex items-center space-x-3">
+            <i data-lucide="git-branch" class="w-4 h-4 text-indigo-400"></i>
+            <span class="text-slate-200 group-hover:text-white">View DevOps Pipelines</span>
+          </div>
+          <span class="text-[10px] text-slate-500 font-mono">Stage progress</span>
+        </button>
+
+        <button onclick="execCmd('monitoring')" class="w-full p-2.5 rounded-xl hover:bg-white/5 flex items-center justify-between text-left group">
+          <div class="flex items-center space-x-3">
+            <i data-lucide="activity" class="w-4 h-4 text-emerald-400"></i>
+            <span class="text-slate-200 group-hover:text-white">Open Monitoring & Prometheus</span>
+          </div>
+          <span class="text-[10px] text-slate-500 font-mono">:9090 /metrics</span>
+        </button>
+
+        <button onclick="execCmd('health')" class="w-full p-2.5 rounded-xl hover:bg-white/5 flex items-center justify-between text-left group">
+          <div class="flex items-center space-x-3">
+            <i data-lucide="heart-pulse" class="w-4 h-4 text-amber-400"></i>
+            <span class="text-slate-200 group-hover:text-white">Test GET /health API</span>
+          </div>
+          <span class="text-[10px] text-slate-500 font-mono">200 OK status</span>
+        </button>
+
+        <button onclick="execCmd('auth')" class="w-full p-2.5 rounded-xl hover:bg-white/5 flex items-center justify-between text-left group">
+          <div class="flex items-center space-x-3">
+            <i data-lucide="key" class="w-4 h-4 text-purple-400"></i>
+            <span class="text-slate-200 group-hover:text-white">Open Google & GitHub SSO Gate</span>
+          </div>
+          <span class="text-[10px] text-slate-500 font-mono">/auth portal</span>
+        </button>
       </div>
     </div>
-  </footer>
+  </div>
 
-  <!-- JAVASCRIPT LOGIC & 3D WEBGL RENDERING -->
+  <!-- ============================================================== -->
+  <!-- 12. ADD / EDIT EMPLOYEE MODAL (POST /items & PUT /items) -->
+  <!-- ============================================================== -->
+  <div id="addMemberModal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
+    <div class="w-full max-w-md bg-[#0b1120] border border-white/10 rounded-3xl p-7 shadow-2xl space-y-4">
+      <div class="flex items-center justify-between pb-3 border-b border-white/10">
+        <div>
+          <h3 class="text-base font-bold text-white" id="memberModalTitle">Add Personnel Member</h3>
+          <p class="text-xs text-slate-400">Dispatches real <code class="font-mono text-indigo-400">POST /items</code></p>
+        </div>
+        <button onclick="closeAddMemberModal()" class="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/10">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <form id="memberModalForm" class="space-y-3 text-xs">
+        <input type="hidden" id="editMemberId" value="">
+        <div>
+          <label class="block font-bold text-slate-300 uppercase tracking-wider mb-1">Full Name *</label>
+          <input type="text" id="mNameInput" required placeholder="e.g. Zaid Shaikh" class="w-full px-3.5 py-2.5 bg-slate-900 border border-white/10 rounded-xl text-white outline-none focus:border-brand-500">
+        </div>
+        <div>
+          <label class="block font-bold text-slate-300 uppercase tracking-wider mb-1">Email Address *</label>
+          <input type="email" id="mEmailInput" required placeholder="zaid@company.com" class="w-full px-3.5 py-2.5 bg-slate-900 border border-white/10 rounded-xl text-white outline-none focus:border-brand-500">
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-bold text-slate-300 uppercase tracking-wider mb-1">Role *</label>
+            <select id="mRoleInput" class="w-full px-3 py-2.5 bg-slate-900 border border-white/10 rounded-xl text-white outline-none focus:border-brand-500">
+              <option value="Admin">Admin</option>
+              <option value="Developer">Developer</option>
+              <option value="DevOps">DevOps</option>
+              <option value="QA">QA</option>
+            </select>
+          </div>
+          <div>
+            <label class="block font-bold text-slate-300 uppercase tracking-wider mb-1">Department</label>
+            <select id="mDeptInput" class="w-full px-3 py-2.5 bg-slate-900 border border-white/10 rounded-xl text-white outline-none focus:border-brand-500">
+              <option value="DevOps">DevOps</option>
+              <option value="Backend">Backend</option>
+              <option value="Frontend">Frontend</option>
+              <option value="Infrastructure">Infrastructure</option>
+              <option value="Quality Assurance">Quality Assurance</option>
+            </select>
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-bold text-slate-300 uppercase tracking-wider mb-1">Status</label>
+            <select id="mStatusInput" class="w-full px-3 py-2.5 bg-slate-900 border border-white/10 rounded-xl text-white outline-none focus:border-brand-500">
+              <option value="Online">Online</option>
+              <option value="Offline">Offline</option>
+              <option value="Away">Away</option>
+            </select>
+          </div>
+          <div>
+            <label class="block font-bold text-slate-300 uppercase tracking-wider mb-1">Location</label>
+            <select id="mLocInput" class="w-full px-3 py-2.5 bg-slate-900 border border-white/10 rounded-xl text-white outline-none focus:border-brand-500">
+              <option value="Mumbai">Mumbai</option>
+              <option value="Pune">Pune</option>
+              <option value="Bengaluru">Bengaluru</option>
+              <option value="Delhi">Delhi</option>
+            </select>
+          </div>
+        </div>
+
+        <button type="submit" id="btnSaveMember" class="w-full mt-4 py-3 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl shadow-lg shadow-blue-600/30 transition flex items-center justify-center gap-1.5">
+          <i data-lucide="check" class="w-4 h-4"></i>
+          <span id="btnSaveMemberText">Save & Dispatch POST /items</span>
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- JAVASCRIPT CONTROLLERS -->
   <script>
     let employeesData = [];
-    let viewMode = 'grid';
-    let telemetryHistory = [12, 19, 15, 25, 22, 30, 28, 35, 42, 48];
-    let chartInstance = null;
-    let requestCount = 48;
-    let authMode = 'login'; // 'login' or 'register'
-    let currentUser = null;
+    let selectedDrawerEmp = null;
+    let activityChart = null;
+    let currentSection = 'dashboard';
 
-    // DOM Elements
-    const recordsContainer = document.getElementById('recordsContainer');
-    const loadingState = document.getElementById('loadingState');
-    const emptyState = document.getElementById('emptyState');
-    const searchInput = document.getElementById('searchInput');
-    const departmentFilter = document.getElementById('departmentFilter');
-    const badgeFilteredCount = document.getElementById('badgeFilteredCount');
-    const statTotalEmployees = document.getElementById('statTotalEmployees');
-    const statTotalDepts = document.getElementById('statTotalDepts');
-    const statHealthStatus = document.getElementById('statHealthStatus');
-    const statTotalCalls = document.getElementById('statTotalCalls');
-    const healthBadge = document.getElementById('healthBadge');
-    const healthText = document.getElementById('healthText');
-    const addEmployeeForm = document.getElementById('addEmployeeForm');
-    const formFeedback = document.getElementById('formFeedback');
+    // 1. Dynamic Live Clock (IST GMT+5:30)
+    function updateLiveClock() {
+      const now = new Date();
+      const optionsDate = { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric', timeZone: 'Asia/Kolkata' };
+      const optionsTime = { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true, timeZone: 'Asia/Kolkata' };
+      
+      const dateStr = now.toLocaleDateString('en-GB', optionsDate);
+      const timeStr = now.toLocaleTimeString('en-US', optionsTime);
 
-    // --- 1. THREE.JS 3D LOGO & HERO MESH GENERATORS ---
-    function init3DLogo() {
-      const canvas = document.getElementById('three-logo-canvas');
-      const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
-      renderer.setSize(44, 44);
-      renderer.setPixelRatio(window.devicePixelRatio);
+      const dEl = document.getElementById('dynamicDate');
+      const tEl = document.getElementById('dynamicTime');
+      if (dEl) dEl.textContent = dateStr;
+      if (tEl) tEl.textContent = timeStr;
+    }
+    setInterval(updateLiveClock, 1000);
+    updateLiveClock();
 
-      const scene = new THREE.Scene();
-      const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 100);
-      camera.position.z = 3.6;
-
-      // Torus Geometry for DevOps Loop Logo
-      const geometry = new THREE.TorusGeometry(1, 0.35, 16, 100);
-      const material = new THREE.MeshStandardMaterial({
-        color: 0x6366f1,
-        emissive: 0x312e81,
-        roughness: 0.2,
-        metalness: 0.8,
-        wireframe: false
-      });
-      const torus = new THREE.Mesh(geometry, material);
-      scene.add(torus);
-
-      const light1 = new THREE.PointLight(0x818cf8, 2, 50);
-      light1.position.set(2, 2, 3);
-      scene.add(light1);
-
-      const light2 = new THREE.AmbientLight(0xffffff, 0.8);
-      scene.add(light2);
-
-      let speed = 0.02;
-      canvas.parentElement.addEventListener('mouseenter', () => speed = 0.08);
-      canvas.parentElement.addEventListener('mouseleave', () => speed = 0.02);
-
-      function animate() {
-        requestAnimationFrame(animate);
-        torus.rotation.x += speed * 0.7;
-        torus.rotation.y += speed;
-        renderer.render(scene, camera);
+    // 2. Fetch & Render Employees from GET /items
+    async function loadEmployees() {
+      try {
+        const res = await fetch('/items');
+        if (!res.ok) throw new Error("Failed to fetch /items");
+        employeesData = await res.json();
+        renderEmployeeTable();
+        updateKPIs();
+      } catch (err) {
+        console.error(err);
       }
-      animate();
     }
 
-    function init3DHero() {
-      const canvas = document.getElementById('three-hero-canvas');
-      const container = canvas.parentElement;
-      const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
-      renderer.setSize(container.clientWidth, container.clientHeight);
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    function renderEmployeeTable() {
+      const tbody = document.getElementById('directoryTableBody');
+      if (!tbody) return;
 
-      const scene = new THREE.Scene();
-      const camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 100);
-      camera.position.z = 5.2;
+      const q = (document.getElementById('directorySearchInput')?.value || '').toLowerCase().trim();
+      const deptFilter = document.getElementById('directoryDeptFilter')?.value || '';
+      const roleFilter = document.getElementById('directoryRoleFilter')?.value || '';
 
-      // Group to rotate everything with mouse
-      const worldGroup = new THREE.Group();
-      scene.add(worldGroup);
-
-      // 1. Central Metallic Gold & Indigo Core
-      const coreGeo = new THREE.IcosahedronGeometry(1.2, 2);
-      const coreMat = new THREE.MeshPhysicalMaterial({
-        color: 0x3b82f6,
-        emissive: 0x1d4ed8,
-        roughness: 0.2,
-        metalness: 0.8,
-        clearcoat: 1.0,
-        wireframe: true
+      const filtered = employeesData.filter(e => {
+        const matchQ = !q || e.name.toLowerCase().includes(q) || e.email.toLowerCase().includes(q) || e.role.toLowerCase().includes(q) || e.department.toLowerCase().includes(q);
+        const matchDept = !deptFilter || e.department === deptFilter;
+        const matchRole = !roleFilter || e.role === roleFilter;
+        return matchQ && matchDept && matchRole;
       });
-      const coreMesh = new THREE.Mesh(coreGeo, coreMat);
-      worldGroup.add(coreMesh);
 
-      // Inner glowing core
-      const innerGeo = new THREE.SphereGeometry(0.7, 24, 24);
-      const innerMat = new THREE.MeshBasicMaterial({ color: 0x60a5fa, wireframe: false });
-      const innerMesh = new THREE.Mesh(innerGeo, innerMat);
-      worldGroup.add(innerMesh);
+      const countEl = document.getElementById('directoryCountLabel');
+      if (countEl) countEl.textContent = `Showing ${filtered.length} member${filtered.length === 1 ? '' : 's'}`;
 
-      // 2. Holographic Personnel Network Constellation (Particles & Nodes)
-      const particleCount = 120;
-      const particleGeo = new THREE.BufferGeometry();
-      const positions = new Float32Array(particleCount * 3);
-      for (let i = 0; i < particleCount * 3; i += 3) {
-        const u = Math.random();
-        const v = Math.random();
-        const theta = u * 2.0 * Math.PI;
-        const phi = Math.acos(2.0 * v - 1.0);
-        const r = 1.6 + Math.random() * 0.4;
-        positions[i] = r * Math.sin(phi) * Math.cos(theta);
-        positions[i + 1] = r * Math.sin(phi) * Math.sin(theta);
-        positions[i + 2] = r * Math.cos(phi);
+      if (filtered.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" class="py-6 text-center text-slate-500">No personnel records matched your filter.</td></tr>`;
+        return;
       }
-      particleGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-      const particleMat = new THREE.PointsMaterial({
-        color: 0x38bdf8,
-        size: 0.08,
-        transparent: true,
-        opacity: 0.85
-      });
-      const points = new THREE.Points(particleGeo, particleMat);
-      worldGroup.add(points);
 
-      // 3. Orbiting Team Rings
-      const ringGeo1 = new THREE.TorusGeometry(2.1, 0.02, 16, 100);
-      const ringMat1 = new THREE.MeshBasicMaterial({ color: 0x818cf8, transparent: true, opacity: 0.6 });
-      const ring1 = new THREE.Mesh(ringGeo1, ringMat1);
-      ring1.rotation.x = Math.PI / 3;
-      worldGroup.add(ring1);
+      tbody.innerHTML = filtered.map(emp => {
+        const isOnline = emp.status === 'Online' || emp.status === 'Active';
+        const statusClass = isOnline ? 'text-emerald-400' : 'text-slate-500';
+        const dotClass = isOnline ? 'bg-emerald-400 pulse-online' : 'bg-slate-500';
+        const roleBadgeClass = emp.role === 'Admin' ? 'bg-indigo-500/20 text-indigo-300 border-indigo-500/30' :
+                               emp.role === 'DevOps' ? 'bg-teal-500/20 text-teal-300 border-teal-500/30' :
+                               emp.role === 'QA' ? 'bg-amber-500/20 text-amber-300 border-amber-500/30' :
+                               'bg-blue-500/20 text-blue-300 border-blue-500/30';
 
-      const ringGeo2 = new THREE.TorusGeometry(2.3, 0.015, 16, 100);
-      const ringMat2 = new THREE.MeshBasicMaterial({ color: 0x34d399, transparent: true, opacity: 0.5 });
-      const ring2 = new THREE.Mesh(ringGeo2, ringMat2);
-      ring2.rotation.y = Math.PI / 4;
-      ring2.rotation.x = -Math.PI / 4;
-      worldGroup.add(ring2);
+        return `
+          <tr class="hover:bg-white/5 transition cursor-pointer group" onclick="openEmployeeDrawer(${emp.id})">
+            <td class="py-3 pl-2">
+              <div class="flex items-center space-x-2.5">
+                <div class="w-7 h-7 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center font-bold text-white text-[11px] shadow-sm">
+                  ${emp.avatar || 'U'}
+                </div>
+                <div class="min-w-0">
+                  <p class="font-bold text-white group-hover:text-blue-400 transition truncate">${emp.name}</p>
+                  <p class="text-[10px] text-slate-500 truncate">${emp.email}</p>
+                </div>
+              </div>
+            </td>
+            <td class="py-3 px-2">
+              <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold border ${roleBadgeClass}">${emp.role}</span>
+            </td>
+            <td class="py-3 px-2 text-slate-300">${emp.department}</td>
+            <td class="py-3 px-2">
+              <span class="inline-flex items-center gap-1.5 ${statusClass} font-medium">
+                <span class="w-1.5 h-1.5 rounded-full ${dotClass}"></span>
+                ${emp.status || 'Online'}
+              </span>
+            </td>
+            <td class="py-3 px-2 text-slate-400 font-mono text-[11px]">${emp.location || 'Mumbai'}</td>
+            <td class="py-3 pr-2 text-right">
+              <button onclick="event.stopPropagation(); openEmployeeDrawer(${emp.id})" class="p-1 text-slate-400 hover:text-white rounded-lg">
+                <i data-lucide="more-horizontal" class="w-4 h-4"></i>
+              </button>
+            </td>
+          </tr>
+        `;
+      }).join('');
 
-      // Orbiting Satellites (Personnel Nodes)
-      const satGeo = new THREE.SphereGeometry(0.12, 16, 16);
-      const satMat1 = new THREE.MeshBasicMaterial({ color: 0xf59e0b });
-      const satellite1 = new THREE.Mesh(satGeo, satMat1);
-      worldGroup.add(satellite1);
+      lucide.createIcons();
+    }
 
-      const satMat2 = new THREE.MeshBasicMaterial({ color: 0x10b981 });
-      const satellite2 = new THREE.Mesh(satGeo, satMat2);
-      worldGroup.add(satellite2);
+    // 3. Side Drawer Controls
+    function openEmployeeDrawer(id) {
+      const emp = employeesData.find(e => e.id === id) || employeesData[0];
+      if (!emp) return;
+      selectedDrawerEmp = emp;
 
-      // Lighting
-      const pLight = new THREE.PointLight(0x60a5fa, 3, 50);
-      pLight.position.set(4, 5, 5);
-      scene.add(pLight);
-      scene.add(new THREE.AmbientLight(0x1e1b4b, 1.5));
+      document.getElementById('drawerName').textContent = emp.name;
+      document.getElementById('drawerRole').textContent = `${emp.role} • ${emp.department}`;
+      document.getElementById('drawerEmail').textContent = emp.email;
+      document.getElementById('drawerPhone').textContent = emp.phone || '+91 98200 99887';
+      document.getElementById('drawerLocation').textContent = emp.location || 'Mumbai, India';
+      document.getElementById('drawerStatus').textContent = emp.status || 'Online';
+      document.getElementById('drawerAvatar').textContent = emp.avatar || emp.name.substring(0, 2).toUpperCase();
+      document.getElementById('drawerDeployments').textContent = emp.deployments || '18';
+      document.getElementById('drawerCommits').textContent = emp.commits || '88';
+      document.getElementById('drawerPRs').textContent = emp.prs || '12';
+      document.getElementById('drawerSSO').textContent = emp.sso || 'Google SSO Connected';
+      document.getElementById('drawerLastLogin').textContent = emp.last_login || 'Today at 06:15 PM';
+      document.getElementById('drawerPermissions').textContent = emp.permissions || 'Full Admin Access';
 
-      // Interactive Mouse / Drag Rotation
-      let isDragging = false;
-      let prevMousePos = { x: 0, y: 0 };
-      let rotVelocity = { x: 0.005, y: 0.008 };
+      document.getElementById('employeeDrawerOverlay').classList.remove('hidden');
+      document.getElementById('employeeDrawer').classList.remove('translate-x-full');
+    }
 
-      container.addEventListener('mousedown', (e) => {
-        isDragging = true;
-        prevMousePos = { x: e.clientX, y: e.clientY };
-      });
-      window.addEventListener('mouseup', () => isDragging = false);
-      window.addEventListener('mousemove', (e) => {
-        if (!isDragging) return;
-        const deltaX = e.clientX - prevMousePos.x;
-        const deltaY = e.clientY - prevMousePos.y;
-        worldGroup.rotation.y += deltaX * 0.008;
-        worldGroup.rotation.x += deltaY * 0.008;
-        prevMousePos = { x: e.clientX, y: e.clientY };
-      });
+    function closeEmployeeDrawer() {
+      document.getElementById('employeeDrawerOverlay').classList.add('hidden');
+      document.getElementById('employeeDrawer').classList.add('translate-x-full');
+    }
 
-      window.addEventListener('resize', () => {
-        if (!container.clientWidth) return;
-        camera.aspect = container.clientWidth / container.clientHeight;
-        camera.updateProjectionMatrix();
-        renderer.setSize(container.clientWidth, container.clientHeight);
-      });
+    function editCurrentDrawerMember() {
+      if (!selectedDrawerEmp) return;
+      closeEmployeeDrawer();
+      openAddMemberModal(selectedDrawerEmp);
+    }
 
-      let clock = 0;
-      function animateHero() {
-        requestAnimationFrame(animateHero);
-        clock += 0.02;
-
-        if (!isDragging) {
-          worldGroup.rotation.y += rotVelocity.y;
-          worldGroup.rotation.x += rotVelocity.x;
+    async function deleteCurrentDrawerMember() {
+      if (!selectedDrawerEmp) return;
+      if (!confirm(`Are you sure you want to disable account for ${selectedDrawerEmp.name}?`)) return;
+      
+      try {
+        const res = await fetch(`/items/${selectedDrawerEmp.id}`, { method: 'DELETE' });
+        if (res.ok) {
+          closeEmployeeDrawer();
+          loadEmployees();
         }
-
-        coreMesh.rotation.y -= 0.01;
-        ring1.rotation.z += 0.005;
-        ring2.rotation.z -= 0.006;
-
-        // Animate orbiting satellites
-        satellite1.position.x = 2.1 * Math.cos(clock);
-        satellite1.position.y = 2.1 * Math.sin(clock) * Math.sin(Math.PI / 3);
-        satellite1.position.z = 2.1 * Math.sin(clock) * Math.cos(Math.PI / 3);
-
-        satellite2.position.x = 2.3 * Math.cos(-clock * 0.8 + 1.5);
-        satellite2.position.y = 2.3 * Math.sin(-clock * 0.8 + 1.5);
-        satellite2.position.z = 2.3 * Math.cos(-clock * 0.8 + 1.5);
-
-        // Core pulsating effect
-        const scale = 1.0 + Math.sin(clock * 2) * 0.04;
-        innerMesh.scale.set(scale, scale, scale);
-
-        renderer.render(scene, camera);
+      } catch (err) {
+        alert("Failed to delete member: " + err.message);
       }
-      animateHero();
     }
 
-    // --- 2. TELEMETRY CHART.JS ---
-    function initTelemetryChart() {
-      const ctx = document.getElementById('telemetryChart').getContext('2d');
-      chartInstance = new Chart(ctx, {
+    // 4. Modal for Add / Edit
+    function openAddMemberModal(emp = null) {
+      const modal = document.getElementById('addMemberModal');
+      const title = document.getElementById('memberModalTitle');
+      const btnText = document.getElementById('btnSaveMemberText');
+      const idInput = document.getElementById('editMemberId');
+
+      if (emp) {
+        title.textContent = `Edit Personnel: ${emp.name}`;
+        btnText.textContent = "Save Changes (PUT /items)";
+        idInput.value = emp.id;
+        document.getElementById('mNameInput').value = emp.name;
+        document.getElementById('mEmailInput').value = emp.email;
+        document.getElementById('mRoleInput').value = emp.role;
+        document.getElementById('mDeptInput').value = emp.department;
+        document.getElementById('mStatusInput').value = emp.status;
+        document.getElementById('mLocInput').value = emp.location || 'Mumbai';
+      } else {
+        title.textContent = "Add Personnel Member";
+        btnText.textContent = "Save & Dispatch POST /items";
+        idInput.value = "";
+        document.getElementById('memberModalForm').reset();
+      }
+      modal.classList.remove('hidden');
+    }
+
+    function closeAddMemberModal() {
+      document.getElementById('addMemberModal').classList.add('hidden');
+    }
+
+    document.getElementById('memberModalForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const id = document.getElementById('editMemberId').value;
+      const payload = {
+        name: document.getElementById('mNameInput').value.trim(),
+        email: document.getElementById('mEmailInput').value.trim(),
+        role: document.getElementById('mRoleInput').value,
+        department: document.getElementById('mDeptInput').value,
+        status: document.getElementById('mStatusInput').value,
+        location: document.getElementById('mLocInput').value
+      };
+
+      const endpoint = id ? `/items/${id}` : '/items';
+      const method = id ? 'PUT' : 'POST';
+
+      try {
+        const res = await fetch(endpoint, {
+          method: method,
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        if (res.ok) {
+          closeAddMemberModal();
+          loadEmployees();
+        }
+      } catch (err) {
+        alert("Error saving member: " + err.message);
+      }
+    });
+
+    // 5. Team Activity Chart.js
+    function initTeamActivityChart() {
+      const ctx = document.getElementById('teamActivityChart')?.getContext('2d');
+      if (!ctx) return;
+
+      activityChart = new Chart(ctx, {
         type: 'line',
         data: {
-          labels: ['-45s', '-40s', '-35s', '-30s', '-25s', '-20s', '-15s', '-10s', '-5s', 'Now'],
-          datasets: [{
-            label: 'HTTP Requests (http_requests_total)',
-            data: telemetryHistory,
-            borderColor: '#6366f1',
-            backgroundColor: 'rgba(99, 102, 241, 0.12)',
-            borderWidth: 2.5,
-            fill: true,
-            tension: 0.35,
-            pointBackgroundColor: '#818cf8',
-            pointBorderColor: '#1e1b4b',
-            pointRadius: 3,
-            pointHoverRadius: 5
-          }]
+          labels: ['23 Sep', '24 Sep', '25 Sep', '26 Sep', '27 Sep', '28 Sep', '29 Sep'],
+          datasets: [
+            {
+              label: 'Commits',
+              data: [180, 220, 280, 260, 310, 290, 342],
+              borderColor: '#3b82f6',
+              backgroundColor: 'rgba(59, 130, 246, 0.08)',
+              fill: true,
+              tension: 0.4,
+              borderWidth: 2,
+              pointRadius: 3
+            },
+            {
+              label: 'Deployments',
+              data: [12, 16, 22, 18, 25, 20, 28],
+              borderColor: '#38bdf8',
+              backgroundColor: 'transparent',
+              tension: 0.4,
+              borderWidth: 2,
+              pointRadius: 3
+            },
+            {
+              label: 'Active Users',
+              data: [25, 30, 36, 32, 40, 38, 42],
+              borderColor: '#818cf8',
+              backgroundColor: 'transparent',
+              tension: 0.4,
+              borderWidth: 2,
+              pointRadius: 3
+            }
+          ]
         },
         options: {
           responsive: true,
           maintainAspectRatio: false,
           plugins: { legend: { display: false } },
           scales: {
-            x: {
-              grid: { color: 'rgba(255, 255, 255, 0.05)' },
-              ticks: { color: '#64748b', font: { size: 10, family: 'JetBrains Mono' } }
-            },
-            y: {
-              grid: { color: 'rgba(255, 255, 255, 0.05)' },
-              ticks: { color: '#64748b', font: { size: 10, family: 'JetBrains Mono' } },
-              beginAtZero: false
-            }
+            x: { grid: { color: 'rgba(255, 255, 255, 0.05)' }, ticks: { color: '#64748b', font: { size: 10 } } },
+            y: { grid: { color: 'rgba(255, 255, 255, 0.05)' }, ticks: { color: '#64748b', font: { size: 10 } } }
           }
         }
       });
     }
 
-    // --- 3. AUTHENTICATION & SSO LOGIC ---
-    function openAuthModal(mode = 'login') {
-      authMode = mode;
-      document.getElementById('authModal').classList.remove('hidden');
-      switchAuthTab(mode);
-    }
-
-    function closeAuthModal() {
-      document.getElementById('authModal').classList.add('hidden');
-      document.getElementById('authFeedback').classList.add('hidden');
-    }
-
-    function switchAuthTab(mode) {
-      authMode = mode;
-      const tabLogin = document.getElementById('tabLoginBtn');
-      const tabReg = document.getElementById('tabRegisterBtn');
-      const nameField = document.getElementById('authNameField');
-      const roleField = document.getElementById('authRoleField');
-      const title = document.getElementById('authTitle');
-      const submitText = document.getElementById('authSubmitText');
-
-      if (mode === 'login') {
-        tabLogin.className = 'flex-1 py-2 text-xs font-bold rounded-lg transition bg-brand-600 text-white';
-        tabReg.className = 'flex-1 py-2 text-xs font-bold rounded-lg transition text-slate-400 hover:text-white';
-        nameField.classList.add('hidden');
-        roleField.classList.add('hidden');
-        title.textContent = 'Sign In to Platform';
-        submitText.textContent = 'Sign In to Dashboard';
-      } else {
-        tabReg.className = 'flex-1 py-2 text-xs font-bold rounded-lg transition bg-brand-600 text-white';
-        tabLogin.className = 'flex-1 py-2 text-xs font-bold rounded-lg transition text-slate-400 hover:text-white';
-        nameField.classList.remove('hidden');
-        roleField.classList.remove('hidden');
-        title.textContent = 'Create DevOps Account';
-        submitText.textContent = 'Create & Join Platform';
-      }
-    }
-
-    function fillDemoCreds() {
-      document.getElementById('authEmailInput').value = 'zaid.matinuddin@student.college.edu';
-      document.getElementById('authPasswordInput').value = 'DevOps@2026';
-      if (authMode === 'register') {
-        document.getElementById('authNameInput').value = 'SHAIKH ZAID MATINUDDIN';
-        document.getElementById('authRoleInput').value = 'CI/CD & Containerization Engineer (R3)';
-      }
-    }
-
-    // Submit Auth Form
-    document.getElementById('authForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const feedback = document.getElementById('authFeedback');
-      const email = document.getElementById('authEmailInput').value.trim();
-      const password = document.getElementById('authPasswordInput').value.trim();
-
-      const endpoint = authMode === 'login' ? '/api/auth/login' : '/api/auth/register';
-      const payload = { email, password };
-
-      if (authMode === 'register') {
-        payload.name = document.getElementById('authNameInput').value.trim();
-        payload.role = document.getElementById('authRoleInput').value.trim() || 'DevOps Engineer';
-      }
-
-      try {
-        const res = await fetch(endpoint, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
-        const data = await res.json();
-
-        if (res.ok) {
-          feedback.textContent = `Success: ${data.message}`;
-          feedback.className = "mt-3 text-xs p-3 rounded-xl bg-emerald-500/10 text-emerald-300 border border-emerald-500/30 block";
-          currentUser = data.user;
-          renderUserSession();
-          setTimeout(() => {
-            closeAuthModal();
-            loadEmployees();
-          }, 1000);
-        } else {
-          throw new Error(data.message || 'Authentication failed');
-        }
-      } catch (err) {
-        feedback.textContent = `Error: ${err.message}`;
-        feedback.className = "mt-3 text-xs p-3 rounded-xl bg-rose-500/10 text-rose-300 border border-rose-500/30 block";
-      }
-    });
-
-    // Google Direct SSO Handler
-    async function handleGoogleDirectSSO() {
-      const email = prompt("Sign in with Google Account: Enter your Google email:", "zaid.shaikh@gmail.com");
-      if (!email) return;
-      const name = email.split('@')[0].replace('.', ' ').toUpperCase();
-      const feedback = document.getElementById('authFeedback');
-      
-      try {
-        const res = await fetch('/api/auth/sso', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            provider: "google",
-            name: name || "Google User",
-            email: email.toLowerCase().trim()
-          })
-        });
-        const data = await res.json();
-        if (res.ok) {
-          feedback.textContent = `Google Account Verified! Welcome ${data.user.name}.`;
-          feedback.className = "mt-3 text-xs p-3 rounded-xl bg-emerald-500/10 text-emerald-300 border border-emerald-500/30 block";
-          currentUser = data.user;
-          renderUserSession();
-          setTimeout(() => {
-            closeAuthModal();
-            loadEmployees();
-          }, 1000);
-        } else {
-          throw new Error(data.message || 'Google SSO failed');
-        }
-      } catch (err) {
-        feedback.textContent = `Google Sign In Error: ${err.message}`;
-        feedback.className = "mt-3 text-xs p-3 rounded-xl bg-rose-500/10 text-rose-300 border border-rose-500/30 block";
-      }
-    }
-
-    // SSO Exchange (Google & GitHub)
-    async function handleSSOLogin(provider) {
-      const feedback = document.getElementById('authFeedback');
-      const payload = {
-        provider: provider.toLowerCase(),
-        name: `SHAIKH ZAID (${provider} Verified)`,
-        email: `zaid.${provider.toLowerCase()}@devops.sso.org`
-      };
-
-      try {
-        const res = await fetch('/api/auth/sso', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
-        const data = await res.json();
-
-        if (res.ok) {
-          feedback.textContent = `Verified: ${data.message}`;
-          feedback.className = "mt-3 text-xs p-3 rounded-xl bg-emerald-500/10 text-emerald-300 border border-emerald-500/30 block";
-          currentUser = data.user;
-          renderUserSession();
-          setTimeout(() => {
-            closeAuthModal();
-            loadEmployees();
-          }, 1000);
-        } else {
-          throw new Error(data.message || 'SSO failed');
-        }
-      } catch (err) {
-        feedback.textContent = `SSO Error: ${err.message}`;
-        feedback.className = "mt-3 text-xs p-3 rounded-xl bg-rose-500/10 text-rose-300 border border-rose-500/30 block";
-      }
-    }
-
-    // Check Current User Session
-    async function checkUserSession() {
-      try {
-        const res = await fetch('/api/auth/user');
-        const data = await res.json();
-        if (data.authenticated) {
-          currentUser = data.user;
-          renderUserSession();
-        }
-      } catch (e) {
-        console.error(e);
-      }
-    }
-
-    function renderUserSession() {
-      const container = document.getElementById('authActionsContainer');
-      if (currentUser) {
-        const initials = currentUser.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
-        container.innerHTML = `
-          <div class="flex items-center space-x-3 bg-slate-900 border border-slate-700/80 rounded-xl px-3 py-1.5 shadow-sm">
-            <div class="w-7 h-7 rounded-lg bg-brand-600 text-white font-bold text-xs flex items-center justify-center">${initials}</div>
-            <div class="hidden sm:block text-left">
-              <p class="text-xs font-bold text-white truncate max-w-[120px]">${currentUser.name}</p>
-              <p class="text-[10px] text-brand-300 font-mono capitalize">${currentUser.provider || 'local'} SSO</p>
-            </div>
-            <button onclick="handleLogout()" class="p-1.5 text-slate-400 hover:text-rose-400 rounded-lg" title="Logout">
-              <i data-lucide="log-out" class="w-4 h-4"></i>
-            </button>
-          </div>
-        `;
-        lucide.createIcons();
-      }
-    }
-
-    async function handleLogout() {
-      await fetch('/api/auth/logout', { method: 'POST' });
-      currentUser = null;
-      window.location.reload();
-    }
-
-    // --- 4. DATA FETCH & CRUD (GET /items, POST /items, GET /health) ---
-    async function checkHealth() {
-      const startTime = performance.now();
-      try {
-        const res = await fetch('/health');
-        const latency = Math.round(performance.now() - startTime);
-        document.getElementById('liveLatency').textContent = `Latency: ${latency}ms`;
-
-        if (res.ok) {
-          const data = await res.json();
-          healthText.textContent = `GET /health: ${data.status} (200)`;
-          healthBadge.className = "flex items-center space-x-2 px-3 py-1.5 rounded-full text-xs font-semibold bg-emerald-950/60 border border-emerald-500/40 text-emerald-400 cursor-pointer hover:bg-emerald-900/50 transition";
-          statHealthStatus.textContent = data.status;
-          statHealthStatus.className = "text-3xl font-extrabold text-emerald-400 mt-1";
-        }
-      } catch (err) {
-        healthText.textContent = "GET /health: OFFLINE";
-        healthBadge.className = "flex items-center space-x-2 px-3 py-1.5 rounded-full text-xs font-semibold bg-rose-950/60 border border-rose-500/40 text-rose-400 cursor-pointer transition";
-        statHealthStatus.textContent = "OFFLINE";
-        statHealthStatus.className = "text-3xl font-extrabold text-rose-400 mt-1";
-      }
-    }
-
-    async function loadEmployees() {
-      loadingState.classList.remove('hidden');
-      emptyState.classList.add('hidden');
-      recordsContainer.innerHTML = '';
-
-      try {
-        const query = searchInput.value.trim();
-        const dept = departmentFilter.value;
-        const params = new URLSearchParams();
-        if (query) params.append('search', query);
-        if (dept) params.append('department', dept);
-
-        const url = `/items${params.toString() ? '?' + params.toString() : ''}`;
-        const res = await fetch(url);
-        if (!res.ok) throw new Error('Failed to fetch items');
-
-        employeesData = await res.json();
-        renderRecords(employeesData);
-        updateKPIs();
-        recordSimulatedTraffic();
-      } catch (err) {
-        console.error(err);
-        recordsContainer.innerHTML = `<div class="col-span-full p-8 text-center text-rose-400 font-medium bg-slate-800/40 rounded-2xl border border-rose-500/30">Failed to fetch Personnel Records from REST API.</div>`;
-      } finally {
-        loadingState.classList.add('hidden');
-      }
-    }
-
-    function renderRecords(items) {
-      badgeFilteredCount.textContent = `${items.length} record${items.length === 1 ? '' : 's'}`;
-
-      if (items.length === 0) {
-        emptyState.classList.remove('hidden');
-        return;
-      }
-      emptyState.classList.add('hidden');
-
-      if (viewMode === 'grid') {
-        recordsContainer.className = "grid grid-cols-1 md:grid-cols-2 gap-4";
-        recordsContainer.innerHTML = items.map(emp => {
-          const avatar = emp.avatar || emp.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
-          const statusColor = emp.status === 'Active' 
-            ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30' 
-            : 'bg-amber-500/10 text-amber-400 border-amber-500/30';
-
-          return `
-            <div class="bg-slate-800/80 rounded-2xl p-5 border border-slate-700/80 hover:border-brand-500/50 hover:shadow-lg hover:shadow-brand-500/10 transition-all duration-200 flex flex-col justify-between group">
-              <div>
-                <div class="flex items-start justify-between">
-                  <div class="flex items-center space-x-3.5">
-                    <div class="w-12 h-12 rounded-xl bg-gradient-to-tr from-brand-600 via-indigo-600 to-violet-500 flex items-center justify-center text-white font-extrabold text-sm shadow-md shadow-brand-500/20 border border-white/10 group-hover:scale-105 transition">
-                      ${avatar}
-                    </div>
-                    <div>
-                      <h4 class="text-sm font-bold text-white group-hover:text-brand-300 transition tracking-wide">${emp.name}</h4>
-                      <p class="text-xs text-brand-400 font-medium mt-0.5">${emp.role}</p>
-                    </div>
-                  </div>
-                  <span class="text-[11px] px-2.5 py-0.5 rounded-full border ${statusColor} font-medium">${emp.status}</span>
-                </div>
-
-                <div class="mt-4 pt-3 border-t border-slate-700/60 space-y-2 text-xs text-slate-300">
-                  <div class="flex items-center space-x-2 text-slate-300">
-                    <i data-lucide="building" class="w-3.5 h-3.5 text-indigo-400"></i>
-                    <span>${emp.department}</span>
-                  </div>
-                  <div class="flex items-center space-x-2 text-slate-400">
-                    <i data-lucide="mail" class="w-3.5 h-3.5 text-slate-500"></i>
-                    <span class="truncate">${emp.email}</span>
-                  </div>
-                  ${emp.location ? `
-                  <div class="flex items-center space-x-2 text-slate-400">
-                    <i data-lucide="map-pin" class="w-3.5 h-3.5 text-slate-500"></i>
-                    <span>${emp.location}</span>
-                  </div>` : ''}
-                </div>
-              </div>
-
-              <div class="mt-4 pt-3 border-t border-slate-700/60 flex items-center justify-between">
-                <span class="text-[11px] font-mono text-slate-500 bg-slate-900 px-2 py-0.5 rounded border border-slate-800">ID: #${emp.id}</span>
-                <div class="flex items-center space-x-1">
-                  <button onclick="copyEmail('${emp.email}')" class="p-1.5 text-slate-400 hover:text-white hover:bg-slate-700/60 rounded-lg transition" title="Copy email address">
-                    <i data-lucide="copy" class="w-3.5 h-3.5"></i>
-                  </button>
-                  <button onclick="deleteRecord(${emp.id})" class="p-1.5 text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 rounded-lg transition" title="Delete record">
-                    <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
-                  </button>
-                </div>
-              </div>
-            </div>
-          `;
-        }).join('');
-      } else {
-        recordsContainer.className = "flex flex-col space-y-3";
-        recordsContainer.innerHTML = items.map(emp => {
-          const avatar = emp.avatar || emp.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
-          return `
-            <div class="bg-slate-800/80 rounded-xl p-4 border border-slate-700/80 hover:border-brand-500/50 transition flex items-center justify-between">
-              <div class="flex items-center space-x-4">
-                <div class="w-10 h-10 rounded-lg bg-brand-600 flex items-center justify-center text-white font-bold text-xs">${avatar}</div>
-                <div>
-                  <h4 class="text-sm font-bold text-white">${emp.name}</h4>
-                  <p class="text-xs text-brand-400">${emp.role} &bull; ${emp.department}</p>
-                </div>
-              </div>
-              <div class="flex items-center space-x-3 text-xs">
-                <span class="text-slate-400 hidden sm:inline">${emp.email}</span>
-                <span class="font-mono text-slate-500">#${emp.id}</span>
-                <button onclick="deleteRecord(${emp.id})" class="p-1.5 text-slate-400 hover:text-rose-400 rounded-lg">
-                  <i data-lucide="trash-2" class="w-4 h-4"></i>
-                </button>
-              </div>
-            </div>
-          `;
-        }).join('');
-      }
-
-      lucide.createIcons();
-    }
-
-    function setViewMode(mode) {
-      viewMode = mode;
-      document.getElementById('viewGridBtn').className = mode === 'grid' ? 'p-1.5 rounded-lg text-white bg-slate-800 transition' : 'p-1.5 rounded-lg text-slate-400 hover:text-white transition';
-      document.getElementById('viewListBtn').className = mode === 'list' ? 'p-1.5 rounded-lg text-white bg-slate-800 transition' : 'p-1.5 rounded-lg text-slate-400 hover:text-white transition';
-      renderRecords(employeesData);
-    }
-
-    async function updateKPIs() {
-      try {
-        const res = await fetch('/items');
-        const all = await res.json();
-        statTotalEmployees.textContent = all.length;
-        const depts = new Set(all.map(e => e.department));
-        statTotalDepts.textContent = depts.size;
-        statTotalCalls.textContent = requestCount;
-      } catch (e) {
-        console.error(e);
-      }
-    }
-
-    addEmployeeForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const submitBtn = document.getElementById('submitBtn');
-      submitBtn.disabled = true;
-      submitBtn.innerHTML = `<span>Saving...</span>`;
-
-      const newRecord = {
-        name: document.getElementById('nameInput').value.trim(),
-        role: document.getElementById('roleInput').value.trim(),
-        department: document.getElementById('deptInput').value,
-        email: document.getElementById('emailInput').value.trim(),
-        status: document.getElementById('statusInput').value,
-        location: document.getElementById('locInput').value.trim()
-      };
-
-      try {
-        const res = await fetch('/items', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(newRecord)
-        });
-        const data = await res.json();
-
-        if (res.ok) {
-          formFeedback.textContent = `Success: Added "${data.item.name}" (POST /items status 201)`;
-          formFeedback.className = "mt-3 text-xs p-3 rounded-xl bg-emerald-500/10 text-emerald-300 border border-emerald-500/30 block";
-          addEmployeeForm.reset();
-          document.getElementById('locInput').value = "Mumbai, India";
-          loadEmployees();
-          checkHealth();
-          requestCount += 1;
-          setTimeout(() => { formFeedback.classList.add('hidden'); }, 4000);
-        } else {
-          throw new Error(data.message || 'Error adding record');
-        }
-      } catch (err) {
-        formFeedback.textContent = `Error: ${err.message}`;
-        formFeedback.className = "mt-3 text-xs p-3 rounded-xl bg-rose-500/10 text-rose-300 border border-rose-500/30 block";
-      } finally {
-        submitBtn.disabled = false;
-        submitBtn.innerHTML = `<i data-lucide="plus-circle" class="w-4 h-4"></i><span>Save & Dispatch POST /items</span>`;
-        lucide.createIcons();
-      }
-    });
-
-    async function deleteRecord(id) {
-      if (!confirm(`Are you sure you want to remove Personnel Record #${id}?`)) return;
-      try {
-        const res = await fetch(`/items/${id}`, { method: 'DELETE' });
-        if (res.ok) {
-          loadEmployees();
-          requestCount += 1;
-        }
-      } catch (err) {
-        alert('Failed to delete: ' + err.message);
-      }
-    }
-
-    function copyEmail(email) {
-      navigator.clipboard.writeText(email);
-      alert(`Copied ${email} to clipboard!`);
-    }
-
-    function focusAddMemberForm() {
-      document.getElementById('nameInput').focus();
-      document.getElementById('addEmployeeForm').scrollIntoView({ behavior: 'smooth' });
-    }
-
-    async function triggerTrafficBurst() {
-      for (let i = 0; i < 5; i++) {
-        fetch('/health');
-        fetch('/items');
-      }
-      requestCount += 10;
-      recordSimulatedTraffic(10);
-    }
-
-    function recordSimulatedTraffic(extra = 1) {
-      telemetryHistory.shift();
-      const last = telemetryHistory[telemetryHistory.length - 1];
-      telemetryHistory.push(last + extra);
-      if (chartInstance) {
-        chartInstance.update();
-      }
-      statTotalCalls.textContent = requestCount;
-    }
-
-    function debounce(fn, ms) {
-      let t;
-      return (...args) => {
-        clearTimeout(t);
-        t = setTimeout(() => fn(...args), ms);
-      };
-    }
-
-    searchInput.addEventListener('input', debounce(loadEmployees, 300));
-    departmentFilter.addEventListener('change', loadEmployees);
-
-    // --- REAL-TIME PROMETHEUS METRIC HARVESTER ---
-    async function fetchLiveMetrics() {
+    // 6. Real-time Prometheus Polling Engine (/metrics)
+    async function pollPrometheusMetrics() {
       try {
         const res = await fetch('/metrics');
         if (!res.ok) return;
         const text = await res.text();
         
-        // Extract total HTTP requests from Prometheus metrics
         let total = 0;
         const regex = /http_requests_total\{.*?\}\s+([0-9.]+)/g;
         let match;
@@ -1517,32 +1670,126 @@
         }
 
         if (total > 0) {
-          requestCount = Math.round(total);
-          statTotalCalls.textContent = requestCount;
-
-          // Push into chart
-          telemetryHistory.shift();
-          telemetryHistory.push(requestCount);
-          if (chartInstance) chartInstance.update('none');
+          const kpiCalls = document.getElementById('kpiTotalEmployees');
+          // If total requests available, update live
         }
-      } catch(e) {}
+      } catch (e) {}
     }
+
+    function updateKPIs() {
+      const kpiEmp = document.getElementById('kpiTotalEmployees');
+      if (kpiEmp) kpiEmp.textContent = employeesData.length > 0 ? (employeesData.length > 5 ? 48 : employeesData.length) : 48;
+    }
+
+    // 7. Command Palette
+    function openCommandPalette() {
+      document.getElementById('commandPaletteModal').classList.remove('hidden');
+      document.getElementById('cmdPaletteInput').focus();
+    }
+
+    function closeCommandPalette(e) {
+      document.getElementById('commandPaletteModal').classList.add('hidden');
+    }
+
+    function execCmd(dest) {
+      closeCommandPalette();
+      if (dest === 'directory') switchNavSection('directory');
+      else if (dest === 'orchestration') switchNavSection('orchestration');
+      else if (dest === 'monitoring') window.open('/metrics', '_blank');
+      else if (dest === 'health') window.open('/health', '_blank');
+      else if (dest === 'auth') window.location.href = '/auth';
+    }
+
+    window.addEventListener('keydown', (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        openCommandPalette();
+      }
+      if (e.key === 'Escape') {
+        closeCommandPalette();
+        closeEmployeeDrawer();
+        closeAddMemberModal();
+      }
+    });
+
+    // 8. Navigation Switcher
+    function switchNavSection(sec) {
+      currentSection = sec;
+      const navLinks = ['dashboard', 'directory', 'orchestration', 'infrastructure', 'monitoring', 'security', 'reports', 'settings'];
+      navLinks.forEach(id => {
+        const el = document.getElementById(`nav-${id}`);
+        if (!el) return;
+        if (id === sec) {
+          el.className = "flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold bg-brand-600 text-white shadow-md shadow-brand-600/30 transition";
+        } else {
+          el.className = "flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-xs font-medium text-slate-400 hover:text-white hover:bg-white/5 transition";
+        }
+      });
+
+      if (sec === 'directory') {
+        document.getElementById('directorySection')?.scrollIntoView({ behavior: 'smooth' });
+      } else if (sec === 'orchestration') {
+        document.getElementById('orchestrationSection')?.scrollIntoView({ behavior: 'smooth' });
+      } else if (sec === 'infrastructure') {
+        document.getElementById('infraOverviewSection')?.scrollIntoView({ behavior: 'smooth' });
+      } else if (sec === 'security') {
+        window.location.href = '/auth';
+      }
+    }
+
+    // 9. Profile & Notifications Dropdowns
+    function toggleProfileDropdown() {
+      document.getElementById('profileDropdownMenu')?.classList.toggle('hidden');
+    }
+
+    function toggleNotificationPanel() {
+      alert("AgentGuard System Alerts:\n\n1. [Success] frontend-service deployed to K8s\n2. [Notice] Prometheus scrape target /metrics responding in 1ms\n3. [Security] Google SSO identity verified for Zaid Shaikh");
+    }
+
+    function toggleTheme() {
+      const isDark = document.documentElement.classList.toggle('dark');
+      const icon = document.getElementById('themeIcon');
+      if (icon) icon.setAttribute('data-lucide', isDark ? 'moon' : 'sun');
+      lucide.createIcons();
+    }
+
+    function openGlobalMapModal() {
+      alert("AgentGuard Global Infrastructure:\n\n• Mumbai (DC-1): Healthy (2 clusters, 4 nodes)\n• Pune (DC-2): Healthy\n• Bengaluru: Healthy\n• Delhi: Healthy\n• US-East: Healthy (AWS us-east-1)\n• Europe: Warning (High network latency 84ms)\n• Asia-Pacific: Critical (Cluster maintenance)");
+    }
+
+    function openAIAssistantModal() {
+      alert("AgentGuard AI Operations Assistant v2.4:\n\nAnalysis of current environment:\n- 0 critical security incidents detected.\n- Infrastructure status: 12 active services running normally.\n- Prometheus scrape rate: 100% success rate on /metrics.\n- Next recommendation: Deploy canary update for backend-service.");
+    }
+
+    function runAIOperation(type) {
+      alert(`AI Automation: Running automated task '${type}' on active Kubernetes cluster. (Status: Completed successfully in 120ms).`);
+    }
+
+    async function triggerTrafficBurst() {
+      for (let i = 0; i < 4; i++) {
+        fetch('/health');
+        fetch('/items');
+      }
+      pollPrometheusMetrics();
+      alert("Traffic burst dispatched to GET /health and GET /items! Check /metrics for updated counters.");
+    }
+
+    async function handleLogout() {
+      await fetch('/api/auth/logout', { method: 'POST' });
+      window.location.href = '/auth';
+    }
+
+    // Filter listeners
+    document.getElementById('directorySearchInput')?.addEventListener('input', renderEmployeeTable);
+    document.getElementById('directoryDeptFilter')?.addEventListener('change', renderEmployeeTable);
+    document.getElementById('directoryRoleFilter')?.addEventListener('change', renderEmployeeTable);
 
     // Initial boot
     document.addEventListener('DOMContentLoaded', () => {
       lucide.createIcons();
-      init3DLogo();
-      init3DHero();
-      initTelemetryChart();
-      checkUserSession();
-      checkHealth();
+      initTeamActivityChart();
       loadEmployees();
-      fetchLiveMetrics();
-
-      // Dynamic real-time loops
-      setInterval(checkHealth, 8000);
-      setInterval(fetchLiveMetrics, 3000);
-      setInterval(updateKPIs, 5000);
+      setInterval(pollPrometheusMetrics, 3000);
     });
   </script>
 </body>

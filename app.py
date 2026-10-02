@@ -63,54 +63,163 @@ users = [
 ]
 user_id_counter = 3
 
-# In-memory storage for Employee Directory
+# In-memory storage for Employee Directory (Preserves B3-G3 & expands enterprise directory)
 employees = [
     {
         "id": 1,
+        "name": "Zaid Shaikh",
+        "role": "Admin",
+        "department": "DevOps",
+        "email": "zaid@company.com",
+        "status": "Online",
+        "avatar": "ZS",
+        "location": "Mumbai",
+        "phone": "+91 98200 99887",
+        "deployments": 28,
+        "commits": 142,
+        "prs": 19,
+        "sso": "Google SSO Connected",
+        "last_login": "Today at 06:38 PM",
+        "permissions": "Full Admin Access"
+    },
+    {
+        "id": 2,
+        "name": "Aarav Patil",
+        "role": "Developer",
+        "department": "Backend",
+        "email": "aarav@company.com",
+        "status": "Online",
+        "avatar": "AP",
+        "location": "Pune",
+        "phone": "+91 98201 22334",
+        "deployments": 14,
+        "commits": 88,
+        "prs": 12,
+        "sso": "Google SSO Connected",
+        "last_login": "Today at 05:12 PM",
+        "permissions": "Developer Read/Write"
+    },
+    {
+        "id": 3,
+        "name": "Sneha More",
+        "role": "Developer",
+        "department": "Frontend",
+        "email": "sneha@company.com",
+        "status": "Online",
+        "avatar": "SM",
+        "location": "Mumbai",
+        "phone": "+91 98202 33445",
+        "deployments": 9,
+        "commits": 64,
+        "prs": 15,
+        "sso": "GitHub SSO",
+        "last_login": "Today at 04:45 PM",
+        "permissions": "Developer Read/Write"
+    },
+    {
+        "id": 4,
+        "name": "Rohan Deshmukh",
+        "role": "DevOps",
+        "department": "Infrastructure",
+        "email": "rohan@company.com",
+        "status": "Online",
+        "avatar": "RD",
+        "location": "Bengaluru",
+        "phone": "+91 98203 44556",
+        "deployments": 36,
+        "commits": 112,
+        "prs": 22,
+        "sso": "Google SSO Connected",
+        "last_login": "Today at 06:15 PM",
+        "permissions": "Infra & K8s Admin"
+    },
+    {
+        "id": 5,
+        "name": "Priya Sharma",
+        "role": "QA",
+        "department": "Quality Assurance",
+        "email": "priya@company.com",
+        "status": "Offline",
+        "avatar": "PS",
+        "location": "Delhi",
+        "phone": "+91 98204 55667",
+        "deployments": 5,
+        "commits": 31,
+        "prs": 8,
+        "sso": "Google SSO Connected",
+        "last_login": "Yesterday at 07:30 PM",
+        "permissions": "QA Tester"
+    },
+    {
+        "id": 6,
         "name": "SHAIKH RAHMAT",
         "role": "Agile Planner & Documentation Lead (R1)",
         "department": "Platform & Cloud",
         "email": "shaikh.rahmat@student.college.edu",
-        "status": "Active",
+        "status": "Online",
         "avatar": "SR",
-        "location": "Mumbai, India",
-        "phone": "+91 98201 11234"
+        "location": "Mumbai",
+        "phone": "+91 98201 11234",
+        "deployments": 12,
+        "commits": 45,
+        "prs": 9,
+        "sso": "Google SSO Connected",
+        "last_login": "Today at 06:00 PM",
+        "permissions": "Jira & Agile Planner"
     },
     {
-        "id": 2,
+        "id": 7,
         "name": "YADGIR ZUVERIA SALIM",
         "role": "Developer & Version Control (R2)",
         "department": "AI & Data Science",
         "email": "zuveria.yadgir@student.college.edu",
-        "status": "Active",
+        "status": "Online",
         "avatar": "YZ",
-        "location": "Mumbai, India",
-        "phone": "+91 98202 22345"
+        "location": "Pune",
+        "phone": "+91 98202 22345",
+        "deployments": 18,
+        "commits": 95,
+        "prs": 14,
+        "sso": "GitHub SSO",
+        "last_login": "Today at 05:40 PM",
+        "permissions": "Developer Read/Write"
     },
     {
-        "id": 3,
+        "id": 8,
         "name": "SHAIKH ZAID MATINUDDIN",
         "role": "CI/CD & Containerization Engineer (R3)",
-        "department": "Engineering",
+        "department": "DevOps",
         "email": "zaid.matinuddin@student.college.edu",
-        "status": "Active",
+        "status": "Online",
         "avatar": "ZM",
-        "location": "Mumbai, India",
-        "phone": "+91 98203 33456"
+        "location": "Mumbai",
+        "phone": "+91 98203 33456",
+        "deployments": 42,
+        "commits": 160,
+        "prs": 27,
+        "sso": "Google SSO Connected",
+        "last_login": "Just now",
+        "permissions": "CI/CD Full Access"
     },
     {
-        "id": 4,
+        "id": 9,
         "name": "SHAIKH ZAID WAZIDALI",
         "role": "Deployment & Monitoring Engineer (R4)",
-        "department": "Core Infrastructure",
+        "department": "Infrastructure",
         "email": "zaid.wazidali@student.college.edu",
-        "status": "Active",
+        "status": "Online",
         "avatar": "ZW",
-        "location": "Mumbai, India",
-        "phone": "+91 98204 44567"
+        "location": "Bengaluru",
+        "phone": "+91 98204 44567",
+        "deployments": 31,
+        "commits": 104,
+        "prs": 18,
+        "sso": "Prometheus/Grafana Lead",
+        "last_login": "Today at 06:20 PM",
+        "permissions": "Monitoring & Telemetry Admin"
     }
 ]
-next_id = 5
+next_id = 10
 
 
 @app.before_request
@@ -289,6 +398,37 @@ def delete_item(emp_id):
         return jsonify({"error": "Employee not found"}), 404
     employees = [e for e in employees if e["id"] != emp_id]
     return jsonify({"message": f"Employee {emp_id} deleted successfully"}), 200
+
+
+@app.route("/items/<int:emp_id>", methods=["PUT", "PATCH"])
+def update_item(emp_id):
+    global employees
+    employee = next((e for e in employees if e["id"] == emp_id), None)
+    if not employee:
+        return jsonify({"error": "Employee not found"}), 404
+    
+    data = request.get_json(silent=True) or request.form.to_dict()
+    if not data:
+        return jsonify({"error": "Validation Failed", "message": "No data provided"}), 400
+
+    if "name" in data and data["name"].strip():
+        employee["name"] = data["name"].strip()
+        parts = employee["name"].split()
+        employee["avatar"] = "".join([p[0] for p in parts[:2]]).upper()
+    if "role" in data and data["role"].strip():
+        employee["role"] = data["role"].strip()
+    if "department" in data:
+        employee["department"] = data["department"].strip()
+    if "email" in data:
+        employee["email"] = data["email"].strip().lower()
+    if "status" in data:
+        employee["status"] = data["status"].strip()
+    if "location" in data:
+        employee["location"] = data["location"].strip()
+    if "phone" in data:
+        employee["phone"] = data["phone"].strip()
+
+    return jsonify({"message": "Employee updated successfully", "item": employee}), 200
 
 
 # --- 3. Authentication & SSO APIs ---
