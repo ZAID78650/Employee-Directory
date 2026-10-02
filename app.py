@@ -360,7 +360,7 @@ def add_item():
         }), 400
 
     name_parts = data.get("name").strip().split()
-    avatar = "".join([p[0] for p in name_parts[:2]]).upper() if name_parts else "EM"
+    avatar = data.get("avatar") or ("".join([p[0] for p in name_parts[:2]]).upper() if name_parts else "EM")
 
     new_employee = {
         "id": next_id,
@@ -371,7 +371,22 @@ def add_item():
         "status": data.get("status", "Active").strip(),
         "avatar": avatar,
         "location": data.get("location", "Mumbai, India").strip(),
-        "phone": data.get("phone", "+91 98200 00000").strip()
+        "phone": data.get("phone", "+91 98200 00000").strip(),
+        "title": data.get("title", data.get("role", "Engineer")).strip(),
+        "work_mode": data.get("work_mode", "Hybrid").strip(),
+        "access_tier": data.get("access_tier", "Developer Access").strip(),
+        "service": data.get("service", "backend-service").strip(),
+        "github": data.get("github", "").strip(),
+        "jira": data.get("jira", "").strip(),
+        "mfa": bool(data.get("mfa", True)),
+        "prod_deploy": bool(data.get("prod_deploy", False)),
+        "deployments": int(data.get("deployments", 12)),
+        "commits": int(data.get("commits", 48)),
+        "prs": int(data.get("prs", 8)),
+        "sso": data.get("sso", "Google SSO Connected"),
+        "permissions": data.get("permissions", "Developer Read/Write"),
+        "last_login": "Just now",
+        "skills": data.get("skills", ["Docker", "Kubernetes", "Python"])
     }
     employees.append(new_employee)
     next_id += 1
@@ -414,7 +429,10 @@ def update_item(emp_id):
     if "name" in data and data["name"].strip():
         employee["name"] = data["name"].strip()
         parts = employee["name"].split()
-        employee["avatar"] = "".join([p[0] for p in parts[:2]]).upper()
+        if "avatar" not in data or not data["avatar"]:
+            employee["avatar"] = "".join([p[0] for p in parts[:2]]).upper()
+    if "avatar" in data and data["avatar"]:
+        employee["avatar"] = data["avatar"].strip()
     if "role" in data and data["role"].strip():
         employee["role"] = data["role"].strip()
     if "department" in data:
@@ -427,6 +445,32 @@ def update_item(emp_id):
         employee["location"] = data["location"].strip()
     if "phone" in data:
         employee["phone"] = data["phone"].strip()
+    if "title" in data:
+        employee["title"] = data["title"].strip()
+    if "work_mode" in data:
+        employee["work_mode"] = data["work_mode"].strip()
+    if "access_tier" in data:
+        employee["access_tier"] = data["access_tier"].strip()
+    if "service" in data:
+        employee["service"] = data["service"].strip()
+    if "github" in data:
+        employee["github"] = data["github"].strip()
+    if "jira" in data:
+        employee["jira"] = data["jira"].strip()
+    if "mfa" in data:
+        employee["mfa"] = bool(data["mfa"])
+    if "prod_deploy" in data:
+        employee["prod_deploy"] = bool(data["prod_deploy"])
+    if "deployments" in data:
+        employee["deployments"] = int(data["deployments"])
+    if "commits" in data:
+        employee["commits"] = int(data["commits"])
+    if "prs" in data:
+        employee["prs"] = int(data["prs"])
+    if "permissions" in data:
+        employee["permissions"] = data["permissions"].strip()
+    if "skills" in data and isinstance(data["skills"], list):
+        employee["skills"] = data["skills"]
 
     return jsonify({"message": "Employee updated successfully", "item": employee}), 200
 
