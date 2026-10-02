@@ -1,0 +1,66 @@
+version: '3.8'
+
+services:
+  # 1. Flask Web Application (Employee Directory)
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: employee-directory:latest
+    container_name: employee-directory-app
+    restart: unless-stopped
+    ports:
+      - "5001:5001"
+    environment:
+      - PORT=5001
+      - FLASK_ENV=production
+    networks:
+      - devops-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5001/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+
+  # 2. Prometheus Telemetry Scraper (Role R4 / R5)
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: employee-directory-prometheus
+    restart: unless-stopped
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+    networks:
+      - devops-network
+    depends_on:
+      - app
+
+  # 3. Grafana Visual Dashboard (Role R4 / R5)
+  grafana:
+    image: grafana/grafana:latest
+    container_name: employee-directory-grafana
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - ./grafana/provisioning/datasources:/etc/grafana/provisioning/datasources:ro
+      - ./grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards:ro
+    networks:
+      - devops-network
+    depends_on:
+      - prometheus
+
+networks:
+  devops-network:
+    driver: bridge

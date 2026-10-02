@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Employee Directory | DevOps Practical 10 (B3-G3)</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    .glassmorphism {
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+    @keyframes pulse-slow {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.8; transform: scale(1.02); }
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col antialiased selection:bg-indigo-500 selection:text-white">
+
+  <!-- TOP STATUS / PIPELINE BANNER -->
+  <header class="bg-slate-900 border-b border-slate-800 text-white sticky top-0 z-50 shadow-md">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-16">
+        <!-- Brand / Identity -->
+        <div class="flex items-center space-x-3">
+          <div class="h-10 w-10 rounded-xl bg-gradient-to-tr from-indigo-500 via-indigo-600 to-violet-500 flex items-center justify-center shadow-lg shadow-indigo-500/30">
+            <i data-lucide="users" class="w-5 h-5 text-white"></i>
+          </div>
+          <div>
+            <div class="flex items-center space-x-2">
+              <h1 class="text-base font-bold tracking-tight text-white">Employee Directory</h1>
+              <span class="px-2 py-0.5 text-xs font-semibold rounded bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">Group B3-G3</span>
+            </div>
+            <p class="text-xs text-slate-400">DevOps End-to-End Pipeline Demo</p>
+          </div>
+        </div>
+
+        <!-- DevOps Quick Stats & Health Badge -->
+        <div class="flex items-center space-x-3 sm:space-x-5">
+          <!-- Live Service Health Indicator -->
+          <div id="healthBadge" class="flex items-center space-x-2 px-3 py-1.5 rounded-full text-xs font-medium bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 transition-all">
+            <span class="relative flex h-2 w-2">
+              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+            </span>
+            <span id="healthStatusText">GET /health: Checking...</span>
+          </div>
+
+          <!-- Links to Prometheus / Grafana / API -->
+          <div class="hidden md:flex items-center space-x-2">
+            <a href="/items" target="_blank" class="px-2.5 py-1 text-xs rounded-md bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition flex items-center space-x-1.5 border border-slate-700" title="Inspect RAW GET /items JSON">
+              <i data-lucide="code" class="w-3.5 h-3.5"></i>
+              <span>/items</span>
+            </a>
+            <a href="/metrics" target="_blank" class="px-2.5 py-1 text-xs rounded-md bg-slate-800 hover:bg-slate-700 text-amber-300 hover:text-amber-200 transition flex items-center space-x-1.5 border border-slate-700" title="Prometheus Metrics Scrape Target">
+              <i data-lucide="activity" class="w-3.5 h-3.5 text-amber-400"></i>
+              <span>/metrics</span>
+            </a>
+            <a href="http://localhost:9090" target="_blank" class="px-2.5 py-1 text-xs rounded-md bg-orange-950/40 hover:bg-orange-900/60 text-orange-300 border border-orange-800/50 transition flex items-center space-x-1" title="Prometheus Dashboard (Port 9090)">
+              <i data-lucide="flame" class="w-3.5 h-3.5 text-orange-400"></i>
+              <span>Prometheus</span>
+            </a>
+            <a href="http://localhost:3000" target="_blank" class="px-2.5 py-1 text-xs rounded-md bg-emerald-950/40 hover:bg-emerald-900/60 text-emerald-300 border border-emerald-800/50 transition flex items-center space-x-1" title="Grafana Dashboard (Port 3000)">
+              <i data-lucide="bar-chart-2" class="w-3.5 h-3.5 text-emerald-400"></i>
+              <span>Grafana</span>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- PIPELINE STAGES BAR -->
+  <div class="bg-indigo-950/30 border-b border-indigo-900/20 py-2.5 px-4 text-xs font-medium text-slate-600 overflow-x-auto">
+    <div class="max-w-7xl mx-auto flex items-center justify-between min-w-[700px]">
+      <div class="flex items-center space-x-2 text-indigo-700 font-semibold uppercase tracking-wider text-[11px]">
+        <i data-lucide="git-merge" class="w-4 h-4"></i>
+        <span>DevOps Lifecycle:</span>
+      </div>
+      <div class="flex items-center space-x-4">
+        <span class="flex items-center space-x-1.5 text-slate-700 bg-white px-2.5 py-1 rounded-full shadow-sm border border-slate-200">
+          <span class="w-2 h-2 rounded-full bg-blue-500"></span>
+          <b>Plan:</b> Jira (R1)
+        </span>
+        <span class="text-slate-400">&rarr;</span>
+        <span class="flex items-center space-x-1.5 text-slate-700 bg-white px-2.5 py-1 rounded-full shadow-sm border border-slate-200">
+          <span class="w-2 h-2 rounded-full bg-indigo-500"></span>
+          <b>Code:</b> GitHub + PR (R2)
+        </span>
+        <span class="text-slate-400">&rarr;</span>
+        <span class="flex items-center space-x-1.5 text-slate-700 bg-white px-2.5 py-1 rounded-full shadow-sm border border-slate-200">
+          <span class="w-2 h-2 rounded-full bg-green-500"></span>
+          <b>CI/CD:</b> GitHub Actions (R3)
+        </span>
+        <span class="text-slate-400">&rarr;</span>
+        <span class="flex items-center space-x-1.5 text-slate-700 bg-white px-2.5 py-1 rounded-full shadow-sm border border-slate-200">
+          <span class="w-2 h-2 rounded-full bg-cyan-500"></span>
+          <b>Package:</b> Docker Hub (R3)
+        </span>
+        <span class="text-slate-400">&rarr;</span>
+        <span class="flex items-center space-x-1.5 text-slate-700 bg-white px-2.5 py-1 rounded-full shadow-sm border border-slate-200">
+          <span class="w-2 h-2 rounded-full bg-purple-500"></span>
+          <b>Deploy & Monitor:</b> Compose + Prometheus + Grafana (R4)
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN APP CONTAINER -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 w-full">
+
+    <!-- KPI / STATS CARDS -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
+      <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200/80 flex items-center justify-between">
+        <div>
+          <p class="text-xs font-semibold uppercase tracking-wider text-slate-500">Total Personnel</p>
+          <h3 id="statTotalEmployees" class="text-2xl font-bold text-slate-900 mt-1">--</h3>
+          <p class="text-xs text-emerald-600 font-medium mt-1">In-Memory Store</p>
+        </div>
+        <div class="p-3 bg-indigo-50 text-indigo-600 rounded-xl">
+          <i data-lucide="users" class="w-6 h-6"></i>
+        </div>
+      </div>
+
+      <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200/80 flex items-center justify-between">
+        <div>
+          <p class="text-xs font-semibold uppercase tracking-wider text-slate-500">Active Departments</p>
+          <h3 id="statTotalDepts" class="text-2xl font-bold text-slate-900 mt-1">--</h3>
+          <p class="text-xs text-slate-500 mt-1">Platform, AI, Core...</p>
+        </div>
+        <div class="p-3 bg-violet-50 text-violet-600 rounded-xl">
+          <i data-lucide="building-2" class="w-6 h-6"></i>
+        </div>
+      </div>
+
+      <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200/80 flex items-center justify-between">
+        <div>
+          <p class="text-xs font-semibold uppercase tracking-wider text-slate-500">Service Status</p>
+          <h3 id="statHealthStatus" class="text-2xl font-bold text-emerald-600 mt-1">HEALTHY</h3>
+          <p class="text-xs text-slate-500 mt-1">HTTP 200 OK</p>
+        </div>
+        <div class="p-3 bg-emerald-50 text-emerald-600 rounded-xl">
+          <i data-lucide="shield-check" class="w-6 h-6"></i>
+        </div>
+      </div>
+
+      <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200/80 flex items-center justify-between">
+        <div>
+          <p class="text-xs font-semibold uppercase tracking-wider text-slate-500">Telemetry Scrapes</p>
+          <h3 class="text-2xl font-bold text-amber-600 mt-1">Active</h3>
+          <p class="text-xs text-slate-500 mt-1">Prometheus :9090</p>
+        </div>
+        <div class="p-3 bg-amber-50 text-amber-600 rounded-xl">
+          <i data-lucide="activity" class="w-6 h-6"></i>
+        </div>
+      </div>
+    </div>
+
+    <!-- MAIN INTERACTION AREA -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      
+      <!-- LEFT 2 COLS: SEARCH, FILTERS & EMPLOYEE LIST -->
+      <div class="lg:col-span-2 space-y-6">
+        
+        <!-- Controls: Search bar, Filter, Reload -->
+        <div class="bg-white p-4 sm:p-5 rounded-2xl shadow-sm border border-slate-200/80 flex flex-col sm:flex-row gap-4 items-stretch sm:items-center justify-between">
+          <div class="relative flex-1">
+            <i data-lucide="search" class="w-5 h-5 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
+            <input 
+              type="text" 
+              id="searchInput" 
+              placeholder="Search by name, role, email..." 
+              class="w-full pl-11 pr-4 py-2.5 rounded-xl border border-slate-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 text-sm outline-none transition"
+            />
+          </div>
+          
+          <div class="flex items-center space-x-3">
+            <select id="departmentFilter" class="px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-sm text-slate-700 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition">
+              <option value="">All Departments</option>
+              <option value="Platform & Cloud">Platform & Cloud</option>
+              <option value="AI & Data Science">AI & Data Science</option>
+              <option value="Engineering">Engineering</option>
+              <option value="Core Infrastructure">Core Infrastructure</option>
+              <option value="Product & Design">Product & Design</option>
+              <option value="Operations">Operations</option>
+            </select>
+
+            <button id="refreshBtn" class="px-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-600 transition flex items-center space-x-1.5 text-sm" title="Refresh List">
+              <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+              <span class="hidden sm:inline">Refresh</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Directory Table / Cards -->
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 overflow-hidden">
+          <div class="p-5 border-b border-slate-100 flex items-center justify-between">
+            <div>
+              <h2 class="text-base font-semibold text-slate-900">Personnel Records</h2>
+              <p class="text-xs text-slate-500">Live data fetched via <code class="bg-slate-100 px-1 py-0.5 rounded text-indigo-600">GET /items</code></p>
+            </div>
+            <span id="filteredCountBadge" class="text-xs bg-slate-100 text-slate-600 px-2.5 py-1 rounded-full font-medium">Loading...</span>
+          </div>
+
+          <div id="loadingState" class="p-12 text-center text-slate-400">
+            <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-indigo-500 border-t-transparent mb-3"></div>
+            <p class="text-sm">Fetching employee records from REST API...</p>
+          </div>
+
+          <div id="emptyState" class="hidden p-12 text-center">
+            <div class="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto text-slate-400 mb-3">
+              <i data-lucide="folder-search" class="w-8 h-8"></i>
+            </div>
+            <p class="text-base font-medium text-slate-700">No records found</p>
+            <p class="text-xs text-slate-400 mt-1">Try adjusting your search filter or add a new team member.</p>
+          </div>
+
+          <!-- Employee List Content -->
+          <div id="employeesContainer" class="divide-y divide-slate-100">
+            <!-- Dynamically populated via JavaScript -->
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT 1 COL: ADD NEW EMPLOYEE (POST /items) + DEMO ACTIONS -->
+      <div class="space-y-6">
+        
+        <!-- Add Employee Form -->
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200/80">
+          <div class="flex items-center space-x-2.5 mb-5 pb-3 border-b border-slate-100">
+            <div class="p-2 bg-indigo-50 text-indigo-600 rounded-lg">
+              <i data-lucide="user-plus" class="w-5 h-5"></i>
+            </div>
+            <div>
+              <h3 class="text-base font-semibold text-slate-900">Add Employee</h3>
+              <p class="text-xs text-slate-500">Executes <code class="bg-slate-100 px-1 rounded text-indigo-600">POST /items</code></p>
+            </div>
+          </div>
+
+          <form id="addEmployeeForm" class="space-y-4">
+            <div>
+              <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1">Full Name <span class="text-rose-500">*</span></label>
+              <input 
+                type="text" 
+                id="nameInput" 
+                required 
+                placeholder="e.g. Grace Hopper" 
+                class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 text-sm outline-none transition"
+              />
+            </div>
+
+            <div>
+              <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1">Role / Designation <span class="text-rose-500">*</span></label>
+              <input 
+                type="text" 
+                id="roleInput" 
+                required 
+                placeholder="e.g. DevOps Specialist" 
+                class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 text-sm outline-none transition"
+              />
+            </div>
+
+            <div>
+              <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1">Department</label>
+              <select id="deptInput" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 text-sm outline-none transition bg-white">
+                <option value="Platform & Cloud">Platform & Cloud</option>
+                <option value="AI & Data Science">AI & Data Science</option>
+                <option value="Engineering">Engineering</option>
+                <option value="Core Infrastructure">Core Infrastructure</option>
+                <option value="Product & Design">Product & Design</option>
+                <option value="Operations">Operations</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1">Email Address</label>
+              <input 
+                type="email" 
+                id="emailInput" 
+                placeholder="name@company.com" 
+                class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 text-sm outline-none transition"
+              />
+            </div>
+
+            <div>
+              <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1">Status</label>
+              <select id="statusInput" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 text-sm outline-none transition bg-white">
+                <option value="Active">Active</option>
+                <option value="On Leave">On Leave</option>
+                <option value="Remote">Remote</option>
+              </select>
+            </div>
+
+            <button 
+              type="submit" 
+              id="submitBtn" 
+              class="w-full mt-2 py-3 px-4 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white font-medium text-sm rounded-xl shadow-md shadow-indigo-600/20 transition flex items-center justify-center space-x-2"
+            >
+              <i data-lucide="plus-circle" class="w-4 h-4"></i>
+              <span>Save & Dispatch POST /items</span>
+            </button>
+          </form>
+
+          <div id="formFeedback" class="mt-3 text-xs hidden p-2.5 rounded-lg"></div>
+        </div>
+
+        <!-- DevOps End-to-End Quick Inspection Box -->
+        <div class="bg-gradient-to-br from-slate-900 to-indigo-950 p-6 rounded-2xl shadow-sm text-slate-300">
+          <div class="flex items-center space-x-2 text-white font-semibold mb-3">
+            <i data-lucide="terminal" class="w-5 h-5 text-indigo-400"></i>
+            <h4>DevOps Team Allocation (B3-G3)</h4>
+          </div>
+          <ul class="text-xs space-y-2.5 text-slate-300">
+            <li class="flex items-start space-x-2">
+              <span class="px-1.5 py-0.5 rounded bg-indigo-500/30 text-indigo-300 font-mono text-[10px]">R1 (67)</span>
+              <span>Agile Planner & Documentation Lead (Jira)</span>
+            </li>
+            <li class="flex items-start space-x-2">
+              <span class="px-1.5 py-0.5 rounded bg-indigo-500/30 text-indigo-300 font-mono text-[10px]">R2 (56)</span>
+              <span>Developer & Version Control (Flask + Tests + Git)</span>
+            </li>
+            <li class="flex items-start space-x-2">
+              <span class="px-1.5 py-0.5 rounded bg-indigo-500/30 text-indigo-300 font-mono text-[10px]">R3 (60)</span>
+              <span>CI/CD & Containerization (GitHub Actions + Docker)</span>
+            </li>
+            <li class="flex items-start space-x-2">
+              <span class="px-1.5 py-0.5 rounded bg-indigo-500/30 text-indigo-300 font-mono text-[10px]">R4 (61)</span>
+              <span>Deployment & Monitoring (Docker Compose + Prom/Grafana)</span>
+            </li>
+          </ul>
+
+          <div class="mt-4 pt-3 border-t border-slate-800 flex justify-between items-center text-xs">
+            <span class="text-slate-400">Live API Endpoint:</span>
+            <span class="font-mono text-emerald-400">http://localhost:5001</span>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="bg-white border-t border-slate-200 mt-12 py-6 text-center text-xs text-slate-500">
+    <div class="max-w-7xl mx-auto px-4">
+      Practical 10: End-to-End DevOps Pipeline &bull; TE AI&DS Lab (2015119) &bull; Group B3-G3: Employee Directory
+    </div>
+  </footer>
+
+  <script>
+    // Global state
+    let employeesData = [];
+
+    // DOM Elements
+    const employeesContainer = document.getElementById('employeesContainer');
+    const loadingState = document.getElementById('loadingState');
+    const emptyState = document.getElementById('emptyState');
+    const searchInput = document.getElementById('searchInput');
+    const departmentFilter = document.getElementById('departmentFilter');
+    const refreshBtn = document.getElementById('refreshBtn');
+    const addEmployeeForm = document.getElementById('addEmployeeForm');
+    const formFeedback = document.getElementById('formFeedback');
+    const statTotalEmployees = document.getElementById('statTotalEmployees');
+    const statTotalDepts = document.getElementById('statTotalDepts');
+    const statHealthStatus = document.getElementById('statHealthStatus');
+    const healthBadge = document.getElementById('healthBadge');
+    const healthStatusText = document.getElementById('healthStatusText');
+    const filteredCountBadge = document.getElementById('filteredCountBadge');
+
+    // Fetch Health Status (GET /health)
+    async function checkHealth() {
+      try {
+        const res = await fetch('/health');
+        if (!res.ok) throw new Error('Health check non-200');
+        const data = await res.json();
+        healthStatusText.textContent = `GET /health: ${data.status} (200)`;
+        healthBadge.className = "flex items-center space-x-2 px-3 py-1.5 rounded-full text-xs font-medium bg-emerald-500/10 border border-emerald-500/30 text-emerald-400";
+        statHealthStatus.textContent = data.status;
+        statHealthStatus.className = "text-2xl font-bold text-emerald-600 mt-1";
+      } catch (err) {
+        healthStatusText.textContent = "GET /health: ERROR";
+        healthBadge.className = "flex items-center space-x-2 px-3 py-1.5 rounded-full text-xs font-medium bg-rose-500/10 border border-rose-500/30 text-rose-400";
+        statHealthStatus.textContent = "OFFLINE";
+        statHealthStatus.className = "text-2xl font-bold text-rose-600 mt-1";
+      }
+    }
+
+    // Fetch Items (GET /items)
+    async function loadEmployees() {
+      loadingState.classList.remove('hidden');
+      emptyState.classList.add('hidden');
+      employeesContainer.innerHTML = '';
+
+      try {
+        const query = searchInput.value.trim();
+        const dept = departmentFilter.value;
+        const params = new URLSearchParams();
+        if (query) params.append('search', query);
+        if (dept) params.append('department', dept);
+
+        const url = `/items${params.toString() ? '?' + params.toString() : ''}`;
+        const res = await fetch(url);
+        if (!res.ok) throw new Error('Failed to load employees');
+        
+        employeesData = await res.json();
+        renderEmployees(employeesData);
+        updateStats();
+      } catch (error) {
+        console.error(error);
+        employeesContainer.innerHTML = `<div class="p-8 text-center text-rose-500 font-medium">Failed to load employee data. Please try again.</div>`;
+      } finally {
+        loadingState.classList.add('hidden');
+      }
+    }
+
+    // Render list
+    function renderEmployees(items) {
+      filteredCountBadge.textContent = `${items.length} employee${items.length === 1 ? '' : 's'}`;
+
+      if (items.length === 0) {
+        emptyState.classList.remove('hidden');
+        return;
+      }
+      emptyState.classList.add('hidden');
+
+      employeesContainer.innerHTML = items.map(emp => {
+        const initials = emp.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+        const statusColor = emp.status === 'Active' 
+          ? 'bg-emerald-50 text-emerald-700 border-emerald-200' 
+          : 'bg-amber-50 text-amber-700 border-amber-200';
+
+        return `
+          <div class="p-4 sm:p-5 flex items-center justify-between hover:bg-slate-50/70 transition group">
+            <div class="flex items-center space-x-4 min-w-0">
+              <div class="w-11 h-11 rounded-xl bg-gradient-to-tr from-indigo-500 to-indigo-700 flex items-center justify-center text-white font-semibold text-sm shadow-sm flex-shrink-0">
+                ${initials}
+              </div>
+              <div class="min-w-0">
+                <div class="flex items-center space-x-2">
+                  <h4 class="text-sm font-semibold text-slate-900 truncate">${emp.name}</h4>
+                  <span class="text-xs px-2 py-0.5 rounded-full border ${statusColor} font-medium">${emp.status}</span>
+                </div>
+                <p class="text-xs text-indigo-600 font-medium mt-0.5 truncate">${emp.role}</p>
+                <div class="flex items-center space-x-3 text-xs text-slate-400 mt-1">
+                  <span class="flex items-center space-x-1 truncate">
+                    <i data-lucide="building" class="w-3.5 h-3.5"></i>
+                    <span>${emp.department}</span>
+                  </span>
+                  <span>&bull;</span>
+                  <span class="flex items-center space-x-1 truncate text-slate-500">
+                    <i data-lucide="mail" class="w-3.5 h-3.5"></i>
+                    <span>${emp.email}</span>
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div class="flex items-center space-x-2">
+              <span class="text-xs font-mono text-slate-400 bg-slate-100 px-2 py-1 rounded">ID: #${emp.id}</span>
+              <button onclick="deleteEmployee(${emp.id})" class="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition" title="Delete employee">
+                <i data-lucide="trash-2" class="w-4 h-4"></i>
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      // Refresh icons
+      lucide.createIcons();
+    }
+
+    // Update Top Stat Numbers
+    async function updateStats() {
+      // Fetch unfiltered total
+      const res = await fetch('/items');
+      const all = await res.json();
+      statTotalEmployees.textContent = all.length;
+      const depts = new Set(all.map(e => e.department));
+      statTotalDepts.textContent = depts.size;
+    }
+
+    // Handle Form Submit (POST /items)
+    addEmployeeForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const submitBtn = document.getElementById('submitBtn');
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = `<span>Saving...</span>`;
+
+      const newEmp = {
+        name: document.getElementById('nameInput').value.trim(),
+        role: document.getElementById('roleInput').value.trim(),
+        department: document.getElementById('deptInput').value,
+        email: document.getElementById('emailInput').value.trim(),
+        status: document.getElementById('statusInput').value
+      };
+
+      try {
+        const res = await fetch('/items', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(newEmp)
+        });
+
+        const data = await res.json();
+
+        if (res.ok) {
+          formFeedback.textContent = `Success: Added "${data.item.name}" (POST /items status 201)`;
+          formFeedback.className = "mt-3 text-xs p-2.5 rounded-lg bg-emerald-50 text-emerald-800 border border-emerald-200 block";
+          addEmployeeForm.reset();
+          loadEmployees();
+          checkHealth();
+          setTimeout(() => { formFeedback.classList.add('hidden'); }, 4000);
+        } else {
+          throw new Error(data.message || 'Error creating employee');
+        }
+      } catch (err) {
+        formFeedback.textContent = `Error: ${err.message}`;
+        formFeedback.className = "mt-3 text-xs p-2.5 rounded-lg bg-rose-50 text-rose-800 border border-rose-200 block";
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = `<i data-lucide="plus-circle" class="w-4 h-4"></i><span>Save & Dispatch POST /items</span>`;
+        lucide.createIcons();
+      }
+    });
+
+    // Delete item (DELETE /items/:id)
+    async function deleteEmployee(id) {
+      if (!confirm(`Are you sure you want to remove employee ID #${id}?`)) return;
+      try {
+        const res = await fetch(`/items/${id}`, { method: 'DELETE' });
+        if (res.ok) {
+          loadEmployees();
+        }
+      } catch (err) {
+        alert('Failed to delete employee: ' + err.message);
+      }
+    }
+
+    // Event listeners
+    searchInput.addEventListener('input', debounce(loadEmployees, 300));
+    departmentFilter.addEventListener('change', loadEmployees);
+    refreshBtn.addEventListener('click', () => {
+      loadEmployees();
+      checkHealth();
+    });
+
+    function debounce(func, wait) {
+      let timeout;
+      return function(...args) {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => func.apply(this, args), wait);
+      };
+    }
+
+    // Initial boot
+    document.addEventListener('DOMContentLoaded', () => {
+      lucide.createIcons();
+      checkHealth();
+      loadEmployees();
+      // Periodically poll health every 15s
+      setInterval(checkHealth, 15000);
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,17 @@
+global:
+  scrape_interval: 5s
+  evaluation_interval: 5s
+
+scrape_configs:
+  - job_name: 'employee-directory-service'
+    metrics_path: '/metrics'
+    static_configs:
+      - targets: ['app:5001']
+        labels:
+          service: 'employee-directory'
+          env: 'devops-lab'
+          group: 'B3-G3'
+
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
