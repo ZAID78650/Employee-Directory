@@ -339,15 +339,37 @@ def login():
 @app.route("/api/auth/sso", methods=["POST"])
 def sso_exchange():
     """
-    Enterprise Single Sign-On (SSO) Exchange (Supports Google, GitHub, Okta)
-    Validates token payload and provisions/authenticates user session.
+    Enterprise Single Sign-On (SSO) Exchange (Supports Google Accounts, GitHub, Okta).
+    Parses real Google Identity Services JWT id_tokens or mock OAuth payloads.
     """
     global user_id_counter, next_id
     data = request.get_json(silent=True) or {}
-    provider = data.get("provider", "Google").capitalize() # Google, Github, Okta
+    provider = data.get("provider", "Google").capitalize()
+    
+    # Handle Google One Tap / Sign in with Google (credential is JWT)
+    credential = data.get("credential")
     email = (data.get("email") or "").strip().lower()
     name = (data.get("name") or "").strip()
-    sso_token = data.get("sso_token") or secrets.token_hex(16)
+    picture = data.get("picture")
+
+    if credential and not email:
+        try:
+            # Parse unverified JWT payload header.payload.signature
+            import base64
+            parts = credential.split(".")
+            if len(parts) >= 2:
+                # Add padding if required
+                payload_part = parts[1]
+                padded = payload_part + '=' * (-len(payload_part) % 4)
+                decoded = base64.urlsafe_b64decode(padded).decode('utf-8')
+                jwt_data = json.loads(decoded)
+                email = (jwt_data.get("email") or "").strip().lower()
+                name = (jwt_data.get("name") or "").strip()
+                picture = jwt_data.get("picture")
+        except Exception as e:
+            app.logger.warning(f"Error parsing Google JWT: {e}")
+
+    sso_token = credential or data.get("sso_token") or secrets.token_hex(16)
 
     if not email or not name:
         AUTH_EVENTS.labels(type="sso", provider=provider.lower(), status="failure").inc()
@@ -360,15 +382,16 @@ def sso_exchange():
             "id": user_id_counter,
             "name": name,
             "email": email,
-            "password_hash": "SSO_MANAGED_IDENTITY",
+            "password_hash": "GOOGLE_SSO_IDENTITY",
             "role": f"{provider} Verified Engineer",
-            "provider": provider.lower()
+            "provider": provider.lower(),
+            "picture": picture
         }
         users.append(user)
         user_id_counter += 1
 
         # Also provision in Employee Directory
-        avatar = "".join([p[0] for p in name.split()[:2]]).upper()
+        avatar = "".join([p[0] for p in name.split()[:2]]).upper() if name else "G"
         employees.append({
             "id": next_id,
             "name": name,
@@ -377,6 +400,7 @@ def sso_exchange():
             "email": email,
             "status": "Active",
             "avatar": avatar,
+            "picture": picture,
             "location": "Mumbai, India",
             "phone": "+91 98200 99887"
         })
@@ -388,7 +412,8 @@ def sso_exchange():
         "email": user["email"],
         "role": user["role"],
         "provider": provider.lower(),
-        "sso_token": sso_token
+        "picture": picture or user.get("picture"),
+        "sso_token": sso_token[:16] + "..." if len(sso_token) > 16 else sso_token
     }
 
     AUTH_EVENTS.labels(type="sso", provider=provider.lower(), status="success").inc()

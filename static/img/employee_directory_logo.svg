@@ -1,0 +1,80 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="100%" height="100%">
+  <defs>
+    <!-- Background and Glow Gradients -->
+    <linearGradient id="primaryGlow" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#4f46e5" />
+      <stop offset="50%" stop-color="#6366f1" />
+      <stop offset="100%" stop-color="#8b5cf6" />
+    </linearGradient>
+    <linearGradient id="accentGlow" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#06b6d4" />
+      <stop offset="100%" stop-color="#3b82f6" />
+    </linearGradient>
+    <linearGradient id="shieldBg" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#1e1b4b" stop-opacity="0.9" />
+      <stop offset="100%" stop-color="#0f172a" stop-opacity="0.95" />
+    </linearGradient>
+    <!-- Filter Dropshadow & 3D Lighting -->
+    <filter id="softGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="6" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+    <filter id="cardShadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="8" stdDeviation="10" flood-color="#4338ca" flood-opacity="0.5" />
+    </filter>
+  </defs>
+
+  <!-- Ambient Outer Glow Circle -->
+  <circle cx="100" cy="100" r="85" fill="none" stroke="url(#primaryGlow)" stroke-width="2" opacity="0.3" stroke-dasharray="8 6" />
+
+  <!-- 3D Geometric Isometric Badge Shield -->
+  <path d="M100 22 L168 56 L168 126 C168 158 100 182 100 182 C100 182 32 158 32 126 L32 56 Z" 
+        fill="url(#shieldBg)" stroke="url(#primaryGlow)" stroke-width="4" filter="url(#cardShadow)" />
+
+  <!-- Inner High-Tech Grid / Circuit Accents -->
+  <path d="M100 28 L160 58 L160 122 C160 148 100 172 100 172 C100 172 40 148 40 122 L40 58 Z" 
+        fill="none" stroke="#6366f1" stroke-width="1.2" opacity="0.4" stroke-dasharray="4 4" />
+
+  <!-- 3D Isometric DevOps Directory Node Hierarchy -->
+  
+  <!-- Central Lead Employee (Master) Node -->
+  <g transform="translate(100, 72)" filter="url(#softGlow)">
+    <!-- Connection beams -->
+    <path d="M0 24 L-38 52" stroke="url(#accentGlow)" stroke-width="2.5" stroke-linecap="round" />
+    <path d="M0 24 L38 52" stroke="url(#accentGlow)" stroke-width="2.5" stroke-linecap="round" />
+    <path d="M0 24 L0 58" stroke="#818cf8" stroke-width="2" stroke-dasharray="3 3" />
+    
+    <!-- Central Avatar -->
+    <circle cx="0" cy="0" r="14" fill="url(#primaryGlow)" stroke="#ffffff" stroke-width="2" />
+    <path d="M-8 18 C-8 10 8 10 8 18" fill="url(#primaryGlow)" stroke="#ffffff" stroke-width="1.5" />
+    <circle cx="0" cy="-2" r="5.5" fill="#ffffff" />
+  </g>
+
+  <!-- Left Peer Employee Node -->
+  <g transform="translate(62, 126)">
+    <circle cx="0" cy="0" r="10" fill="url(#accentGlow)" stroke="#ffffff" stroke-width="1.8" />
+    <path d="M-6 13 C-6 7 6 7 6 13" fill="url(#accentGlow)" stroke="#ffffff" stroke-width="1.2" />
+    <circle cx="0" cy="-1.5" r="4" fill="#ffffff" />
+  </g>
+
+  <!-- Right Peer Employee Node -->
+  <g transform="translate(138, 126)">
+    <circle cx="0" cy="0" r="10" fill="url(#primaryGlow)" stroke="#ffffff" stroke-width="1.8" />
+    <path d="M-6 13 C-6 7 6 7 6 13" fill="url(#primaryGlow)" stroke="#ffffff" stroke-width="1.2" />
+    <circle cx="0" cy="-1.5" r="4" fill="#ffffff" />
+  </g>
+
+  <!-- Bottom Core / Database Status Node -->
+  <g transform="translate(100, 142)">
+    <rect x="-12" y="-5" width="24" height="10" rx="3" fill="#1e1b4b" stroke="#38bdf8" stroke-width="1.5" />
+    <circle cx="-5" cy="0" r="1.5" fill="#38bdf8" />
+    <circle cx="0" cy="0" r="1.5" fill="#38bdf8" />
+    <circle cx="5" cy="0" r="1.5" fill="#10b981" />
+  </g>
+
+  <!-- Pulsing Orbiting Telemetry Indicator -->
+  <circle cx="168" cy="56" r="3.5" fill="#10b981">
+    <animate attributeName="opacity" values="1;0.3;1" dur="2s" repeatCount="indefinite" />
+  </circle>
+  <circle cx="32" cy="56" r="3.5" fill="#6366f1" />
+</svg>
