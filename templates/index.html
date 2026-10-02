@@ -3,17 +3,19 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Personnel Records | DevOps Practical 10 (Group B3-G3)</title>
+  <title>Personnel Records & DevOps Engineering Portal | Group B3-G3</title>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
-  <!-- Chart.js for Live Telemetry Graphics -->
+  <!-- Three.js for Interactive 3D Holographic DevOps Logo -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <!-- Chart.js for Telemetry Graphics -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <!-- Google Inter Font -->
+  <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
   
   <script>
     tailwind.config = {
@@ -43,41 +45,46 @@
   </script>
 
   <style>
-    .glass-card {
-      background: rgba(255, 255, 255, 0.88);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
+    .glass-modal {
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
     }
-    .badge-glow {
-      box-shadow: 0 0 12px rgba(99, 102, 241, 0.35);
+    .neon-glow {
+      box-shadow: 0 0 25px rgba(99, 102, 241, 0.35);
     }
-    @keyframes pulse-ring {
-      0% { transform: scale(0.95); opacity: 0.8; }
-      50% { transform: scale(1.15); opacity: 0.4; }
-      100% { transform: scale(0.95); opacity: 0.8; }
+    #three-logo-canvas {
+      width: 44px;
+      height: 44px;
+      display: block;
     }
-    .live-pulse {
-      animation: pulse-ring 2s infinite ease-in-out;
+    #three-hero-canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
     }
   </style>
 </head>
-<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col antialiased selection:bg-brand-500 selection:text-white">
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col antialiased selection:bg-brand-500 selection:text-white">
 
   <!-- TOP NAVBAR -->
-  <header class="bg-slate-950/80 backdrop-blur-md border-b border-slate-800 sticky top-0 z-50">
+  <header class="bg-slate-950/90 backdrop-blur-xl border-b border-slate-800/80 sticky top-0 z-50 shadow-2xl">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="flex items-center justify-between h-16">
+      <div class="flex items-center justify-between h-18 py-3">
         
-        <!-- Left: Logo & Title -->
+        <!-- Left: 3D Animated Logo + Brand Title -->
         <div class="flex items-center space-x-3.5">
-          <div class="h-10 w-10 rounded-xl bg-gradient-to-tr from-brand-600 via-indigo-600 to-violet-500 flex items-center justify-center shadow-lg shadow-brand-500/25 border border-indigo-400/30">
-            <i data-lucide="shield-check" class="w-5 h-5 text-white"></i>
+          <!-- 3D Interactive WebGL Canvas Badge -->
+          <div class="relative w-11 h-11 rounded-2xl bg-gradient-to-tr from-brand-600/30 to-violet-600/20 border border-brand-500/40 flex items-center justify-center overflow-hidden shadow-lg shadow-brand-500/20 group cursor-pointer" title="Interactive 3D DevOps Torus (Hover to Accelerate)">
+            <canvas id="three-logo-canvas"></canvas>
+            <div class="absolute inset-0 bg-transparent pointer-events-none"></div>
           </div>
+
           <div>
             <div class="flex items-center space-x-2">
               <h1 class="text-base font-extrabold tracking-tight text-white flex items-center gap-2">
                 Personnel Records
-                <span class="text-xs px-2 py-0.5 rounded-full font-mono font-medium bg-brand-500/20 text-brand-300 border border-brand-500/40">B3-G3</span>
+                <span class="text-[10px] px-2 py-0.5 rounded-full font-mono font-medium bg-brand-500/20 text-brand-300 border border-brand-500/40">B3-G3</span>
               </h1>
             </div>
             <p class="text-xs text-slate-400 flex items-center gap-1.5">
@@ -88,60 +95,69 @@
           </div>
         </div>
 
-        <!-- Center / Right: Live Health + DevOps Quick Actions -->
-        <div class="flex items-center space-x-3 sm:space-x-4">
-          <!-- Realtime GET /health indicator -->
-          <div id="healthBadge" class="flex items-center space-x-2.5 px-3.5 py-1.5 rounded-full text-xs font-semibold bg-emerald-950/60 border border-emerald-500/40 text-emerald-400 shadow-sm cursor-pointer hover:bg-emerald-900/50 transition" onclick="checkHealth()" title="Click to ping GET /health">
-            <span class="relative flex h-2.5 w-2.5">
+        <!-- Center: Quick Endpoints Links (Opens in New Tabs) -->
+        <div class="hidden xl:flex items-center space-x-2">
+          <a href="http://localhost:5001/health" target="_blank" rel="noopener noreferrer" class="px-2.5 py-1.5 text-xs font-mono rounded-lg bg-emerald-950/40 hover:bg-emerald-900/60 text-emerald-300 hover:text-white border border-emerald-500/40 transition flex items-center space-x-1 shadow-sm group" title="Open GET /health in new tab">
+            <i data-lucide="heart-pulse" class="w-3.5 h-3.5 text-emerald-400 group-hover:scale-110 transition"></i>
+            <span>/health</span>
+            <i data-lucide="external-link" class="w-3 h-3 text-emerald-400/70"></i>
+          </a>
+          <a href="http://localhost:5001/items" target="_blank" rel="noopener noreferrer" class="px-2.5 py-1.5 text-xs font-mono rounded-lg bg-indigo-950/40 hover:bg-indigo-900/60 text-indigo-300 hover:text-white border border-indigo-500/40 transition flex items-center space-x-1 shadow-sm group" title="Open GET /items in new tab">
+            <i data-lucide="database" class="w-3.5 h-3.5 text-indigo-400 group-hover:scale-110 transition"></i>
+            <span>/items</span>
+            <i data-lucide="external-link" class="w-3 h-3 text-indigo-400/70"></i>
+          </a>
+          <a href="http://localhost:5001/metrics" target="_blank" rel="noopener noreferrer" class="px-2.5 py-1.5 text-xs font-mono rounded-lg bg-amber-950/40 hover:bg-amber-900/60 text-amber-300 hover:text-white border border-amber-500/40 transition flex items-center space-x-1 shadow-sm group" title="Open GET /metrics in new tab">
+            <i data-lucide="activity" class="w-3.5 h-3.5 text-amber-400 group-hover:scale-110 transition"></i>
+            <span>/metrics</span>
+            <i data-lucide="external-link" class="w-3 h-3 text-amber-400/70"></i>
+          </a>
+          <span class="h-4 w-px bg-slate-800 mx-1"></span>
+          <a href="http://localhost:9090" target="_blank" rel="noopener noreferrer" class="px-2.5 py-1.5 text-xs font-medium rounded-lg bg-orange-950/30 hover:bg-orange-900/50 text-orange-300 border border-orange-700/40 transition flex items-center space-x-1 shadow-sm group" title="Prometheus Target (Port 9090)">
+            <i data-lucide="flame" class="w-3.5 h-3.5 text-orange-400 group-hover:scale-110 transition"></i>
+            <span>Prometheus</span>
+            <i data-lucide="external-link" class="w-3 h-3 text-orange-400/70"></i>
+          </a>
+          <a href="http://localhost:3000" target="_blank" rel="noopener noreferrer" class="px-2.5 py-1.5 text-xs font-medium rounded-lg bg-emerald-950/30 hover:bg-emerald-900/50 text-emerald-300 border border-emerald-700/40 transition flex items-center space-x-1 shadow-sm group" title="Grafana (Port 3000)">
+            <i data-lucide="layout-grid" class="w-3.5 h-3.5 text-emerald-400 group-hover:scale-110 transition"></i>
+            <span>Grafana</span>
+            <i data-lucide="external-link" class="w-3 h-3 text-emerald-400/70"></i>
+          </a>
+        </div>
+
+        <!-- Right: Auth User State / Sign In & Sign Up Trigger -->
+        <div class="flex items-center space-x-3">
+          
+          <!-- Live Health Indicator -->
+          <div id="healthBadge" class="flex items-center space-x-2 px-3 py-1.5 rounded-full text-xs font-semibold bg-emerald-950/60 border border-emerald-500/40 text-emerald-400 cursor-pointer hover:bg-emerald-900/50 transition" onclick="checkHealth()" title="Click to ping GET /health">
+            <span class="relative flex h-2 w-2">
               <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-              <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+              <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
             </span>
-            <span id="healthText" class="font-mono">GET /health: OK (200)</span>
+            <span id="healthText" class="font-mono text-[11px]">GET /health: OK (200)</span>
           </div>
 
-          <!-- Quick Navigation Links (Open in New Tabs) -->
-          <div class="hidden lg:flex items-center space-x-2">
-            <a href="http://localhost:5001/health" target="_blank" rel="noopener noreferrer" class="px-3 py-1.5 text-xs font-mono rounded-lg bg-emerald-950/50 hover:bg-emerald-900/70 text-emerald-300 hover:text-white border border-emerald-500/40 transition flex items-center space-x-1.5 shadow-sm group" title="Open GET /health in new tab">
-              <i data-lucide="heart-pulse" class="w-3.5 h-3.5 text-emerald-400 group-hover:scale-110 transition"></i>
-              <span>/health</span>
-              <i data-lucide="external-link" class="w-3 h-3 text-emerald-400/70"></i>
-            </a>
-            <a href="http://localhost:5001/items" target="_blank" rel="noopener noreferrer" class="px-3 py-1.5 text-xs font-mono rounded-lg bg-indigo-950/50 hover:bg-indigo-900/70 text-indigo-300 hover:text-white border border-indigo-500/40 transition flex items-center space-x-1.5 shadow-sm group" title="Open GET /items in new tab">
-              <i data-lucide="database" class="w-3.5 h-3.5 text-indigo-400 group-hover:scale-110 transition"></i>
-              <span>/items</span>
-              <i data-lucide="external-link" class="w-3 h-3 text-indigo-400/70"></i>
-            </a>
-            <a href="http://localhost:5001/metrics" target="_blank" rel="noopener noreferrer" class="px-3 py-1.5 text-xs font-mono rounded-lg bg-amber-950/50 hover:bg-amber-900/70 text-amber-300 hover:text-white border border-amber-500/40 transition flex items-center space-x-1.5 shadow-sm group" title="Open GET /metrics in new tab">
-              <i data-lucide="activity" class="w-3.5 h-3.5 text-amber-400 group-hover:scale-110 transition"></i>
-              <span>/metrics</span>
-              <i data-lucide="external-link" class="w-3 h-3 text-amber-400/70"></i>
-            </a>
-            <span class="h-4 w-px bg-slate-800 mx-1"></span>
-            <a href="http://localhost:9090" target="_blank" rel="noopener noreferrer" class="px-2.5 py-1.5 text-xs font-medium rounded-lg bg-orange-950/40 hover:bg-orange-900/60 text-orange-300 border border-orange-700/40 transition flex items-center space-x-1.5 shadow-sm group" title="Open Prometheus UI (Port 9090) in new tab">
-              <i data-lucide="flame" class="w-3.5 h-3.5 text-orange-400 group-hover:scale-110 transition"></i>
-              <span>Prometheus</span>
-              <i data-lucide="external-link" class="w-3 h-3 text-orange-400/70"></i>
-            </a>
-            <a href="http://localhost:3000" target="_blank" rel="noopener noreferrer" class="px-2.5 py-1.5 text-xs font-medium rounded-lg bg-emerald-950/40 hover:bg-emerald-900/60 text-emerald-300 border border-emerald-700/40 transition flex items-center space-x-1.5 shadow-sm group" title="Open Grafana Dashboard (Port 3000) in new tab">
-              <i data-lucide="layout-grid" class="w-3.5 h-3.5 text-emerald-400 group-hover:scale-110 transition"></i>
-              <span>Grafana</span>
-              <i data-lucide="external-link" class="w-3 h-3 text-emerald-400/70"></i>
-            </a>
+          <!-- Auth Buttons Container (Switches dynamically based on session) -->
+          <div id="authActionsContainer" class="flex items-center space-x-2">
+            <!-- Unauthenticated State Buttons -->
+            <button onclick="openAuthModal('login')" class="px-3.5 py-2 text-xs font-semibold rounded-xl text-slate-200 hover:text-white bg-slate-900 hover:bg-slate-800 border border-slate-700/80 transition flex items-center space-x-1.5 shadow-sm">
+              <i data-lucide="log-in" class="w-3.5 h-3.5 text-brand-400"></i>
+              <span>Login</span>
+            </button>
+            <button onclick="openAuthModal('register')" class="px-3.5 py-2 text-xs font-semibold rounded-xl text-white bg-gradient-to-r from-brand-600 to-indigo-600 hover:from-brand-500 hover:to-indigo-500 shadow-md shadow-brand-500/25 border border-brand-400/30 transition flex items-center space-x-1.5">
+              <i data-lucide="user-plus" class="w-3.5 h-3.5"></i>
+              <span>Create Account</span>
+            </button>
           </div>
 
-          <!-- Add Member Button (Triggers Drawer / Focus) -->
-          <button onclick="focusAddMemberForm()" class="bg-brand-600 hover:bg-brand-500 active:bg-brand-700 text-white font-medium text-xs px-3.5 py-2 rounded-xl shadow-lg shadow-brand-600/30 transition flex items-center space-x-1.5">
-            <i data-lucide="user-plus" class="w-4 h-4"></i>
-            <span class="hidden sm:inline">Add Personnel</span>
-          </button>
         </div>
 
       </div>
     </div>
   </header>
 
-  <!-- PIPELINE STAGES BANNER -->
-  <div class="bg-slate-950 border-b border-slate-800/80 py-2.5 px-4 text-xs font-medium overflow-x-auto shadow-inner">
+  <!-- PIPELINE STAGES BAR -->
+  <div class="bg-slate-950 border-b border-slate-800/80 py-2 px-4 text-xs font-medium overflow-x-auto shadow-inner">
     <div class="max-w-7xl mx-auto flex items-center justify-between min-w-[760px]">
       <div class="flex items-center space-x-2 text-brand-400 font-bold uppercase tracking-wider text-[11px]">
         <i data-lucide="git-branch" class="w-4 h-4"></i>
@@ -174,72 +190,48 @@
   <!-- MAIN APP CONTAINER -->
   <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 w-full space-y-8">
 
-    <!-- KPI STATS CARDS -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-      <!-- Total Records -->
-      <div class="bg-slate-800/60 rounded-2xl p-5 border border-slate-700/60 hover:border-slate-600/80 transition relative overflow-hidden group shadow-lg">
-        <div class="flex items-center justify-between">
-          <div>
-            <p class="text-xs font-bold uppercase tracking-wider text-slate-400">Personnel Records</p>
-            <h3 id="statTotalEmployees" class="text-3xl font-extrabold text-white mt-1 group-hover:text-brand-400 transition">4</h3>
-            <p class="text-xs text-emerald-400 font-medium mt-1 flex items-center gap-1">
-              <i data-lucide="database" class="w-3.5 h-3.5"></i>
-              <span>Live In-Memory Store</span>
-            </p>
+    <!-- HERO SECTION WITH INTERACTIVE 3D PLATFORM SHIELD -->
+    <div class="relative rounded-3xl bg-gradient-to-r from-slate-900 via-indigo-950/70 to-slate-900 border border-indigo-500/20 p-6 sm:p-8 overflow-hidden shadow-2xl">
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-center">
+        
+        <!-- Text details -->
+        <div class="lg:col-span-2 space-y-3 z-10">
+          <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-brand-500/10 border border-brand-500/30 text-brand-300 text-xs font-mono font-medium">
+            <span class="w-2 h-2 rounded-full bg-brand-400 animate-pulse"></span>
+            <span>Enterprise SSO & Cloud Native Pipeline Enabled</span>
           </div>
-          <div class="w-12 h-12 rounded-xl bg-brand-500/10 border border-brand-500/20 text-brand-400 flex items-center justify-center">
-            <i data-lucide="users" class="w-6 h-6"></i>
-          </div>
-        </div>
-      </div>
+          <h2 class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+            Personnel Directory & DevOps Orchestration Platform
+          </h2>
+          <p class="text-sm text-slate-300 max-w-2xl leading-relaxed">
+            Engineered for <span class="text-brand-300 font-semibold">Practical 10: End-to-End DevOps Pipeline</span>. Fully unified with Google/GitHub SSO, automated Pytest continuous integration, Prometheus metric scraping, and Grafana monitoring.
+          </p>
 
-      <!-- Active Departments -->
-      <div class="bg-slate-800/60 rounded-2xl p-5 border border-slate-700/60 hover:border-slate-600/80 transition relative overflow-hidden group shadow-lg">
-        <div class="flex items-center justify-between">
-          <div>
-            <p class="text-xs font-bold uppercase tracking-wider text-slate-400">Active Divisions</p>
-            <h3 id="statTotalDepts" class="text-3xl font-extrabold text-white mt-1 group-hover:text-violet-400 transition">4</h3>
-            <p class="text-xs text-violet-400 font-medium mt-1 flex items-center gap-1">
-              <i data-lucide="building" class="w-3.5 h-3.5"></i>
-              <span>Platform, AI, Core, Eng</span>
-            </p>
-          </div>
-          <div class="w-12 h-12 rounded-xl bg-violet-500/10 border border-violet-500/20 text-violet-400 flex items-center justify-center">
-            <i data-lucide="building-2" class="w-6 h-6"></i>
+          <div class="pt-2 flex flex-wrap gap-2.5">
+            <button onclick="openAuthModal('sso')" class="px-4 py-2 rounded-xl bg-slate-800/90 hover:bg-slate-800 border border-brand-500/40 text-brand-300 hover:text-white text-xs font-medium transition flex items-center space-x-2">
+              <i data-lucide="key" class="w-4 h-4 text-brand-400"></i>
+              <span>Test Enterprise SSO Gate</span>
+            </button>
+            <button onclick="focusAddMemberForm()" class="px-4 py-2 rounded-xl bg-brand-600 hover:bg-brand-500 text-white text-xs font-medium transition flex items-center space-x-2 shadow-lg shadow-brand-600/30">
+              <i data-lucide="plus-circle" class="w-4 h-4"></i>
+              <span>Dispatch POST /items</span>
+            </button>
           </div>
         </div>
-      </div>
 
-      <!-- Service Health -->
-      <div class="bg-slate-800/60 rounded-2xl p-5 border border-slate-700/60 hover:border-slate-600/80 transition relative overflow-hidden group shadow-lg">
-        <div class="flex items-center justify-between">
-          <div>
-            <p class="text-xs font-bold uppercase tracking-wider text-slate-400">Endpoint Health</p>
-            <h3 id="statHealthStatus" class="text-3xl font-extrabold text-emerald-400 mt-1">HEALTHY</h3>
-            <p class="text-xs text-slate-400 font-mono mt-1">GET /health &bull; 200 OK</p>
-          </div>
-          <div class="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center">
-            <i data-lucide="heart-pulse" class="w-6 h-6"></i>
+        <!-- 3D Interactive Hero Logo Widget -->
+        <div class="h-44 sm:h-52 w-full rounded-2xl bg-slate-950/60 border border-indigo-500/30 relative overflow-hidden flex items-center justify-center group shadow-inner">
+          <canvas id="three-hero-canvas"></canvas>
+          <div class="absolute bottom-2 right-3 text-[10px] font-mono text-slate-500 pointer-events-none flex items-center gap-1">
+            <i data-lucide="rotate-3d" class="w-3 h-3 text-brand-400"></i>
+            <span>Interactive 3D WebGL (Drag/Hover)</span>
           </div>
         </div>
-      </div>
 
-      <!-- Total API Requests -->
-      <div class="bg-slate-800/60 rounded-2xl p-5 border border-slate-700/60 hover:border-slate-600/80 transition relative overflow-hidden group shadow-lg">
-        <div class="flex items-center justify-between">
-          <div>
-            <p class="text-xs font-bold uppercase tracking-wider text-slate-400">API Calls Served</p>
-            <h3 id="statTotalCalls" class="text-3xl font-extrabold text-amber-400 mt-1">--</h3>
-            <p class="text-xs text-slate-400 font-mono mt-1">Prometheus /metrics live</p>
-          </div>
-          <div class="w-12 h-12 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400 flex items-center justify-center">
-            <i data-lucide="zap" class="w-6 h-6"></i>
-          </div>
-        </div>
       </div>
     </div>
 
-    <!-- DEVOPS REST ENDPOINTS QUICK LAUNCH & TEST BAR (OPENS IN NEW TABS) -->
+    <!-- REST ENDPOINTS QUICK LAUNCH BAR (NEW TABS INTEGRATION) -->
     <div class="bg-gradient-to-r from-slate-900 via-indigo-950/60 to-slate-900 rounded-2xl p-5 border border-indigo-500/30 shadow-xl">
       <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
@@ -311,7 +303,72 @@
       </div>
     </div>
 
-    <!-- DYNAMIC LIVE TELEMETRY & METRICS ACCORDION / MINI CHART -->
+    <!-- KPI STATS CARDS -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+      <!-- Total Records -->
+      <div class="bg-slate-800/60 rounded-2xl p-5 border border-slate-700/60 hover:border-slate-600/80 transition relative overflow-hidden group shadow-lg">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-xs font-bold uppercase tracking-wider text-slate-400">Personnel Records</p>
+            <h3 id="statTotalEmployees" class="text-3xl font-extrabold text-white mt-1 group-hover:text-brand-400 transition">4</h3>
+            <p class="text-xs text-emerald-400 font-medium mt-1 flex items-center gap-1">
+              <i data-lucide="database" class="w-3.5 h-3.5"></i>
+              <span>Live In-Memory Store</span>
+            </p>
+          </div>
+          <div class="w-12 h-12 rounded-xl bg-brand-500/10 border border-brand-500/20 text-brand-400 flex items-center justify-center">
+            <i data-lucide="users" class="w-6 h-6"></i>
+          </div>
+        </div>
+      </div>
+
+      <!-- Active Departments -->
+      <div class="bg-slate-800/60 rounded-2xl p-5 border border-slate-700/60 hover:border-slate-600/80 transition relative overflow-hidden group shadow-lg">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-xs font-bold uppercase tracking-wider text-slate-400">Active Divisions</p>
+            <h3 id="statTotalDepts" class="text-3xl font-extrabold text-white mt-1 group-hover:text-violet-400 transition">4</h3>
+            <p class="text-xs text-violet-400 font-medium mt-1 flex items-center gap-1">
+              <i data-lucide="building" class="w-3.5 h-3.5"></i>
+              <span>Platform, AI, Core, Eng</span>
+            </p>
+          </div>
+          <div class="w-12 h-12 rounded-xl bg-violet-500/10 border border-violet-500/20 text-violet-400 flex items-center justify-center">
+            <i data-lucide="building-2" class="w-6 h-6"></i>
+          </div>
+        </div>
+      </div>
+
+      <!-- Service Health -->
+      <div class="bg-slate-800/60 rounded-2xl p-5 border border-slate-700/60 hover:border-slate-600/80 transition relative overflow-hidden group shadow-lg">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-xs font-bold uppercase tracking-wider text-slate-400">Endpoint Health</p>
+            <h3 id="statHealthStatus" class="text-3xl font-extrabold text-emerald-400 mt-1">HEALTHY</h3>
+            <p class="text-xs text-slate-400 font-mono mt-1">GET /health &bull; 200 OK</p>
+          </div>
+          <div class="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center">
+            <i data-lucide="heart-pulse" class="w-6 h-6"></i>
+          </div>
+        </div>
+      </div>
+
+      <!-- Total API Requests -->
+      <div class="bg-slate-800/60 rounded-2xl p-5 border border-slate-700/60 hover:border-slate-600/80 transition relative overflow-hidden group shadow-lg">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-xs font-bold uppercase tracking-wider text-slate-400">API Calls Served</p>
+            <h3 id="statTotalCalls" class="text-3xl font-extrabold text-amber-400 mt-1">--</h3>
+            <p class="text-xs text-slate-400 font-mono mt-1">Prometheus /metrics live</p>
+          </div>
+          <div class="w-12 h-12 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400 flex items-center justify-center">
+            <i data-lucide="zap" class="w-6 h-6"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DYNAMIC LIVE TELEMETRY STREAM & MINI CHART -->
     <div class="bg-slate-800/50 rounded-2xl p-5 border border-slate-700/60 shadow-lg">
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-700/60">
         <div class="flex items-center space-x-3">
@@ -320,7 +377,7 @@
           </div>
           <div>
             <h3 class="text-sm font-bold text-white">Live DevOps Telemetry Stream</h3>
-            <p class="text-xs text-slate-400">Simulating real-time traffic captured by Prometheus <code class="font-mono text-indigo-300">http_requests_total</code></p>
+            <p class="text-xs text-slate-400">Real-time scrape buffer of Prometheus <code class="font-mono text-indigo-300">http_requests_total</code></p>
           </div>
         </div>
         <div class="flex items-center space-x-2">
@@ -589,6 +646,125 @@
 
   </main>
 
+  <!-- AUTHENTICATION & CREATE ACCOUNT / SSO MODAL DIALOG -->
+  <div id="authModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md hidden transition-all duration-300">
+    <div class="relative w-full max-w-md bg-slate-900 border border-slate-700/80 rounded-3xl p-6 sm:p-8 shadow-2xl overflow-hidden">
+      
+      <!-- Close button -->
+      <button onclick="closeAuthModal()" class="absolute top-5 right-5 p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
+
+      <!-- Modal Header -->
+      <div class="text-center mb-6">
+        <div class="w-12 h-12 rounded-2xl bg-brand-500/20 border border-brand-500/40 text-brand-400 flex items-center justify-center mx-auto mb-3 shadow-lg shadow-brand-500/20">
+          <i id="authIcon" data-lucide="shield-check" class="w-6 h-6"></i>
+        </div>
+        <h3 id="authTitle" class="text-xl font-extrabold text-white">Sign In to Platform</h3>
+        <p id="authSubtitle" class="text-xs text-slate-400 mt-1">Access verified personnel records & DevOps telemetry</p>
+      </div>
+
+      <!-- Tab Switcher (Login vs Sign Up) -->
+      <div class="flex p-1 bg-slate-950 rounded-xl border border-slate-800 mb-5">
+        <button id="tabLoginBtn" onclick="switchAuthTab('login')" class="flex-1 py-2 text-xs font-bold rounded-lg transition bg-brand-600 text-white">
+          Sign In
+        </button>
+        <button id="tabRegisterBtn" onclick="switchAuthTab('register')" class="flex-1 py-2 text-xs font-bold rounded-lg transition text-slate-400 hover:text-white">
+          Create Account
+        </button>
+      </div>
+
+      <!-- Enterprise SSO Quick Providers -->
+      <div class="space-y-2.5 mb-5">
+        <button onclick="handleSSOLogin('Google')" class="w-full py-2.5 px-4 rounded-xl bg-slate-800/90 hover:bg-slate-800 border border-slate-700 text-slate-200 text-xs font-semibold flex items-center justify-center space-x-2.5 transition group">
+          <svg class="w-4 h-4" viewBox="0 0 24 24">
+            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+          </svg>
+          <span>Continue with Google Enterprise SSO</span>
+        </button>
+
+        <button onclick="handleSSOLogin('GitHub')" class="w-full py-2.5 px-4 rounded-xl bg-slate-800/90 hover:bg-slate-800 border border-slate-700 text-slate-200 text-xs font-semibold flex items-center justify-center space-x-2.5 transition group">
+          <i data-lucide="github" class="w-4 h-4 text-white"></i>
+          <span>Continue with GitHub Developer SSO</span>
+        </button>
+      </div>
+
+      <div class="relative flex items-center justify-center my-4">
+        <div class="border-t border-slate-800 w-full"></div>
+        <span class="bg-slate-900 px-3 text-[11px] text-slate-500 uppercase tracking-wider font-mono">Or With Email</span>
+      </div>
+
+      <!-- Auth Form -->
+      <form id="authForm" class="space-y-3.5">
+        
+        <!-- Registration only field: Full Name -->
+        <div id="authNameField" class="hidden">
+          <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1">Full Name</label>
+          <input 
+            type="text" 
+            id="authNameInput" 
+            placeholder="e.g. SHAIKH ZAID" 
+            class="w-full px-3.5 py-2.5 bg-slate-950 text-slate-100 rounded-xl border border-slate-800 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 text-sm outline-none transition"
+          />
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1">Email Address</label>
+          <input 
+            type="email" 
+            id="authEmailInput" 
+            required 
+            placeholder="name@student.college.edu" 
+            class="w-full px-3.5 py-2.5 bg-slate-950 text-slate-100 rounded-xl border border-slate-800 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 text-sm outline-none transition"
+          />
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1">Password</label>
+          <input 
+            type="password" 
+            id="authPasswordInput" 
+            required 
+            placeholder="••••••••" 
+            class="w-full px-3.5 py-2.5 bg-slate-950 text-slate-100 rounded-xl border border-slate-800 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 text-sm outline-none transition"
+          />
+        </div>
+
+        <!-- Registration only field: DevOps Role -->
+        <div id="authRoleField" class="hidden">
+          <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1">DevOps Role</label>
+          <input 
+            type="text" 
+            id="authRoleInput" 
+            placeholder="e.g. Cloud Security Specialist" 
+            class="w-full px-3.5 py-2.5 bg-slate-950 text-slate-100 rounded-xl border border-slate-800 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 text-sm outline-none transition"
+          />
+        </div>
+
+        <button 
+          type="submit" 
+          id="authSubmitBtn" 
+          class="w-full mt-2 py-3 px-4 bg-brand-600 hover:bg-brand-500 active:bg-brand-700 text-white font-semibold text-sm rounded-xl shadow-lg shadow-brand-600/30 transition flex items-center justify-center space-x-2"
+        >
+          <i data-lucide="arrow-right" class="w-4 h-4"></i>
+          <span id="authSubmitText">Sign In to Dashboard</span>
+        </button>
+      </form>
+
+      <div id="authFeedback" class="mt-3 text-xs hidden p-3 rounded-xl font-mono"></div>
+
+      <!-- Demo Credentials Helper -->
+      <div class="mt-4 pt-3 border-t border-slate-800/80 text-[11px] text-slate-400 flex items-center justify-between">
+        <span>Demo user: <code class="text-indigo-400">zaid.matinuddin@student.college.edu</code></span>
+        <button type="button" onclick="fillDemoCreds()" class="text-brand-400 hover:underline">Autofill</button>
+      </div>
+
+    </div>
+  </div>
+
   <!-- FOOTER -->
   <footer class="bg-slate-950 border-t border-slate-800 py-6 text-center text-xs text-slate-500">
     <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-3">
@@ -603,15 +779,17 @@
     </div>
   </footer>
 
-  <!-- JAVASCRIPT LOGIC -->
+  <!-- JAVASCRIPT LOGIC & 3D WEBGL RENDERING -->
   <script>
     let employeesData = [];
-    let viewMode = 'grid'; // 'grid' or 'list'
+    let viewMode = 'grid';
     let telemetryHistory = [12, 19, 15, 25, 22, 30, 28, 35, 42, 48];
     let chartInstance = null;
     let requestCount = 48;
+    let authMode = 'login'; // 'login' or 'register'
+    let currentUser = null;
 
-    // Elements
+    // DOM Elements
     const recordsContainer = document.getElementById('recordsContainer');
     const loadingState = document.getElementById('loadingState');
     const emptyState = document.getElementById('emptyState');
@@ -627,7 +805,104 @@
     const addEmployeeForm = document.getElementById('addEmployeeForm');
     const formFeedback = document.getElementById('formFeedback');
 
-    // Initialize Telemetry Chart
+    // --- 1. THREE.JS 3D LOGO & HERO MESH GENERATORS ---
+    function init3DLogo() {
+      const canvas = document.getElementById('three-logo-canvas');
+      const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+      renderer.setSize(44, 44);
+      renderer.setPixelRatio(window.devicePixelRatio);
+
+      const scene = new THREE.Scene();
+      const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 100);
+      camera.position.z = 3.6;
+
+      // Torus Geometry for DevOps Loop Logo
+      const geometry = new THREE.TorusGeometry(1, 0.35, 16, 100);
+      const material = new THREE.MeshStandardMaterial({
+        color: 0x6366f1,
+        emissive: 0x312e81,
+        roughness: 0.2,
+        metalness: 0.8,
+        wireframe: false
+      });
+      const torus = new THREE.Mesh(geometry, material);
+      scene.add(torus);
+
+      const light1 = new THREE.PointLight(0x818cf8, 2, 50);
+      light1.position.set(2, 2, 3);
+      scene.add(light1);
+
+      const light2 = new THREE.AmbientLight(0xffffff, 0.8);
+      scene.add(light2);
+
+      let speed = 0.02;
+      canvas.parentElement.addEventListener('mouseenter', () => speed = 0.08);
+      canvas.parentElement.addEventListener('mouseleave', () => speed = 0.02);
+
+      function animate() {
+        requestAnimationFrame(animate);
+        torus.rotation.x += speed * 0.7;
+        torus.rotation.y += speed;
+        renderer.render(scene, camera);
+      }
+      animate();
+    }
+
+    function init3DHero() {
+      const canvas = document.getElementById('three-hero-canvas');
+      const container = canvas.parentElement;
+      const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+      renderer.setSize(container.clientWidth, container.clientHeight);
+      renderer.setPixelRatio(window.devicePixelRatio);
+
+      const scene = new THREE.Scene();
+      const camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 100);
+      camera.position.z = 5;
+
+      // 3D Icosahedron Hologram
+      const geometry = new THREE.IcosahedronGeometry(1.6, 1);
+      const material = new THREE.MeshStandardMaterial({
+        color: 0x4f46e5,
+        wireframe: true,
+        roughness: 0.1,
+        metalness: 0.9
+      });
+      const mesh = new THREE.Mesh(geometry, material);
+      scene.add(mesh);
+
+      // Core sphere inside
+      const coreGeo = new THREE.SphereGeometry(0.8, 32, 32);
+      const coreMat = new THREE.MeshStandardMaterial({
+        color: 0x818cf8,
+        emissive: 0x4338ca,
+        roughness: 0.4
+      });
+      const core = new THREE.Mesh(coreGeo, coreMat);
+      scene.add(core);
+
+      const light = new THREE.PointLight(0xa5b4fc, 2.5, 50);
+      light.position.set(3, 4, 4);
+      scene.add(light);
+      scene.add(new THREE.AmbientLight(0x22223b, 1));
+
+      window.addEventListener('resize', () => {
+        if (!container.clientWidth) return;
+        camera.aspect = container.clientWidth / container.clientHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(container.clientWidth, container.clientHeight);
+      });
+
+      function animateHero() {
+        requestAnimationFrame(animateHero);
+        mesh.rotation.y += 0.008;
+        mesh.rotation.x += 0.005;
+        core.rotation.y -= 0.01;
+        renderer.render(scene, camera);
+      }
+      animateHero();
+    }
+
+    // --- 2. TELEMETRY CHART.JS ---
     function initTelemetryChart() {
       const ctx = document.getElementById('telemetryChart').getContext('2d');
       chartInstance = new Chart(ctx, {
@@ -651,9 +926,7 @@
         options: {
           responsive: true,
           maintainAspectRatio: false,
-          plugins: {
-            legend: { display: false }
-          },
+          plugins: { legend: { display: false } },
           scales: {
             x: {
               grid: { color: 'rgba(255, 255, 255, 0.05)' },
@@ -669,7 +942,170 @@
       });
     }
 
-    // Ping Health Check (GET /health)
+    // --- 3. AUTHENTICATION & SSO LOGIC ---
+    function openAuthModal(mode = 'login') {
+      authMode = mode;
+      document.getElementById('authModal').classList.remove('hidden');
+      switchAuthTab(mode);
+    }
+
+    function closeAuthModal() {
+      document.getElementById('authModal').classList.add('hidden');
+      document.getElementById('authFeedback').classList.add('hidden');
+    }
+
+    function switchAuthTab(mode) {
+      authMode = mode;
+      const tabLogin = document.getElementById('tabLoginBtn');
+      const tabReg = document.getElementById('tabRegisterBtn');
+      const nameField = document.getElementById('authNameField');
+      const roleField = document.getElementById('authRoleField');
+      const title = document.getElementById('authTitle');
+      const submitText = document.getElementById('authSubmitText');
+
+      if (mode === 'login') {
+        tabLogin.className = 'flex-1 py-2 text-xs font-bold rounded-lg transition bg-brand-600 text-white';
+        tabReg.className = 'flex-1 py-2 text-xs font-bold rounded-lg transition text-slate-400 hover:text-white';
+        nameField.classList.add('hidden');
+        roleField.classList.add('hidden');
+        title.textContent = 'Sign In to Platform';
+        submitText.textContent = 'Sign In to Dashboard';
+      } else {
+        tabReg.className = 'flex-1 py-2 text-xs font-bold rounded-lg transition bg-brand-600 text-white';
+        tabLogin.className = 'flex-1 py-2 text-xs font-bold rounded-lg transition text-slate-400 hover:text-white';
+        nameField.classList.remove('hidden');
+        roleField.classList.remove('hidden');
+        title.textContent = 'Create DevOps Account';
+        submitText.textContent = 'Create & Join Platform';
+      }
+    }
+
+    function fillDemoCreds() {
+      document.getElementById('authEmailInput').value = 'zaid.matinuddin@student.college.edu';
+      document.getElementById('authPasswordInput').value = 'DevOps@2026';
+      if (authMode === 'register') {
+        document.getElementById('authNameInput').value = 'SHAIKH ZAID MATINUDDIN';
+        document.getElementById('authRoleInput').value = 'CI/CD & Containerization Engineer (R3)';
+      }
+    }
+
+    // Submit Auth Form
+    document.getElementById('authForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const feedback = document.getElementById('authFeedback');
+      const email = document.getElementById('authEmailInput').value.trim();
+      const password = document.getElementById('authPasswordInput').value.trim();
+
+      const endpoint = authMode === 'login' ? '/api/auth/login' : '/api/auth/register';
+      const payload = { email, password };
+
+      if (authMode === 'register') {
+        payload.name = document.getElementById('authNameInput').value.trim();
+        payload.role = document.getElementById('authRoleInput').value.trim() || 'DevOps Engineer';
+      }
+
+      try {
+        const res = await fetch(endpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+
+        if (res.ok) {
+          feedback.textContent = `Success: ${data.message}`;
+          feedback.className = "mt-3 text-xs p-3 rounded-xl bg-emerald-500/10 text-emerald-300 border border-emerald-500/30 block";
+          currentUser = data.user;
+          renderUserSession();
+          setTimeout(() => {
+            closeAuthModal();
+            loadEmployees();
+          }, 1000);
+        } else {
+          throw new Error(data.message || 'Authentication failed');
+        }
+      } catch (err) {
+        feedback.textContent = `Error: ${err.message}`;
+        feedback.className = "mt-3 text-xs p-3 rounded-xl bg-rose-500/10 text-rose-300 border border-rose-500/30 block";
+      }
+    });
+
+    // SSO Exchange (Google & GitHub)
+    async function handleSSOLogin(provider) {
+      const feedback = document.getElementById('authFeedback');
+      const payload = {
+        provider: provider.toLowerCase(),
+        name: `SHAIKH ZAID (${provider} Verified)`,
+        email: `zaid.${provider.toLowerCase()}@devops.sso.org`
+      };
+
+      try {
+        const res = await fetch('/api/auth/sso', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+
+        if (res.ok) {
+          feedback.textContent = `Verified: ${data.message}`;
+          feedback.className = "mt-3 text-xs p-3 rounded-xl bg-emerald-500/10 text-emerald-300 border border-emerald-500/30 block";
+          currentUser = data.user;
+          renderUserSession();
+          setTimeout(() => {
+            closeAuthModal();
+            loadEmployees();
+          }, 1000);
+        } else {
+          throw new Error(data.message || 'SSO failed');
+        }
+      } catch (err) {
+        feedback.textContent = `SSO Error: ${err.message}`;
+        feedback.className = "mt-3 text-xs p-3 rounded-xl bg-rose-500/10 text-rose-300 border border-rose-500/30 block";
+      }
+    }
+
+    // Check Current User Session
+    async function checkUserSession() {
+      try {
+        const res = await fetch('/api/auth/user');
+        const data = await res.json();
+        if (data.authenticated) {
+          currentUser = data.user;
+          renderUserSession();
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    function renderUserSession() {
+      const container = document.getElementById('authActionsContainer');
+      if (currentUser) {
+        const initials = currentUser.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+        container.innerHTML = `
+          <div class="flex items-center space-x-3 bg-slate-900 border border-slate-700/80 rounded-xl px-3 py-1.5 shadow-sm">
+            <div class="w-7 h-7 rounded-lg bg-brand-600 text-white font-bold text-xs flex items-center justify-center">${initials}</div>
+            <div class="hidden sm:block text-left">
+              <p class="text-xs font-bold text-white truncate max-w-[120px]">${currentUser.name}</p>
+              <p class="text-[10px] text-brand-300 font-mono capitalize">${currentUser.provider || 'local'} SSO</p>
+            </div>
+            <button onclick="handleLogout()" class="p-1.5 text-slate-400 hover:text-rose-400 rounded-lg" title="Logout">
+              <i data-lucide="log-out" class="w-4 h-4"></i>
+            </button>
+          </div>
+        `;
+        lucide.createIcons();
+      }
+    }
+
+    async function handleLogout() {
+      await fetch('/api/auth/logout', { method: 'POST' });
+      currentUser = null;
+      window.location.reload();
+    }
+
+    // --- 4. DATA FETCH & CRUD (GET /items, POST /items, GET /health) ---
     async function checkHealth() {
       const startTime = performance.now();
       try {
@@ -680,21 +1116,18 @@
         if (res.ok) {
           const data = await res.json();
           healthText.textContent = `GET /health: ${data.status} (200)`;
-          healthBadge.className = "flex items-center space-x-2.5 px-3.5 py-1.5 rounded-full text-xs font-semibold bg-emerald-950/60 border border-emerald-500/40 text-emerald-400 shadow-sm cursor-pointer hover:bg-emerald-900/50 transition";
+          healthBadge.className = "flex items-center space-x-2 px-3 py-1.5 rounded-full text-xs font-semibold bg-emerald-950/60 border border-emerald-500/40 text-emerald-400 cursor-pointer hover:bg-emerald-900/50 transition";
           statHealthStatus.textContent = data.status;
           statHealthStatus.className = "text-3xl font-extrabold text-emerald-400 mt-1";
-        } else {
-          throw new Error('Health returned non-200');
         }
       } catch (err) {
         healthText.textContent = "GET /health: OFFLINE";
-        healthBadge.className = "flex items-center space-x-2.5 px-3.5 py-1.5 rounded-full text-xs font-semibold bg-rose-950/60 border border-rose-500/40 text-rose-400 shadow-sm cursor-pointer transition";
+        healthBadge.className = "flex items-center space-x-2 px-3 py-1.5 rounded-full text-xs font-semibold bg-rose-950/60 border border-rose-500/40 text-rose-400 cursor-pointer transition";
         statHealthStatus.textContent = "OFFLINE";
         statHealthStatus.className = "text-3xl font-extrabold text-rose-400 mt-1";
       }
     }
 
-    // Load Personnel Records (GET /items)
     async function loadEmployees() {
       loadingState.classList.remove('hidden');
       emptyState.classList.add('hidden');
@@ -723,7 +1156,6 @@
       }
     }
 
-    // Render Records UI (Cards or List)
     function renderRecords(items) {
       badgeFilteredCount.textContent = `${items.length} record${items.length === 1 ? '' : 's'}`;
 
@@ -789,7 +1221,6 @@
           `;
         }).join('');
       } else {
-        // List mode
         recordsContainer.className = "flex flex-col space-y-3";
         recordsContainer.innerHTML = items.map(emp => {
           const avatar = emp.avatar || emp.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
@@ -817,7 +1248,6 @@
       lucide.createIcons();
     }
 
-    // Switch View Mode (Grid vs List)
     function setViewMode(mode) {
       viewMode = mode;
       document.getElementById('viewGridBtn').className = mode === 'grid' ? 'p-1.5 rounded-lg text-white bg-slate-800 transition' : 'p-1.5 rounded-lg text-slate-400 hover:text-white transition';
@@ -825,7 +1255,6 @@
       renderRecords(employeesData);
     }
 
-    // Update KPI stats
     async function updateKPIs() {
       try {
         const res = await fetch('/items');
@@ -839,7 +1268,6 @@
       }
     }
 
-    // Add Personnel (POST /items)
     addEmployeeForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       const submitBtn = document.getElementById('submitBtn');
@@ -861,8 +1289,8 @@
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(newRecord)
         });
-
         const data = await res.json();
+
         if (res.ok) {
           formFeedback.textContent = `Success: Added "${data.item.name}" (POST /items status 201)`;
           formFeedback.className = "mt-3 text-xs p-3 rounded-xl bg-emerald-500/10 text-emerald-300 border border-emerald-500/30 block";
@@ -885,7 +1313,6 @@
       }
     });
 
-    // Delete Record (DELETE /items/:id)
     async function deleteRecord(id) {
       if (!confirm(`Are you sure you want to remove Personnel Record #${id}?`)) return;
       try {
@@ -899,19 +1326,16 @@
       }
     }
 
-    // Helper: Copy Email
     function copyEmail(email) {
       navigator.clipboard.writeText(email);
       alert(`Copied ${email} to clipboard!`);
     }
 
-    // Quick scroll to form
     function focusAddMemberForm() {
       document.getElementById('nameInput').focus();
       document.getElementById('addEmployeeForm').scrollIntoView({ behavior: 'smooth' });
     }
 
-    // Traffic Burst Simulator
     async function triggerTrafficBurst() {
       for (let i = 0; i < 5; i++) {
         fetch('/health');
@@ -921,7 +1345,6 @@
       recordSimulatedTraffic(10);
     }
 
-    // Telemetry Update Loop
     function recordSimulatedTraffic(extra = 1) {
       telemetryHistory.shift();
       const last = telemetryHistory[telemetryHistory.length - 1];
@@ -932,7 +1355,6 @@
       statTotalCalls.textContent = requestCount;
     }
 
-    // Debounce
     function debounce(fn, ms) {
       let t;
       return (...args) => {
@@ -944,10 +1366,13 @@
     searchInput.addEventListener('input', debounce(loadEmployees, 300));
     departmentFilter.addEventListener('change', loadEmployees);
 
-    // Boot
+    // Initial boot
     document.addEventListener('DOMContentLoaded', () => {
       lucide.createIcons();
+      init3DLogo();
+      init3DHero();
       initTelemetryChart();
+      checkUserSession();
       checkHealth();
       loadEmployees();
       setInterval(checkHealth, 15000);
