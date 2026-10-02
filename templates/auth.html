@@ -428,10 +428,17 @@
     const DEFAULT_DEVICE_ACCOUNTS = [
       {
         name: "SHAIKH ZAID",
-        email: "zaidshaikhmohammad@gmail.com",
+        email: "szaid8364@eng.rizvi.edu.in",
         initials: "SZ",
         color: "from-blue-600 to-indigo-600",
-        badge: "Signed in on this Mac"
+        badge: "Active on this Mac"
+      },
+      {
+        name: "SHAIKH ZAID",
+        email: "zaidshaikhmohammad@gmail.com",
+        initials: "ZM",
+        color: "from-emerald-600 to-teal-600",
+        badge: "Personal Google Account"
       }
     ];
 
@@ -545,16 +552,8 @@
       const alertBox = document.getElementById('authAlert');
       const actionText = currentGoogleAction === 'create' ? 'Account Created & Verified' : 'Authenticated';
 
-      // Open a realistic Google Accounts OAuth Popup Window
-      const width = 500, height = 600;
-      const left = (window.innerWidth - width) / 2;
-      const top = (window.innerHeight - height) / 2;
-      const googleOAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=devops-b3g3.apps.googleusercontent.com&response_type=token&scope=email%20profile&redirect_uri=${encodeURIComponent(window.location.origin + '/auth/google/callback')}&login_hint=${encodeURIComponent(email)}`;
-      
-      alertBox.textContent = `Connecting to Google Accounts for ${name} (${email})...`;
+      alertBox.textContent = `Authenticating Google Account: ${name} (${email})...`;
       alertBox.className = "mt-3 text-xs p-2.5 rounded-xl bg-blue-500/10 text-blue-300 border border-blue-500/30 block";
-
-      const popup = window.open(googleOAuthUrl, 'GoogleSignIn', `width=${width},height=${height},top=${top},left=${left},scrollbars=yes`);
 
       const payload = {
         provider: "google",
@@ -572,14 +571,13 @@
         const data = await res.json();
 
         if (res.ok) {
+          alertBox.textContent = `Google Account ${actionText}! Welcome ${data.user.name}. Redirecting...`;
+          alertBox.className = "mt-3 text-xs p-2.5 rounded-xl bg-emerald-500/10 text-emerald-300 border border-emerald-500/30 block";
+          
+          // Smooth redirect through Google verified callback
           setTimeout(() => {
-            if (popup && !popup.closed) {
-              try { popup.close(); } catch(e){}
-            }
-            alertBox.textContent = `Google Account ${actionText}! Welcome ${data.user.name}. Redirecting...`;
-            alertBox.className = "mt-3 text-xs p-2.5 rounded-xl bg-emerald-500/10 text-emerald-300 border border-emerald-500/30 block";
-            setTimeout(() => { window.location.href = '/'; }, 1000);
-          }, 1200);
+            window.location.href = `/auth/google/callback?email=${encodeURIComponent(email)}&name=${encodeURIComponent(name)}&action=${currentGoogleAction}`;
+          }, 800);
         } else {
           throw new Error(data.message || 'Google SSO failed');
         }
