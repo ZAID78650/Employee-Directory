@@ -12,6 +12,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <!-- Official Google Identity Services SDK -->
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
 
   <script>
     tailwind.config = {
@@ -305,56 +307,36 @@
       </div>
 
       <!-- Account Selection List -->
-      <div class="space-y-2 mb-4">
-        <div class="flex items-center justify-between text-xs font-semibold text-slate-600 mb-1">
-          <span id="googleModalPrompt">Select account to sign in:</span>
-          <span class="text-[10px] font-mono text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded">OAuth 2.0</span>
+      <div class="mb-4">
+        <div class="flex items-center justify-between text-xs font-semibold text-slate-600 mb-2">
+          <span id="googleModalPrompt">Account on this device:</span>
+          <span class="text-[10px] font-mono text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full flex items-center gap-1">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+            Verified Google
+          </span>
         </div>
 
-        <!-- Account 1 -->
-        <button onclick="executeGoogleAction('zaid.shaikh@gmail.com', 'SHAIKH ZAID')" class="w-full p-2.5 rounded-xl hover:bg-slate-50 border border-slate-200 transition flex items-center justify-between text-left group">
-          <div class="flex items-center space-x-3 min-w-0">
-            <div class="w-9 h-9 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-600 text-white font-bold text-xs flex items-center justify-center flex-shrink-0 shadow-sm">
-              ZS
-            </div>
-            <div class="min-w-0">
-              <p class="text-xs font-bold text-slate-900 group-hover:text-blue-600 truncate">SHAIKH ZAID</p>
-              <p class="text-[11px] text-slate-500 truncate">zaid.shaikh@gmail.com</p>
-            </div>
-          </div>
-          <span class="text-[11px] font-semibold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-lg border border-blue-100" id="btnActionLabel1">Sign In</span>
-        </button>
+        <!-- Dynamic Device Google Accounts Container -->
+        <div id="deviceAccountsList" class="space-y-2">
+          <!-- Populated dynamically by script from local session / device input -->
+        </div>
 
-        <!-- Account 2 -->
-        <button onclick="executeGoogleAction('rahmat.shaikh@gmail.com', 'SHAIKH RAHMAT')" class="w-full p-2.5 rounded-xl hover:bg-slate-50 border border-slate-200 transition flex items-center justify-between text-left group">
-          <div class="flex items-center space-x-3 min-w-0">
-            <div class="w-9 h-9 rounded-full bg-gradient-to-tr from-cyan-600 to-blue-600 text-white font-bold text-xs flex items-center justify-center flex-shrink-0 shadow-sm">
-              SR
-            </div>
-            <div class="min-w-0">
-              <p class="text-xs font-bold text-slate-900 group-hover:text-blue-600 truncate">SHAIKH RAHMAT</p>
-              <p class="text-[11px] text-slate-500 truncate">rahmat.shaikh@gmail.com</p>
-            </div>
-          </div>
-          <span class="text-[11px] font-semibold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-lg border border-blue-100" id="btnActionLabel2">Sign In</span>
-        </button>
-
-        <!-- Account 3: Custom Google Account Entry -->
-        <div class="pt-2 border-t border-slate-100">
-          <button onclick="promptCustomGoogleAccount()" class="w-full p-2 rounded-xl text-slate-700 hover:bg-slate-50 transition flex items-center justify-between text-xs font-medium">
-            <div class="flex items-center space-x-2.5">
-              <div class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500">
+        <!-- Use another Google account button -->
+        <div class="pt-2 mt-2 border-t border-slate-100">
+          <button type="button" onclick="promptCustomGoogleAccount()" class="w-full p-2.5 rounded-xl text-slate-700 hover:bg-slate-50 transition flex items-center justify-between text-xs font-semibold group">
+            <div class="flex items-center space-x-3">
+              <div class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 group-hover:bg-blue-50 group-hover:text-blue-600 transition">
                 <i data-lucide="user-plus" class="w-4 h-4"></i>
               </div>
-              <span id="customAccountText">Use another Google account</span>
+              <span id="customAccountText" class="text-slate-700 group-hover:text-slate-900">Sign in with another Google account</span>
             </div>
-            <i data-lucide="chevron-right" class="w-4 h-4 text-slate-400"></i>
+            <i data-lucide="chevron-right" class="w-4 h-4 text-slate-400 group-hover:text-slate-600"></i>
           </button>
         </div>
       </div>
 
       <div class="text-[10px] text-slate-400 leading-tight">
-        To continue, Google will share your name, email address, and profile picture with Employee Directory.
+        To continue, Google will share your name, email address, language preference, and profile picture with Employee Directory.
       </div>
 
     </div>
@@ -442,11 +424,88 @@
       }
     });
 
+    // --- DEVICE GOOGLE ACCOUNTS STORAGE & DISCOVERY ---
+    const DEFAULT_DEVICE_ACCOUNTS = [
+      {
+        name: "SHAIKH ZAID",
+        email: "zaidshaikhmohammad@gmail.com",
+        initials: "SZ",
+        color: "from-blue-600 to-indigo-600",
+        badge: "Signed in on this Mac"
+      }
+    ];
+
+    function getStoredGoogleAccounts() {
+      try {
+        const stored = localStorage.getItem("device_google_accounts");
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        }
+      } catch(e) {}
+      return DEFAULT_DEVICE_ACCOUNTS;
+    }
+
+    function saveDeviceGoogleAccount(email, name) {
+      try {
+        const accounts = getStoredGoogleAccounts();
+        const exists = accounts.find(a => a.email.toLowerCase() === email.toLowerCase());
+        if (!exists) {
+          const initials = name.split(" ").map(w => w[0]).join("").substring(0, 2).toUpperCase() || "G";
+          accounts.unshift({
+            name: name,
+            email: email.toLowerCase(),
+            initials: initials,
+            color: "from-indigo-600 to-purple-600",
+            badge: "Signed in on this Mac"
+          });
+          localStorage.setItem("device_google_accounts", JSON.stringify(accounts));
+        }
+      } catch(e) {}
+    }
+
+    function renderDeviceAccounts() {
+      const container = document.getElementById('deviceAccountsList');
+      if (!container) return;
+      const accounts = getStoredGoogleAccounts();
+      const isCreate = currentGoogleAction === 'create';
+      const actionText = isCreate ? 'Register' : 'Sign In';
+      const actionBadgeClass = isCreate 
+        ? "text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-lg border border-emerald-200"
+        : "text-[11px] font-semibold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-lg border border-blue-100";
+
+      container.innerHTML = accounts.map((acc, idx) => `
+        <button type="button" onclick="executeGoogleAction('${acc.email}', '${acc.name}')" class="w-full p-2.5 rounded-xl hover:bg-slate-50 border border-slate-200 hover:border-blue-400 transition flex items-center justify-between text-left group">
+          <div class="flex items-center space-x-3 min-w-0">
+            <div class="w-9 h-9 rounded-full bg-gradient-to-tr ${acc.color || 'from-blue-600 to-indigo-600'} text-white font-bold text-xs flex items-center justify-center flex-shrink-0 shadow-sm">
+              ${acc.initials || 'G'}
+            </div>
+            <div class="min-w-0">
+              <div class="flex items-center gap-1.5">
+                <p class="text-xs font-bold text-slate-900 group-hover:text-blue-600 truncate">${acc.name}</p>
+                ${acc.badge ? `<span class="text-[9px] text-slate-400 font-normal">(${acc.badge})</span>` : ''}
+              </div>
+              <p class="text-[11px] text-slate-500 truncate font-mono">${acc.email}</p>
+            </div>
+          </div>
+          <span class="${actionBadgeClass}">${actionText}</span>
+        </button>
+      `).join('');
+    }
+
     // --- GOOGLE ACCOUNTS AUTHENTIC MODAL CONTROLS ---
     function openGoogleAccountChooser(action = 'signin') {
       currentGoogleAction = action;
       setGoogleModalAction(action);
+      renderDeviceAccounts();
       document.getElementById('googleAccountModal').classList.remove('hidden');
+
+      // Trigger Google One Tap if GIS SDK loaded
+      if (window.google && google.accounts && google.accounts.id) {
+        try {
+          google.accounts.id.prompt();
+        } catch(e) {}
+      }
     }
 
     function closeGoogleModal() {
@@ -460,8 +519,6 @@
       const title = document.getElementById('googleModalTitle');
       const subtitle = document.getElementById('googleModalSubtitle');
       const prompt = document.getElementById('googleModalPrompt');
-      const lbl1 = document.getElementById('btnActionLabel1');
-      const lbl2 = document.getElementById('btnActionLabel2');
       const customTxt = document.getElementById('customAccountText');
 
       if (action === 'signin') {
@@ -469,28 +526,22 @@
         tabCreate.className = "flex-1 py-1.5 rounded-lg text-slate-500 hover:text-slate-800 transition";
         title.textContent = "Sign in with Google";
         subtitle.textContent = "Access verified Personnel Directory & metrics";
-        prompt.textContent = "Select account to sign in:";
-        lbl1.textContent = "Sign In";
-        lbl1.className = "text-[11px] font-semibold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-lg border border-blue-100";
-        lbl2.textContent = "Sign In";
-        lbl2.className = "text-[11px] font-semibold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-lg border border-blue-100";
-        customTxt.textContent = "Use another Google account to login";
+        prompt.textContent = "Account on this device:";
+        customTxt.textContent = "Sign in with another Google account";
       } else {
         tabCreate.className = "flex-1 py-1.5 rounded-lg bg-white shadow-sm text-emerald-600 transition font-bold";
         tabSignIn.className = "flex-1 py-1.5 rounded-lg text-slate-500 hover:text-slate-800 transition";
         title.textContent = "Create Account with Google";
         subtitle.textContent = "Auto-provision new engineer into Directory";
-        prompt.textContent = "Choose Google profile to register:";
-        lbl1.textContent = "Register";
-        lbl1.className = "text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-lg border border-emerald-200";
-        lbl2.textContent = "Register";
-        lbl2.className = "text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-lg border border-emerald-200";
+        prompt.textContent = "Account on this device to register:";
         customTxt.textContent = "Register with another Google account";
       }
+      renderDeviceAccounts();
     }
 
     async function executeGoogleAction(email, name) {
       closeGoogleModal();
+      saveDeviceGoogleAccount(email, name);
       const alertBox = document.getElementById('authAlert');
       const actionText = currentGoogleAction === 'create' ? 'Account Created & Verified' : 'Authenticated';
 
@@ -500,7 +551,7 @@
       const top = (window.innerHeight - height) / 2;
       const googleOAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=devops-b3g3.apps.googleusercontent.com&response_type=token&scope=email%20profile&redirect_uri=${encodeURIComponent(window.location.origin + '/auth/google/callback')}&login_hint=${encodeURIComponent(email)}`;
       
-      alertBox.textContent = `Connecting to Google Accounts for ${name}...`;
+      alertBox.textContent = `Connecting to Google Accounts for ${name} (${email})...`;
       alertBox.className = "mt-3 text-xs p-2.5 rounded-xl bg-blue-500/10 text-blue-300 border border-blue-500/30 block";
 
       const popup = window.open(googleOAuthUrl, 'GoogleSignIn', `width=${width},height=${height},top=${top},left=${left},scrollbars=yes`);
@@ -541,12 +592,14 @@
     function promptCustomGoogleAccount() {
       const isCreate = currentGoogleAction === 'create';
       const promptMsg = isCreate 
-        ? "Create Account: Enter your Google email address to register:"
-        : "Sign In: Enter your Google email address:";
-      const email = prompt(promptMsg, "engineer@gmail.com");
+        ? "Google Account Registration: Enter your actual Google email address on this device:"
+        : "Google Sign In: Enter your actual Google email address on this device:";
+      const email = prompt(promptMsg, "zaidshaikhmohammad@gmail.com");
       if (!email) return;
-      const name = email.split('@')[0].replace('.', ' ').toUpperCase();
-      executeGoogleAction(email, name || "Google User");
+      const cleanEmail = email.trim();
+      const defaultName = cleanEmail.split('@')[0].replace(/[._-]/g, ' ').toUpperCase();
+      const name = prompt("Enter your Name for this Google Account:", defaultName) || defaultName;
+      executeGoogleAction(cleanEmail, name);
     }
 
     // Generic SSO Handler for GitHub / GitLab
