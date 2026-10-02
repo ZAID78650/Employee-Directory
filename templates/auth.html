@@ -273,70 +273,102 @@
     </div>
   </main>
 
-  <!-- GOOGLE ACCOUNTS REALISTIC CONSENT MODAL (POPUP DIALOG) -->
-  <div id="googleAccountModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md hidden transition-all duration-200">
-    <div class="relative w-full max-w-sm bg-white text-slate-800 rounded-3xl p-6 shadow-2xl border border-slate-200 overflow-hidden">
+  <!-- GOOGLE ACCOUNTS DIALOG: EXACT DARK ACCOUNT CHOOSER (AS IN SCREENSHOT) -->
+  <div id="googleAccountModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md hidden transition-all duration-200">
+    <div class="relative w-full max-w-2xl bg-[#1e1f20] text-slate-100 rounded-3xl p-8 sm:p-10 shadow-2xl border border-white/10 overflow-hidden font-sans">
       
       <!-- Close button -->
-      <button onclick="closeGoogleModal()" class="absolute top-4 right-4 p-1.5 rounded-full text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition">
-        <i data-lucide="x" class="w-4 h-4"></i>
+      <button type="button" onclick="closeGoogleModal()" class="absolute top-5 right-5 p-2 rounded-full text-slate-400 hover:text-white hover:bg-white/10 transition">
+        <i data-lucide="x" class="w-5 h-5"></i>
       </button>
 
-      <!-- Google Branding Header -->
-      <div class="flex items-center space-x-2.5 mb-2">
-        <svg class="w-6 h-6 flex-shrink-0" viewBox="0 0 24 24">
+      <!-- Google Logo Bar -->
+      <div class="flex items-center space-x-2.5 mb-7">
+        <svg class="w-5 h-5 flex-shrink-0" viewBox="0 0 24 24">
           <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
           <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
           <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
           <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
         </svg>
-        <div>
-          <h4 id="googleModalTitle" class="text-sm font-bold text-slate-900">Sign in with Google</h4>
-          <p id="googleModalSubtitle" class="text-[11px] text-slate-500">to continue to Employee Directory B3-G3</p>
-        </div>
+        <span class="text-xs font-medium text-slate-300">Sign in with Google</span>
       </div>
 
-      <!-- Action Mode Switcher Inside Modal -->
-      <div class="flex p-0.5 bg-slate-100 rounded-xl my-3 text-[11px] font-semibold text-slate-600">
-        <button id="modalTabSignIn" onclick="setGoogleModalAction('signin')" class="flex-1 py-1.5 rounded-lg bg-white shadow-sm text-blue-600 transition font-bold">
-          Sign In
-        </button>
-        <button id="modalTabCreate" onclick="setGoogleModalAction('create')" class="flex-1 py-1.5 rounded-lg text-slate-500 hover:text-slate-800 transition">
-          Create Account
-        </button>
-      </div>
+      <!-- Main Two-Column Content Layout (As in Screenshot) -->
+      <div class="grid grid-cols-1 md:grid-cols-12 gap-8 items-start">
+        
+        <!-- Left Side: App Branding & Heading -->
+        <div class="md:col-span-5 space-y-4">
+          <!-- Stylized Google Antigravity / App Ribbon Emblem -->
+          <div class="w-10 h-10 flex items-center justify-center">
+            <svg class="w-9 h-9" viewBox="0 0 48 48" fill="none">
+              <path d="M24 6C16 6 10 12 10 20C10 28 17 38 24 42C31 38 38 28 38 20C38 12 32 6 24 6Z" fill="url(#gradAntigrav)" />
+              <path d="M24 13C19.5 13 16 16.5 16 21C16 25.5 24 34 24 34C24 34 32 25.5 32 21C32 16.5 28.5 13 24 13Z" fill="#1e1f20" />
+              <defs>
+                <linearGradient id="gradAntigrav" x1="10" y1="6" x2="38" y2="42" gradientUnits="userSpaceOnUse">
+                  <stop stop-color="#38bdf8"/>
+                  <stop offset="0.5" stop-color="#6366f1"/>
+                  <stop offset="1" stop-color="#f59e0b"/>
+                </linearGradient>
+              </defs>
+            </svg>
+          </div>
 
-      <!-- Account Selection List -->
-      <div class="mb-4">
-        <div class="flex items-center justify-between text-xs font-semibold text-slate-600 mb-2">
-          <span id="googleModalPrompt">Account on this device:</span>
-          <span class="text-[10px] font-mono text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full flex items-center gap-1">
-            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-            Verified Google
-          </span>
-        </div>
+          <h2 class="text-2xl sm:text-3xl font-normal text-white tracking-tight leading-tight">
+            Choose an account
+          </h2>
 
-        <!-- Dynamic Device Google Accounts Container -->
-        <div id="deviceAccountsList" class="space-y-2">
-          <!-- Populated dynamically by script from local session / device input -->
-        </div>
+          <p class="text-sm text-slate-300">
+            to continue to <span class="font-medium text-white">Employee Directory</span>
+          </p>
 
-        <!-- Use another Google account button -->
-        <div class="pt-2 mt-2 border-t border-slate-100">
-          <button type="button" onclick="promptCustomGoogleAccount()" class="w-full p-2.5 rounded-xl text-slate-700 hover:bg-slate-50 transition flex items-center justify-between text-xs font-semibold group">
-            <div class="flex items-center space-x-3">
-              <div class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 group-hover:bg-blue-50 group-hover:text-blue-600 transition">
-                <i data-lucide="user-plus" class="w-4 h-4"></i>
-              </div>
-              <span id="customAccountText" class="text-slate-700 group-hover:text-slate-900">Sign in with another Google account</span>
+          <!-- Toggle between Sign In & Create Account inside modal -->
+          <div class="pt-2">
+            <div class="inline-flex p-1 bg-white/5 rounded-xl border border-white/10 text-xs">
+              <button type="button" id="modalTabSignIn" onclick="setGoogleModalAction('signin')" class="px-3 py-1.5 rounded-lg bg-white/20 text-white font-medium transition">
+                Sign in
+              </button>
+              <button type="button" id="modalTabCreate" onclick="setGoogleModalAction('create')" class="px-3 py-1.5 rounded-lg text-slate-400 hover:text-white transition">
+                Create Account
+              </button>
             </div>
-            <i data-lucide="chevron-right" class="w-4 h-4 text-slate-400 group-hover:text-slate-600"></i>
-          </button>
+          </div>
         </div>
+
+        <!-- Right Side: Exact Google Accounts Rows -->
+        <div class="md:col-span-7">
+          <div id="deviceAccountsList" class="divide-y divide-white/10 border-t border-b border-white/10">
+            <!-- Populated with exact accounts from screenshot -->
+          </div>
+
+          <!-- Use another account row -->
+          <div class="border-b border-white/10">
+            <button type="button" onclick="promptCustomGoogleAccount()" class="w-full py-3.5 px-3 flex items-center space-x-3.5 text-left hover:bg-white/5 transition group rounded-xl">
+              <div class="w-8 h-8 rounded-full border border-white/20 flex items-center justify-center text-slate-300 group-hover:text-white group-hover:border-white transition flex-shrink-0">
+                <i data-lucide="user" class="w-4 h-4"></i>
+              </div>
+              <span class="text-sm font-medium text-slate-200 group-hover:text-white">Use another account</span>
+            </button>
+          </div>
+
+          <!-- Privacy Policy & Terms Footer -->
+          <p class="text-xs text-slate-400 mt-6 leading-relaxed">
+            Before using this app, you can review Employee Directory's <a href="#" class="text-blue-400 hover:underline">Privacy Policy</a> and <a href="#" class="text-blue-400 hover:underline">Terms of Service</a>.
+          </p>
+        </div>
+
       </div>
 
-      <div class="text-[10px] text-slate-400 leading-tight">
-        To continue, Google will share your name, email address, language preference, and profile picture with Employee Directory.
+      <!-- Bottom System Footer (Language / Help / Privacy) -->
+      <div class="flex items-center justify-between text-xs text-slate-400 pt-6 mt-6 border-t border-white/10">
+        <div class="flex items-center space-x-1 cursor-pointer hover:text-slate-300">
+          <span>English (United States)</span>
+          <i data-lucide="chevron-down" class="w-3.5 h-3.5"></i>
+        </div>
+        <div class="flex items-center space-x-6">
+          <a href="#" class="hover:text-slate-300">Help</a>
+          <a href="#" class="hover:text-slate-300">Privacy</a>
+          <a href="#" class="hover:text-slate-300">Terms</a>
+        </div>
       </div>
 
     </div>
@@ -424,27 +456,41 @@
       }
     });
 
-    // --- DEVICE GOOGLE ACCOUNTS STORAGE & DISCOVERY ---
+    // --- DEVICE GOOGLE ACCOUNTS MATCHING EXACT DEVICE SCREENSHOT ---
     const DEFAULT_DEVICE_ACCOUNTS = [
       {
-        name: "SHAIKH ZAID",
+        name: "",
         email: "szaid8364@eng.rizvi.edu.in",
-        initials: "SZ",
-        color: "from-blue-600 to-indigo-600",
-        badge: "Active on this Mac"
+        initials: "M",
+        type: "initial",
+        avatarBg: "bg-[#5f6368] text-white"
       },
       {
-        name: "SHAIKH ZAID",
-        email: "zaidshaikhmohammad@gmail.com",
-        initials: "ZM",
-        color: "from-emerald-600 to-teal-600",
-        badge: "Personal Google Account"
+        name: "Zaid Shaikh",
+        email: "szaid8364@gmail.com",
+        initials: "ZS",
+        type: "photo",
+        avatarBg: "bg-teal-500 text-white"
+      },
+      {
+        name: "",
+        email: "fs22ai006@gmail.com",
+        initials: "F",
+        type: "photo_red",
+        avatarBg: "bg-red-900 text-white"
+      },
+      {
+        name: "WAZIDALI SHEIKH",
+        email: "wazida.sheikh@gmail.com",
+        initials: "W",
+        type: "photo_blue",
+        avatarBg: "bg-blue-900 text-white"
       }
     ];
 
     function getStoredGoogleAccounts() {
       try {
-        const stored = localStorage.getItem("device_google_accounts");
+        const stored = localStorage.getItem("device_google_accounts_v2");
         if (stored) {
           const parsed = JSON.parse(stored);
           if (Array.isArray(parsed) && parsed.length > 0) return parsed;
@@ -458,15 +504,15 @@
         const accounts = getStoredGoogleAccounts();
         const exists = accounts.find(a => a.email.toLowerCase() === email.toLowerCase());
         if (!exists) {
-          const initials = name.split(" ").map(w => w[0]).join("").substring(0, 2).toUpperCase() || "G";
+          const initials = name ? name.split(" ").map(w => w[0]).join("").substring(0, 2).toUpperCase() : email[0].toUpperCase();
           accounts.unshift({
             name: name,
             email: email.toLowerCase(),
             initials: initials,
-            color: "from-indigo-600 to-purple-600",
-            badge: "Signed in on this Mac"
+            type: "initial",
+            avatarBg: "bg-indigo-600 text-white"
           });
-          localStorage.setItem("device_google_accounts", JSON.stringify(accounts));
+          localStorage.setItem("device_google_accounts_v2", JSON.stringify(accounts));
         }
       } catch(e) {}
     }
@@ -475,29 +521,24 @@
       const container = document.getElementById('deviceAccountsList');
       if (!container) return;
       const accounts = getStoredGoogleAccounts();
-      const isCreate = currentGoogleAction === 'create';
-      const actionText = isCreate ? 'Register' : 'Sign In';
-      const actionBadgeClass = isCreate 
-        ? "text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-lg border border-emerald-200"
-        : "text-[11px] font-semibold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-lg border border-blue-100";
 
-      container.innerHTML = accounts.map((acc, idx) => `
-        <button type="button" onclick="executeGoogleAction('${acc.email}', '${acc.name}')" class="w-full p-2.5 rounded-xl hover:bg-slate-50 border border-slate-200 hover:border-blue-400 transition flex items-center justify-between text-left group">
-          <div class="flex items-center space-x-3 min-w-0">
-            <div class="w-9 h-9 rounded-full bg-gradient-to-tr ${acc.color || 'from-blue-600 to-indigo-600'} text-white font-bold text-xs flex items-center justify-center flex-shrink-0 shadow-sm">
-              ${acc.initials || 'G'}
+      container.innerHTML = accounts.map((acc) => {
+        const displayName = acc.name || "";
+        const email = acc.email;
+        const initialLetter = acc.initials || email.charAt(0).toUpperCase();
+
+        return `
+          <button type="button" onclick="executeGoogleAction('${email}', '${displayName || email.split('@')[0]}')" class="w-full py-3.5 px-3 flex items-center space-x-3.5 text-left hover:bg-white/5 transition group rounded-xl">
+            <div class="w-8 h-8 rounded-full ${acc.avatarBg} flex items-center justify-center font-medium text-xs flex-shrink-0 shadow-sm border border-white/10">
+              ${initialLetter}
             </div>
-            <div class="min-w-0">
-              <div class="flex items-center gap-1.5">
-                <p class="text-xs font-bold text-slate-900 group-hover:text-blue-600 truncate">${acc.name}</p>
-                ${acc.badge ? `<span class="text-[9px] text-slate-400 font-normal">(${acc.badge})</span>` : ''}
-              </div>
-              <p class="text-[11px] text-slate-500 truncate font-mono">${acc.email}</p>
+            <div class="min-w-0 flex-1">
+              ${displayName ? `<div class="text-sm font-medium text-white truncate leading-tight">${displayName}</div>` : ''}
+              <div class="text-xs text-slate-300 truncate leading-tight">${email}</div>
             </div>
-          </div>
-          <span class="${actionBadgeClass}">${actionText}</span>
-        </button>
-      `).join('');
+          </button>
+        `;
+      }).join('');
     }
 
     // --- GOOGLE ACCOUNTS AUTHENTIC MODAL CONTROLS ---
@@ -523,25 +564,15 @@
       currentGoogleAction = action;
       const tabSignIn = document.getElementById('modalTabSignIn');
       const tabCreate = document.getElementById('modalTabCreate');
-      const title = document.getElementById('googleModalTitle');
-      const subtitle = document.getElementById('googleModalSubtitle');
-      const prompt = document.getElementById('googleModalPrompt');
-      const customTxt = document.getElementById('customAccountText');
 
-      if (action === 'signin') {
-        tabSignIn.className = "flex-1 py-1.5 rounded-lg bg-white shadow-sm text-blue-600 transition font-bold";
-        tabCreate.className = "flex-1 py-1.5 rounded-lg text-slate-500 hover:text-slate-800 transition";
-        title.textContent = "Sign in with Google";
-        subtitle.textContent = "Access verified Personnel Directory & metrics";
-        prompt.textContent = "Account on this device:";
-        customTxt.textContent = "Sign in with another Google account";
-      } else {
-        tabCreate.className = "flex-1 py-1.5 rounded-lg bg-white shadow-sm text-emerald-600 transition font-bold";
-        tabSignIn.className = "flex-1 py-1.5 rounded-lg text-slate-500 hover:text-slate-800 transition";
-        title.textContent = "Create Account with Google";
-        subtitle.textContent = "Auto-provision new engineer into Directory";
-        prompt.textContent = "Account on this device to register:";
-        customTxt.textContent = "Register with another Google account";
+      if (tabSignIn && tabCreate) {
+        if (action === 'signin') {
+          tabSignIn.className = "px-3 py-1.5 rounded-lg bg-white/20 text-white font-medium transition";
+          tabCreate.className = "px-3 py-1.5 rounded-lg text-slate-400 hover:text-white transition";
+        } else {
+          tabCreate.className = "px-3 py-1.5 rounded-lg bg-emerald-500/30 text-emerald-200 border border-emerald-500/40 font-medium transition";
+          tabSignIn.className = "px-3 py-1.5 rounded-lg text-slate-400 hover:text-white transition";
+        }
       }
       renderDeviceAccounts();
     }
