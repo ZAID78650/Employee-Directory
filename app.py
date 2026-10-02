@@ -26,35 +26,47 @@ REQUEST_LATENCY = Histogram(
 employees = [
     {
         "id": 1,
-        "name": "Sarah Connor",
-        "role": "Lead DevOps Engineer",
+        "name": "SHAIKH RAHMAT",
+        "role": "Agile Planner & Documentation Lead (R1)",
         "department": "Platform & Cloud",
-        "email": "sarah.connor@cyberdyne.org",
-        "status": "Active"
+        "email": "shaikh.rahmat@student.college.edu",
+        "status": "Active",
+        "avatar": "SR",
+        "location": "Mumbai, India",
+        "phone": "+91 98201 11234"
     },
     {
         "id": 2,
-        "name": "Alan Turing",
-        "role": "Principal AI Researcher",
+        "name": "YADGIR ZUVERIA SALIM",
+        "role": "Developer & Version Control (R2)",
         "department": "AI & Data Science",
-        "email": "alan.turing@enigma.ai",
-        "status": "Active"
+        "email": "zuveria.yadgir@student.college.edu",
+        "status": "Active",
+        "avatar": "YZ",
+        "location": "Mumbai, India",
+        "phone": "+91 98202 22345"
     },
     {
         "id": 3,
-        "name": "Ada Lovelace",
-        "role": "Senior Systems Architect",
+        "name": "SHAIKH ZAID MATINUDDIN",
+        "role": "CI/CD & Containerization Engineer (R3)",
         "department": "Engineering",
-        "email": "ada.lovelace@analytical.io",
-        "status": "Active"
+        "email": "zaid.matinuddin@student.college.edu",
+        "status": "Active",
+        "avatar": "ZM",
+        "location": "Mumbai, India",
+        "phone": "+91 98203 33456"
     },
     {
         "id": 4,
-        "name": "Linus Torvalds",
-        "role": "Kernel Specialist",
+        "name": "SHAIKH ZAID WAZIDALI",
+        "role": "Deployment & Monitoring Engineer (R4)",
         "department": "Core Infrastructure",
-        "email": "linus.torvalds@kernel.org",
-        "status": "On Leave"
+        "email": "zaid.wazidali@student.college.edu",
+        "status": "Active",
+        "avatar": "ZW",
+        "location": "Mumbai, India",
+        "phone": "+91 98204 44567"
     }
 ]
 
@@ -138,13 +150,19 @@ def add_item():
             "message": "Both 'name' and 'role' are required fields."
         }), 400
 
+    name_parts = data.get("name").strip().split()
+    avatar = "".join([p[0] for p in name_parts[:2]]).upper() if name_parts else "EM"
+
     new_employee = {
         "id": next_id,
         "name": data.get("name").strip(),
         "role": data.get("role").strip(),
         "department": data.get("department", "Engineering").strip(),
-        "email": data.get("email", f"{data.get('name').lower().replace(' ', '.')}@company.com").strip(),
-        "status": data.get("status", "Active").strip()
+        "email": data.get("email", f"{data.get('name').lower().replace(' ', '.')}@student.college.edu").strip(),
+        "status": data.get("status", "Active").strip(),
+        "avatar": avatar,
+        "location": data.get("location", "Mumbai, India").strip(),
+        "phone": data.get("phone", "+91 98200 00000").strip()
     }
     employees.append(new_employee)
     next_id += 1

@@ -3,344 +3,501 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Employee Directory | DevOps Practical 10 (B3-G3)</title>
+  <title>Personnel Records | DevOps Practical 10 (Group B3-G3)</title>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Chart.js for Live Telemetry Graphics -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Google Inter Font -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  <style>
-    body { font-family: 'Inter', sans-serif; }
-    .glassmorphism {
-      background: rgba(255, 255, 255, 0.85);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Plus Jakarta Sans', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            brand: {
+              50: '#eef2ff',
+              100: '#e0e7ff',
+              200: '#c7d2fe',
+              300: '#a5b4fc',
+              400: '#818cf8',
+              500: '#6366f1',
+              600: '#4f46e5',
+              700: '#4338ca',
+              800: '#3730a3',
+              900: '#312e81',
+            }
+          }
+        }
+      }
     }
-    @keyframes pulse-slow {
-      0%, 100% { opacity: 1; transform: scale(1); }
-      50% { opacity: 0.8; transform: scale(1.02); }
+  </script>
+
+  <style>
+    .glass-card {
+      background: rgba(255, 255, 255, 0.88);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+    }
+    .badge-glow {
+      box-shadow: 0 0 12px rgba(99, 102, 241, 0.35);
+    }
+    @keyframes pulse-ring {
+      0% { transform: scale(0.95); opacity: 0.8; }
+      50% { transform: scale(1.15); opacity: 0.4; }
+      100% { transform: scale(0.95); opacity: 0.8; }
+    }
+    .live-pulse {
+      animation: pulse-ring 2s infinite ease-in-out;
     }
   </style>
 </head>
-<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col antialiased selection:bg-indigo-500 selection:text-white">
+<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col antialiased selection:bg-brand-500 selection:text-white">
 
-  <!-- TOP STATUS / PIPELINE BANNER -->
-  <header class="bg-slate-900 border-b border-slate-800 text-white sticky top-0 z-50 shadow-md">
+  <!-- TOP NAVBAR -->
+  <header class="bg-slate-950/80 backdrop-blur-md border-b border-slate-800 sticky top-0 z-50">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex items-center justify-between h-16">
-        <!-- Brand / Identity -->
-        <div class="flex items-center space-x-3">
-          <div class="h-10 w-10 rounded-xl bg-gradient-to-tr from-indigo-500 via-indigo-600 to-violet-500 flex items-center justify-center shadow-lg shadow-indigo-500/30">
-            <i data-lucide="users" class="w-5 h-5 text-white"></i>
+        
+        <!-- Left: Logo & Title -->
+        <div class="flex items-center space-x-3.5">
+          <div class="h-10 w-10 rounded-xl bg-gradient-to-tr from-brand-600 via-indigo-600 to-violet-500 flex items-center justify-center shadow-lg shadow-brand-500/25 border border-indigo-400/30">
+            <i data-lucide="shield-check" class="w-5 h-5 text-white"></i>
           </div>
           <div>
             <div class="flex items-center space-x-2">
-              <h1 class="text-base font-bold tracking-tight text-white">Employee Directory</h1>
-              <span class="px-2 py-0.5 text-xs font-semibold rounded bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">Group B3-G3</span>
+              <h1 class="text-base font-extrabold tracking-tight text-white flex items-center gap-2">
+                Personnel Records
+                <span class="text-xs px-2 py-0.5 rounded-full font-mono font-medium bg-brand-500/20 text-brand-300 border border-brand-500/40">B3-G3</span>
+              </h1>
             </div>
-            <p class="text-xs text-slate-400">DevOps End-to-End Pipeline Demo</p>
+            <p class="text-xs text-slate-400 flex items-center gap-1.5">
+              <span>Agile Software Development & DevOps Practical 10</span>
+              <span class="text-slate-600">&bull;</span>
+              <span class="text-indigo-400 font-mono">Live In-Memory REST API</span>
+            </p>
           </div>
         </div>
 
-        <!-- DevOps Quick Stats & Health Badge -->
-        <div class="flex items-center space-x-3 sm:space-x-5">
-          <!-- Live Service Health Indicator -->
-          <div id="healthBadge" class="flex items-center space-x-2 px-3 py-1.5 rounded-full text-xs font-medium bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 transition-all">
-            <span class="relative flex h-2 w-2">
+        <!-- Center / Right: Live Health + DevOps Quick Actions -->
+        <div class="flex items-center space-x-3 sm:space-x-4">
+          <!-- Realtime GET /health indicator -->
+          <div id="healthBadge" class="flex items-center space-x-2.5 px-3.5 py-1.5 rounded-full text-xs font-semibold bg-emerald-950/60 border border-emerald-500/40 text-emerald-400 shadow-sm cursor-pointer hover:bg-emerald-900/50 transition" onclick="checkHealth()" title="Click to ping GET /health">
+            <span class="relative flex h-2.5 w-2.5">
               <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-              <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+              <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
             </span>
-            <span id="healthStatusText">GET /health: Checking...</span>
+            <span id="healthText" class="font-mono">GET /health: OK (200)</span>
           </div>
 
-          <!-- Links to Prometheus / Grafana / API -->
+          <!-- Quick Navigation Links -->
           <div class="hidden md:flex items-center space-x-2">
-            <a href="/items" target="_blank" class="px-2.5 py-1 text-xs rounded-md bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition flex items-center space-x-1.5 border border-slate-700" title="Inspect RAW GET /items JSON">
-              <i data-lucide="code" class="w-3.5 h-3.5"></i>
+            <a href="/items" target="_blank" class="px-2.5 py-1.5 text-xs font-mono rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-700/80 transition flex items-center space-x-1.5 shadow-sm" title="View Raw GET /items JSON">
+              <i data-lucide="code" class="w-3.5 h-3.5 text-brand-400"></i>
               <span>/items</span>
             </a>
-            <a href="/metrics" target="_blank" class="px-2.5 py-1 text-xs rounded-md bg-slate-800 hover:bg-slate-700 text-amber-300 hover:text-amber-200 transition flex items-center space-x-1.5 border border-slate-700" title="Prometheus Metrics Scrape Target">
+            <a href="/metrics" target="_blank" class="px-2.5 py-1.5 text-xs font-mono rounded-lg bg-slate-900 hover:bg-slate-800 text-amber-300 hover:text-amber-200 border border-slate-700/80 transition flex items-center space-x-1.5 shadow-sm" title="Prometheus Telemetry Scrape Target">
               <i data-lucide="activity" class="w-3.5 h-3.5 text-amber-400"></i>
               <span>/metrics</span>
             </a>
-            <a href="http://localhost:9090" target="_blank" class="px-2.5 py-1 text-xs rounded-md bg-orange-950/40 hover:bg-orange-900/60 text-orange-300 border border-orange-800/50 transition flex items-center space-x-1" title="Prometheus Dashboard (Port 9090)">
+            <a href="http://localhost:9090" target="_blank" class="px-2.5 py-1.5 text-xs font-medium rounded-lg bg-orange-950/40 hover:bg-orange-900/60 text-orange-300 border border-orange-700/40 transition flex items-center space-x-1.5 shadow-sm" title="Prometheus Target (Port 9090)">
               <i data-lucide="flame" class="w-3.5 h-3.5 text-orange-400"></i>
               <span>Prometheus</span>
             </a>
-            <a href="http://localhost:3000" target="_blank" class="px-2.5 py-1 text-xs rounded-md bg-emerald-950/40 hover:bg-emerald-900/60 text-emerald-300 border border-emerald-800/50 transition flex items-center space-x-1" title="Grafana Dashboard (Port 3000)">
-              <i data-lucide="bar-chart-2" class="w-3.5 h-3.5 text-emerald-400"></i>
+            <a href="http://localhost:3000" target="_blank" class="px-2.5 py-1.5 text-xs font-medium rounded-lg bg-emerald-950/40 hover:bg-emerald-900/60 text-emerald-300 border border-emerald-700/40 transition flex items-center space-x-1.5 shadow-sm" title="Grafana Visual Dashboard (Port 3000)">
+              <i data-lucide="layout-grid" class="w-3.5 h-3.5 text-emerald-400"></i>
               <span>Grafana</span>
             </a>
           </div>
+
+          <!-- Add Member Button (Triggers Drawer / Focus) -->
+          <button onclick="focusAddMemberForm()" class="bg-brand-600 hover:bg-brand-500 active:bg-brand-700 text-white font-medium text-xs px-3.5 py-2 rounded-xl shadow-lg shadow-brand-600/30 transition flex items-center space-x-1.5">
+            <i data-lucide="user-plus" class="w-4 h-4"></i>
+            <span class="hidden sm:inline">Add Personnel</span>
+          </button>
         </div>
+
       </div>
     </div>
   </header>
 
-  <!-- PIPELINE STAGES BAR -->
-  <div class="bg-indigo-950/30 border-b border-indigo-900/20 py-2.5 px-4 text-xs font-medium text-slate-600 overflow-x-auto">
-    <div class="max-w-7xl mx-auto flex items-center justify-between min-w-[700px]">
-      <div class="flex items-center space-x-2 text-indigo-700 font-semibold uppercase tracking-wider text-[11px]">
-        <i data-lucide="git-merge" class="w-4 h-4"></i>
-        <span>DevOps Lifecycle:</span>
+  <!-- PIPELINE STAGES BANNER -->
+  <div class="bg-slate-950 border-b border-slate-800/80 py-2.5 px-4 text-xs font-medium overflow-x-auto shadow-inner">
+    <div class="max-w-7xl mx-auto flex items-center justify-between min-w-[760px]">
+      <div class="flex items-center space-x-2 text-brand-400 font-bold uppercase tracking-wider text-[11px]">
+        <i data-lucide="git-branch" class="w-4 h-4"></i>
+        <span>DevOps Lifecycle (Batch B3 - G3):</span>
       </div>
-      <div class="flex items-center space-x-4">
-        <span class="flex items-center space-x-1.5 text-slate-700 bg-white px-2.5 py-1 rounded-full shadow-sm border border-slate-200">
-          <span class="w-2 h-2 rounded-full bg-blue-500"></span>
-          <b>Plan:</b> Jira (R1)
+      <div class="flex items-center space-x-3 text-slate-300">
+        <span class="flex items-center space-x-1.5 bg-slate-900/90 px-3 py-1 rounded-full border border-slate-800">
+          <span class="w-2 h-2 rounded-full bg-blue-400"></span>
+          <span class="text-slate-400">R1:</span> <b>SHAIKH RAHMAT</b> <span class="text-xs text-blue-400 font-mono">(Jira)</span>
         </span>
-        <span class="text-slate-400">&rarr;</span>
-        <span class="flex items-center space-x-1.5 text-slate-700 bg-white px-2.5 py-1 rounded-full shadow-sm border border-slate-200">
-          <span class="w-2 h-2 rounded-full bg-indigo-500"></span>
-          <b>Code:</b> GitHub + PR (R2)
+        <span class="text-slate-600">&rarr;</span>
+        <span class="flex items-center space-x-1.5 bg-slate-900/90 px-3 py-1 rounded-full border border-slate-800">
+          <span class="w-2 h-2 rounded-full bg-indigo-400"></span>
+          <span class="text-slate-400">R2:</span> <b>YADGIR ZUVERIA</b> <span class="text-xs text-indigo-400 font-mono">(Code/PR)</span>
         </span>
-        <span class="text-slate-400">&rarr;</span>
-        <span class="flex items-center space-x-1.5 text-slate-700 bg-white px-2.5 py-1 rounded-full shadow-sm border border-slate-200">
-          <span class="w-2 h-2 rounded-full bg-green-500"></span>
-          <b>CI/CD:</b> GitHub Actions (R3)
+        <span class="text-slate-600">&rarr;</span>
+        <span class="flex items-center space-x-1.5 bg-slate-900/90 px-3 py-1 rounded-full border border-slate-800">
+          <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+          <span class="text-slate-400">R3:</span> <b>SHAIKH ZAID M.</b> <span class="text-xs text-emerald-400 font-mono">(CI/Docker)</span>
         </span>
-        <span class="text-slate-400">&rarr;</span>
-        <span class="flex items-center space-x-1.5 text-slate-700 bg-white px-2.5 py-1 rounded-full shadow-sm border border-slate-200">
-          <span class="w-2 h-2 rounded-full bg-cyan-500"></span>
-          <b>Package:</b> Docker Hub (R3)
-        </span>
-        <span class="text-slate-400">&rarr;</span>
-        <span class="flex items-center space-x-1.5 text-slate-700 bg-white px-2.5 py-1 rounded-full shadow-sm border border-slate-200">
-          <span class="w-2 h-2 rounded-full bg-purple-500"></span>
-          <b>Deploy & Monitor:</b> Compose + Prometheus + Grafana (R4)
+        <span class="text-slate-600">&rarr;</span>
+        <span class="flex items-center space-x-1.5 bg-slate-900/90 px-3 py-1 rounded-full border border-slate-800">
+          <span class="w-2 h-2 rounded-full bg-purple-400"></span>
+          <span class="text-slate-400">R4:</span> <b>SHAIKH ZAID W.</b> <span class="text-xs text-purple-400 font-mono">(Deploy/Mon)</span>
         </span>
       </div>
     </div>
   </div>
 
   <!-- MAIN APP CONTAINER -->
-  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 w-full">
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 w-full space-y-8">
 
-    <!-- KPI / STATS CARDS -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
-      <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200/80 flex items-center justify-between">
-        <div>
-          <p class="text-xs font-semibold uppercase tracking-wider text-slate-500">Total Personnel</p>
-          <h3 id="statTotalEmployees" class="text-2xl font-bold text-slate-900 mt-1">--</h3>
-          <p class="text-xs text-emerald-600 font-medium mt-1">In-Memory Store</p>
-        </div>
-        <div class="p-3 bg-indigo-50 text-indigo-600 rounded-xl">
-          <i data-lucide="users" class="w-6 h-6"></i>
+    <!-- KPI STATS CARDS -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+      <!-- Total Records -->
+      <div class="bg-slate-800/60 rounded-2xl p-5 border border-slate-700/60 hover:border-slate-600/80 transition relative overflow-hidden group shadow-lg">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-xs font-bold uppercase tracking-wider text-slate-400">Personnel Records</p>
+            <h3 id="statTotalEmployees" class="text-3xl font-extrabold text-white mt-1 group-hover:text-brand-400 transition">4</h3>
+            <p class="text-xs text-emerald-400 font-medium mt-1 flex items-center gap-1">
+              <i data-lucide="database" class="w-3.5 h-3.5"></i>
+              <span>Live In-Memory Store</span>
+            </p>
+          </div>
+          <div class="w-12 h-12 rounded-xl bg-brand-500/10 border border-brand-500/20 text-brand-400 flex items-center justify-center">
+            <i data-lucide="users" class="w-6 h-6"></i>
+          </div>
         </div>
       </div>
 
-      <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200/80 flex items-center justify-between">
-        <div>
-          <p class="text-xs font-semibold uppercase tracking-wider text-slate-500">Active Departments</p>
-          <h3 id="statTotalDepts" class="text-2xl font-bold text-slate-900 mt-1">--</h3>
-          <p class="text-xs text-slate-500 mt-1">Platform, AI, Core...</p>
-        </div>
-        <div class="p-3 bg-violet-50 text-violet-600 rounded-xl">
-          <i data-lucide="building-2" class="w-6 h-6"></i>
-        </div>
-      </div>
-
-      <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200/80 flex items-center justify-between">
-        <div>
-          <p class="text-xs font-semibold uppercase tracking-wider text-slate-500">Service Status</p>
-          <h3 id="statHealthStatus" class="text-2xl font-bold text-emerald-600 mt-1">HEALTHY</h3>
-          <p class="text-xs text-slate-500 mt-1">HTTP 200 OK</p>
-        </div>
-        <div class="p-3 bg-emerald-50 text-emerald-600 rounded-xl">
-          <i data-lucide="shield-check" class="w-6 h-6"></i>
+      <!-- Active Departments -->
+      <div class="bg-slate-800/60 rounded-2xl p-5 border border-slate-700/60 hover:border-slate-600/80 transition relative overflow-hidden group shadow-lg">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-xs font-bold uppercase tracking-wider text-slate-400">Active Divisions</p>
+            <h3 id="statTotalDepts" class="text-3xl font-extrabold text-white mt-1 group-hover:text-violet-400 transition">4</h3>
+            <p class="text-xs text-violet-400 font-medium mt-1 flex items-center gap-1">
+              <i data-lucide="building" class="w-3.5 h-3.5"></i>
+              <span>Platform, AI, Core, Eng</span>
+            </p>
+          </div>
+          <div class="w-12 h-12 rounded-xl bg-violet-500/10 border border-violet-500/20 text-violet-400 flex items-center justify-center">
+            <i data-lucide="building-2" class="w-6 h-6"></i>
+          </div>
         </div>
       </div>
 
-      <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200/80 flex items-center justify-between">
-        <div>
-          <p class="text-xs font-semibold uppercase tracking-wider text-slate-500">Telemetry Scrapes</p>
-          <h3 class="text-2xl font-bold text-amber-600 mt-1">Active</h3>
-          <p class="text-xs text-slate-500 mt-1">Prometheus :9090</p>
+      <!-- Service Health -->
+      <div class="bg-slate-800/60 rounded-2xl p-5 border border-slate-700/60 hover:border-slate-600/80 transition relative overflow-hidden group shadow-lg">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-xs font-bold uppercase tracking-wider text-slate-400">Endpoint Health</p>
+            <h3 id="statHealthStatus" class="text-3xl font-extrabold text-emerald-400 mt-1">HEALTHY</h3>
+            <p class="text-xs text-slate-400 font-mono mt-1">GET /health &bull; 200 OK</p>
+          </div>
+          <div class="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center">
+            <i data-lucide="heart-pulse" class="w-6 h-6"></i>
+          </div>
         </div>
-        <div class="p-3 bg-amber-50 text-amber-600 rounded-xl">
-          <i data-lucide="activity" class="w-6 h-6"></i>
+      </div>
+
+      <!-- Total API Requests -->
+      <div class="bg-slate-800/60 rounded-2xl p-5 border border-slate-700/60 hover:border-slate-600/80 transition relative overflow-hidden group shadow-lg">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-xs font-bold uppercase tracking-wider text-slate-400">API Calls Served</p>
+            <h3 id="statTotalCalls" class="text-3xl font-extrabold text-amber-400 mt-1">--</h3>
+            <p class="text-xs text-slate-400 font-mono mt-1">Prometheus /metrics live</p>
+          </div>
+          <div class="w-12 h-12 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400 flex items-center justify-center">
+            <i data-lucide="zap" class="w-6 h-6"></i>
+          </div>
         </div>
       </div>
     </div>
 
-    <!-- MAIN INTERACTION AREA -->
+    <!-- DYNAMIC LIVE TELEMETRY & METRICS ACCORDION / MINI CHART -->
+    <div class="bg-slate-800/50 rounded-2xl p-5 border border-slate-700/60 shadow-lg">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-700/60">
+        <div class="flex items-center space-x-3">
+          <div class="p-2 rounded-lg bg-indigo-500/20 text-indigo-400 border border-indigo-500/30">
+            <i data-lucide="activity" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <h3 class="text-sm font-bold text-white">Live DevOps Telemetry Stream</h3>
+            <p class="text-xs text-slate-400">Simulating real-time traffic captured by Prometheus <code class="font-mono text-indigo-300">http_requests_total</code></p>
+          </div>
+        </div>
+        <div class="flex items-center space-x-2">
+          <button onclick="triggerTrafficBurst()" class="px-3 py-1.5 text-xs font-medium bg-indigo-600/30 hover:bg-indigo-600/50 border border-indigo-500/40 text-indigo-200 rounded-lg transition flex items-center space-x-1.5" title="Generate mock GET /items and GET /health requests to see metrics climb">
+            <i data-lucide="play" class="w-3.5 h-3.5"></i>
+            <span>Simulate Traffic Burst</span>
+          </button>
+          <span class="text-xs font-mono px-2.5 py-1 rounded bg-slate-900 border border-slate-700 text-slate-300" id="liveLatency">Latency: 2ms</span>
+        </div>
+      </div>
+
+      <!-- Mini Chart -->
+      <div class="mt-4 h-36 w-full">
+        <canvas id="telemetryChart"></canvas>
+      </div>
+    </div>
+
+    <!-- MAIN TWO-COLUMN WORKSPACE -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-      
-      <!-- LEFT 2 COLS: SEARCH, FILTERS & EMPLOYEE LIST -->
+
+      <!-- LEFT 2 COLUMNS: PERSONNEL RECORDS LIST & SEARCH FILTERS -->
       <div class="lg:col-span-2 space-y-6">
-        
-        <!-- Controls: Search bar, Filter, Reload -->
-        <div class="bg-white p-4 sm:p-5 rounded-2xl shadow-sm border border-slate-200/80 flex flex-col sm:flex-row gap-4 items-stretch sm:items-center justify-between">
+
+        <!-- Search & Control Header -->
+        <div class="bg-slate-800/80 rounded-2xl p-4 sm:p-5 border border-slate-700/80 shadow-lg flex flex-col sm:flex-row gap-3.5 items-stretch sm:items-center justify-between">
+          
+          <!-- Search input -->
           <div class="relative flex-1">
-            <i data-lucide="search" class="w-5 h-5 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
+            <i data-lucide="search" class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
             <input 
               type="text" 
               id="searchInput" 
-              placeholder="Search by name, role, email..." 
-              class="w-full pl-11 pr-4 py-2.5 rounded-xl border border-slate-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 text-sm outline-none transition"
+              placeholder="Search by name, role, division, email..." 
+              class="w-full pl-10 pr-4 py-2.5 bg-slate-900/90 text-slate-100 rounded-xl border border-slate-700 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 text-sm outline-none transition placeholder-slate-500"
             />
           </div>
-          
-          <div class="flex items-center space-x-3">
-            <select id="departmentFilter" class="px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-sm text-slate-700 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition">
-              <option value="">All Departments</option>
+
+          <!-- Department dropdown -->
+          <div class="flex items-center space-x-2">
+            <select id="departmentFilter" class="px-3.5 py-2.5 rounded-xl border border-slate-700 bg-slate-900 text-sm text-slate-200 outline-none focus:border-brand-500 transition">
+              <option value="">All Divisions</option>
               <option value="Platform & Cloud">Platform & Cloud</option>
               <option value="AI & Data Science">AI & Data Science</option>
               <option value="Engineering">Engineering</option>
               <option value="Core Infrastructure">Core Infrastructure</option>
-              <option value="Product & Design">Product & Design</option>
-              <option value="Operations">Operations</option>
             </select>
 
-            <button id="refreshBtn" class="px-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-600 transition flex items-center space-x-1.5 text-sm" title="Refresh List">
+            <!-- View Switcher (Grid vs List) -->
+            <div class="flex bg-slate-900 p-1 rounded-xl border border-slate-700">
+              <button id="viewGridBtn" onclick="setViewMode('grid')" class="p-1.5 rounded-lg text-white bg-slate-800 transition" title="Grid View">
+                <i data-lucide="grid" class="w-4 h-4"></i>
+              </button>
+              <button id="viewListBtn" onclick="setViewMode('list')" class="p-1.5 rounded-lg text-slate-400 hover:text-white transition" title="List View">
+                <i data-lucide="list" class="w-4 h-4"></i>
+              </button>
+            </div>
+
+            <!-- Refresh Button -->
+            <button id="refreshBtn" onclick="loadEmployees()" class="p-2.5 rounded-xl border border-slate-700 bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white transition" title="Reload from GET /items">
               <i data-lucide="refresh-cw" class="w-4 h-4"></i>
-              <span class="hidden sm:inline">Refresh</span>
             </button>
           </div>
+
         </div>
 
-        <!-- Directory Table / Cards -->
-        <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 overflow-hidden">
-          <div class="p-5 border-b border-slate-100 flex items-center justify-between">
-            <div>
-              <h2 class="text-base font-semibold text-slate-900">Personnel Records</h2>
-              <p class="text-xs text-slate-500">Live data fetched via <code class="bg-slate-100 px-1 py-0.5 rounded text-indigo-600">GET /items</code></p>
-            </div>
-            <span id="filteredCountBadge" class="text-xs bg-slate-100 text-slate-600 px-2.5 py-1 rounded-full font-medium">Loading...</span>
+        <!-- Directory Header -->
+        <div class="flex items-center justify-between px-1">
+          <div>
+            <h2 class="text-lg font-bold text-white flex items-center gap-2">
+              <span>Personnel Records</span>
+              <span id="badgeFilteredCount" class="text-xs bg-brand-500/20 text-brand-300 border border-brand-500/30 px-2.5 py-0.5 rounded-full font-mono">4 members</span>
+            </h2>
+            <p class="text-xs text-slate-400">Live data fetched via <code class="font-mono text-indigo-400">GET /items</code> from memory</p>
           </div>
 
-          <div id="loadingState" class="p-12 text-center text-slate-400">
-            <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-indigo-500 border-t-transparent mb-3"></div>
-            <p class="text-sm">Fetching employee records from REST API...</p>
-          </div>
-
-          <div id="emptyState" class="hidden p-12 text-center">
-            <div class="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto text-slate-400 mb-3">
-              <i data-lucide="folder-search" class="w-8 h-8"></i>
-            </div>
-            <p class="text-base font-medium text-slate-700">No records found</p>
-            <p class="text-xs text-slate-400 mt-1">Try adjusting your search filter or add a new team member.</p>
-          </div>
-
-          <!-- Employee List Content -->
-          <div id="employeesContainer" class="divide-y divide-slate-100">
-            <!-- Dynamically populated via JavaScript -->
+          <div class="text-xs text-slate-400 flex items-center gap-2">
+            <span class="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+            <span>Live Auto-Sync Active</span>
           </div>
         </div>
+
+        <!-- Loading State -->
+        <div id="loadingState" class="hidden p-12 text-center text-slate-400 bg-slate-800/40 rounded-2xl border border-slate-700/60">
+          <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-brand-500 border-t-transparent mb-3"></div>
+          <p class="text-sm">Fetching personnel records from REST endpoint...</p>
+        </div>
+
+        <!-- Empty State -->
+        <div id="emptyState" class="hidden p-12 text-center bg-slate-800/40 rounded-2xl border border-slate-700/60">
+          <div class="w-14 h-14 bg-slate-800 rounded-2xl flex items-center justify-center mx-auto text-slate-400 mb-3 border border-slate-700">
+            <i data-lucide="folder-search" class="w-7 h-7"></i>
+          </div>
+          <p class="text-base font-semibold text-slate-200">No matching personnel records</p>
+          <p class="text-xs text-slate-400 mt-1">Try resetting your search query or department filter.</p>
+        </div>
+
+        <!-- Records Container (Grid or List based on state) -->
+        <div id="recordsContainer" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- Populated dynamically via JavaScript -->
+        </div>
+
       </div>
 
-      <!-- RIGHT 1 COL: ADD NEW EMPLOYEE (POST /items) + DEMO ACTIONS -->
+      <!-- RIGHT 1 COLUMN: ADD PERSONNEL (POST /items) & DEV ALLOCATION DETAILS -->
       <div class="space-y-6">
-        
-        <!-- Add Employee Form -->
-        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200/80">
-          <div class="flex items-center space-x-2.5 mb-5 pb-3 border-b border-slate-100">
-            <div class="p-2 bg-indigo-50 text-indigo-600 rounded-lg">
-              <i data-lucide="user-plus" class="w-5 h-5"></i>
+
+        <!-- Add Personnel Form Card -->
+        <div class="bg-slate-800/80 rounded-2xl p-6 border border-slate-700/80 shadow-lg relative">
+          <div class="flex items-center justify-between pb-4 mb-4 border-b border-slate-700">
+            <div class="flex items-center space-x-2.5">
+              <div class="p-2 bg-brand-500/20 text-brand-400 rounded-xl border border-brand-500/30">
+                <i data-lucide="user-plus" class="w-5 h-5"></i>
+              </div>
+              <div>
+                <h3 class="text-base font-bold text-white">Add Personnel</h3>
+                <p class="text-xs text-slate-400">Triggers <code class="font-mono text-indigo-400">POST /items</code></p>
+              </div>
             </div>
-            <div>
-              <h3 class="text-base font-semibold text-slate-900">Add Employee</h3>
-              <p class="text-xs text-slate-500">Executes <code class="bg-slate-100 px-1 rounded text-indigo-600">POST /items</code></p>
-            </div>
+            <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">HTTP 201</span>
           </div>
 
-          <form id="addEmployeeForm" class="space-y-4">
+          <form id="addEmployeeForm" class="space-y-3.5">
             <div>
-              <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1">Full Name <span class="text-rose-500">*</span></label>
+              <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1">Full Name <span class="text-rose-400">*</span></label>
               <input 
                 type="text" 
                 id="nameInput" 
                 required 
-                placeholder="e.g. Grace Hopper" 
-                class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 text-sm outline-none transition"
+                placeholder="e.g. SHAIKH ZAID" 
+                class="w-full px-3.5 py-2.5 bg-slate-900 text-slate-100 rounded-xl border border-slate-700 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 text-sm outline-none transition"
               />
             </div>
 
             <div>
-              <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1">Role / Designation <span class="text-rose-500">*</span></label>
+              <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1">Role / Designation <span class="text-rose-400">*</span></label>
               <input 
                 type="text" 
                 id="roleInput" 
                 required 
-                placeholder="e.g. DevOps Specialist" 
-                class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 text-sm outline-none transition"
+                placeholder="e.g. DevOps Engineer" 
+                class="w-full px-3.5 py-2.5 bg-slate-900 text-slate-100 rounded-xl border border-slate-700 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 text-sm outline-none transition"
               />
             </div>
 
             <div>
-              <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1">Department</label>
-              <select id="deptInput" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 text-sm outline-none transition bg-white">
+              <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1">Division / Department</label>
+              <select id="deptInput" class="w-full px-3.5 py-2.5 bg-slate-900 text-slate-100 rounded-xl border border-slate-700 focus:border-brand-500 text-sm outline-none transition">
                 <option value="Platform & Cloud">Platform & Cloud</option>
                 <option value="AI & Data Science">AI & Data Science</option>
                 <option value="Engineering">Engineering</option>
                 <option value="Core Infrastructure">Core Infrastructure</option>
-                <option value="Product & Design">Product & Design</option>
-                <option value="Operations">Operations</option>
               </select>
             </div>
 
             <div>
-              <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1">Email Address</label>
+              <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1">Email Address</label>
               <input 
                 type="email" 
                 id="emailInput" 
-                placeholder="name@company.com" 
-                class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 text-sm outline-none transition"
+                placeholder="name@student.college.edu" 
+                class="w-full px-3.5 py-2.5 bg-slate-900 text-slate-100 rounded-xl border border-slate-700 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 text-sm outline-none transition"
               />
             </div>
 
-            <div>
-              <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1">Status</label>
-              <select id="statusInput" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 text-sm outline-none transition bg-white">
-                <option value="Active">Active</option>
-                <option value="On Leave">On Leave</option>
-                <option value="Remote">Remote</option>
-              </select>
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1">Status</label>
+                <select id="statusInput" class="w-full px-3.5 py-2.5 bg-slate-900 text-slate-100 rounded-xl border border-slate-700 focus:border-brand-500 text-sm outline-none transition">
+                  <option value="Active">Active</option>
+                  <option value="On Leave">On Leave</option>
+                  <option value="Remote">Remote</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1">Location</label>
+                <input 
+                  type="text" 
+                  id="locInput" 
+                  value="Mumbai, India" 
+                  class="w-full px-3.5 py-2.5 bg-slate-900 text-slate-100 rounded-xl border border-slate-700 focus:border-brand-500 text-sm outline-none transition"
+                />
+              </div>
             </div>
 
             <button 
               type="submit" 
               id="submitBtn" 
-              class="w-full mt-2 py-3 px-4 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white font-medium text-sm rounded-xl shadow-md shadow-indigo-600/20 transition flex items-center justify-center space-x-2"
+              class="w-full mt-3 py-3 px-4 bg-brand-600 hover:bg-brand-500 active:bg-brand-700 text-white font-semibold text-sm rounded-xl shadow-lg shadow-brand-600/30 transition flex items-center justify-center space-x-2"
             >
               <i data-lucide="plus-circle" class="w-4 h-4"></i>
               <span>Save & Dispatch POST /items</span>
             </button>
           </form>
 
-          <div id="formFeedback" class="mt-3 text-xs hidden p-2.5 rounded-lg"></div>
+          <div id="formFeedback" class="mt-3 text-xs hidden p-3 rounded-xl"></div>
         </div>
 
-        <!-- DevOps End-to-End Quick Inspection Box -->
-        <div class="bg-gradient-to-br from-slate-900 to-indigo-950 p-6 rounded-2xl shadow-sm text-slate-300">
-          <div class="flex items-center space-x-2 text-white font-semibold mb-3">
-            <i data-lucide="terminal" class="w-5 h-5 text-indigo-400"></i>
-            <h4>DevOps Team Allocation (B3-G3)</h4>
+        <!-- Practical 10 Group Roster Card -->
+        <div class="bg-gradient-to-br from-slate-900 via-slate-900 to-indigo-950 rounded-2xl p-6 border border-slate-800 shadow-xl space-y-4">
+          <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+            <div class="flex items-center space-x-2 text-white font-bold text-sm">
+              <i data-lucide="award" class="w-4 h-4 text-brand-400"></i>
+              <h4>Batch B3 &bull; Group B3-G3 Allocation</h4>
+            </div>
+            <span class="text-xs font-mono text-brand-300 bg-brand-900/60 px-2 py-0.5 rounded border border-brand-700/50">Practical 10</span>
           </div>
-          <ul class="text-xs space-y-2.5 text-slate-300">
-            <li class="flex items-start space-x-2">
-              <span class="px-1.5 py-0.5 rounded bg-indigo-500/30 text-indigo-300 font-mono text-[10px]">R1 (67)</span>
-              <span>Agile Planner & Documentation Lead (Jira)</span>
-            </li>
-            <li class="flex items-start space-x-2">
-              <span class="px-1.5 py-0.5 rounded bg-indigo-500/30 text-indigo-300 font-mono text-[10px]">R2 (56)</span>
-              <span>Developer & Version Control (Flask + Tests + Git)</span>
-            </li>
-            <li class="flex items-start space-x-2">
-              <span class="px-1.5 py-0.5 rounded bg-indigo-500/30 text-indigo-300 font-mono text-[10px]">R3 (60)</span>
-              <span>CI/CD & Containerization (GitHub Actions + Docker)</span>
-            </li>
-            <li class="flex items-start space-x-2">
-              <span class="px-1.5 py-0.5 rounded bg-indigo-500/30 text-indigo-300 font-mono text-[10px]">R4 (61)</span>
-              <span>Deployment & Monitoring (Docker Compose + Prom/Grafana)</span>
-            </li>
-          </ul>
 
-          <div class="mt-4 pt-3 border-t border-slate-800 flex justify-between items-center text-xs">
-            <span class="text-slate-400">Live API Endpoint:</span>
-            <span class="font-mono text-emerald-400">http://localhost:5001</span>
+          <div class="space-y-3 text-xs">
+            <!-- R1 -->
+            <div class="p-3 rounded-xl bg-slate-800/70 border border-slate-700/60 flex items-start justify-between">
+              <div>
+                <div class="flex items-center space-x-2">
+                  <span class="font-bold text-white">SHAIKH RAHMAT</span>
+                  <span class="font-mono text-[10px] text-blue-400 bg-blue-500/10 px-1.5 py-0.2 rounded border border-blue-500/30">Roll 67</span>
+                </div>
+                <p class="text-slate-400 mt-0.5">R1: Agile Planner & Documentation Lead</p>
+                <p class="text-[11px] text-indigo-400 mt-1 font-mono">Jira Epic, User Stories, Sprints</p>
+              </div>
+              <div class="w-8 h-8 rounded-lg bg-blue-500/20 text-blue-300 flex items-center justify-center font-bold text-xs">SR</div>
+            </div>
+
+            <!-- R2 -->
+            <div class="p-3 rounded-xl bg-slate-800/70 border border-slate-700/60 flex items-start justify-between">
+              <div>
+                <div class="flex items-center space-x-2">
+                  <span class="font-bold text-white">YADGIR ZUVERIA SALIM</span>
+                  <span class="font-mono text-[10px] text-indigo-400 bg-indigo-500/10 px-1.5 py-0.2 rounded border border-indigo-500/30">Roll 56</span>
+                </div>
+                <p class="text-slate-400 mt-0.5">R2: Developer & Version Control</p>
+                <p class="text-[11px] text-indigo-400 mt-1 font-mono">Flask REST API, Pytest, Branch PR</p>
+              </div>
+              <div class="w-8 h-8 rounded-lg bg-indigo-500/20 text-indigo-300 flex items-center justify-center font-bold text-xs">YZ</div>
+            </div>
+
+            <!-- R3 -->
+            <div class="p-3 rounded-xl bg-slate-800/70 border border-slate-700/60 flex items-start justify-between">
+              <div>
+                <div class="flex items-center space-x-2">
+                  <span class="font-bold text-white">SHAIKH ZAID MATINUDDIN</span>
+                  <span class="font-mono text-[10px] text-emerald-400 bg-emerald-500/10 px-1.5 py-0.2 rounded border border-emerald-500/30">Roll 60</span>
+                </div>
+                <p class="text-slate-400 mt-0.5">R3: CI/CD & Containerization Engineer</p>
+                <p class="text-[11px] text-indigo-400 mt-1 font-mono">GitHub Actions, Dockerfile, Docker Hub</p>
+              </div>
+              <div class="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-300 flex items-center justify-center font-bold text-xs">ZM</div>
+            </div>
+
+            <!-- R4 -->
+            <div class="p-3 rounded-xl bg-slate-800/70 border border-slate-700/60 flex items-start justify-between">
+              <div>
+                <div class="flex items-center space-x-2">
+                  <span class="font-bold text-white">SHAIKH ZAID WAZIDALI</span>
+                  <span class="font-mono text-[10px] text-purple-400 bg-purple-500/10 px-1.5 py-0.2 rounded border border-purple-500/30">Roll 61</span>
+                </div>
+                <p class="text-slate-400 mt-0.5">R4: Deployment & Monitoring Engineer</p>
+                <p class="text-[11px] text-indigo-400 mt-1 font-mono">Docker Compose, Prometheus, Grafana</p>
+              </div>
+              <div class="w-8 h-8 rounded-lg bg-purple-500/20 text-purple-300 flex items-center justify-center font-bold text-xs">ZW</div>
+            </div>
           </div>
         </div>
 
@@ -351,55 +508,115 @@
   </main>
 
   <!-- FOOTER -->
-  <footer class="bg-white border-t border-slate-200 mt-12 py-6 text-center text-xs text-slate-500">
-    <div class="max-w-7xl mx-auto px-4">
-      Practical 10: End-to-End DevOps Pipeline &bull; TE AI&DS Lab (2015119) &bull; Group B3-G3: Employee Directory
+  <footer class="bg-slate-950 border-t border-slate-800 py-6 text-center text-xs text-slate-500">
+    <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-3">
+      <div>
+        Practical 10: End-to-End DevOps Pipeline &bull; TE AI&DS Lab (2015119) &bull; Batch B3 - Group B3-G3
+      </div>
+      <div class="flex items-center space-x-4 text-slate-400">
+        <span class="font-mono text-emerald-400">Docker Compose: UP</span>
+        <span>&bull;</span>
+        <span class="font-mono text-indigo-400">Prometheus Target: 200 OK</span>
+      </div>
     </div>
   </footer>
 
+  <!-- JAVASCRIPT LOGIC -->
   <script>
-    // Global state
     let employeesData = [];
+    let viewMode = 'grid'; // 'grid' or 'list'
+    let telemetryHistory = [12, 19, 15, 25, 22, 30, 28, 35, 42, 48];
+    let chartInstance = null;
+    let requestCount = 48;
 
-    // DOM Elements
-    const employeesContainer = document.getElementById('employeesContainer');
+    // Elements
+    const recordsContainer = document.getElementById('recordsContainer');
     const loadingState = document.getElementById('loadingState');
     const emptyState = document.getElementById('emptyState');
     const searchInput = document.getElementById('searchInput');
     const departmentFilter = document.getElementById('departmentFilter');
-    const refreshBtn = document.getElementById('refreshBtn');
-    const addEmployeeForm = document.getElementById('addEmployeeForm');
-    const formFeedback = document.getElementById('formFeedback');
+    const badgeFilteredCount = document.getElementById('badgeFilteredCount');
     const statTotalEmployees = document.getElementById('statTotalEmployees');
     const statTotalDepts = document.getElementById('statTotalDepts');
     const statHealthStatus = document.getElementById('statHealthStatus');
+    const statTotalCalls = document.getElementById('statTotalCalls');
     const healthBadge = document.getElementById('healthBadge');
-    const healthStatusText = document.getElementById('healthStatusText');
-    const filteredCountBadge = document.getElementById('filteredCountBadge');
+    const healthText = document.getElementById('healthText');
+    const addEmployeeForm = document.getElementById('addEmployeeForm');
+    const formFeedback = document.getElementById('formFeedback');
 
-    // Fetch Health Status (GET /health)
+    // Initialize Telemetry Chart
+    function initTelemetryChart() {
+      const ctx = document.getElementById('telemetryChart').getContext('2d');
+      chartInstance = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: ['-45s', '-40s', '-35s', '-30s', '-25s', '-20s', '-15s', '-10s', '-5s', 'Now'],
+          datasets: [{
+            label: 'HTTP Requests (http_requests_total)',
+            data: telemetryHistory,
+            borderColor: '#6366f1',
+            backgroundColor: 'rgba(99, 102, 241, 0.12)',
+            borderWidth: 2.5,
+            fill: true,
+            tension: 0.35,
+            pointBackgroundColor: '#818cf8',
+            pointBorderColor: '#1e1b4b',
+            pointRadius: 3,
+            pointHoverRadius: 5
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false }
+          },
+          scales: {
+            x: {
+              grid: { color: 'rgba(255, 255, 255, 0.05)' },
+              ticks: { color: '#64748b', font: { size: 10, family: 'JetBrains Mono' } }
+            },
+            y: {
+              grid: { color: 'rgba(255, 255, 255, 0.05)' },
+              ticks: { color: '#64748b', font: { size: 10, family: 'JetBrains Mono' } },
+              beginAtZero: false
+            }
+          }
+        }
+      });
+    }
+
+    // Ping Health Check (GET /health)
     async function checkHealth() {
+      const startTime = performance.now();
       try {
         const res = await fetch('/health');
-        if (!res.ok) throw new Error('Health check non-200');
-        const data = await res.json();
-        healthStatusText.textContent = `GET /health: ${data.status} (200)`;
-        healthBadge.className = "flex items-center space-x-2 px-3 py-1.5 rounded-full text-xs font-medium bg-emerald-500/10 border border-emerald-500/30 text-emerald-400";
-        statHealthStatus.textContent = data.status;
-        statHealthStatus.className = "text-2xl font-bold text-emerald-600 mt-1";
+        const latency = Math.round(performance.now() - startTime);
+        document.getElementById('liveLatency').textContent = `Latency: ${latency}ms`;
+
+        if (res.ok) {
+          const data = await res.json();
+          healthText.textContent = `GET /health: ${data.status} (200)`;
+          healthBadge.className = "flex items-center space-x-2.5 px-3.5 py-1.5 rounded-full text-xs font-semibold bg-emerald-950/60 border border-emerald-500/40 text-emerald-400 shadow-sm cursor-pointer hover:bg-emerald-900/50 transition";
+          statHealthStatus.textContent = data.status;
+          statHealthStatus.className = "text-3xl font-extrabold text-emerald-400 mt-1";
+        } else {
+          throw new Error('Health returned non-200');
+        }
       } catch (err) {
-        healthStatusText.textContent = "GET /health: ERROR";
-        healthBadge.className = "flex items-center space-x-2 px-3 py-1.5 rounded-full text-xs font-medium bg-rose-500/10 border border-rose-500/30 text-rose-400";
+        healthText.textContent = "GET /health: OFFLINE";
+        healthBadge.className = "flex items-center space-x-2.5 px-3.5 py-1.5 rounded-full text-xs font-semibold bg-rose-950/60 border border-rose-500/40 text-rose-400 shadow-sm cursor-pointer transition";
         statHealthStatus.textContent = "OFFLINE";
-        statHealthStatus.className = "text-2xl font-bold text-rose-600 mt-1";
+        statHealthStatus.className = "text-3xl font-extrabold text-rose-400 mt-1";
       }
     }
 
-    // Fetch Items (GET /items)
+    // Load Personnel Records (GET /items)
     async function loadEmployees() {
       loadingState.classList.remove('hidden');
       emptyState.classList.add('hidden');
-      employeesContainer.innerHTML = '';
+      recordsContainer.innerHTML = '';
 
       try {
         const query = searchInput.value.trim();
@@ -410,22 +627,23 @@
 
         const url = `/items${params.toString() ? '?' + params.toString() : ''}`;
         const res = await fetch(url);
-        if (!res.ok) throw new Error('Failed to load employees');
-        
+        if (!res.ok) throw new Error('Failed to fetch items');
+
         employeesData = await res.json();
-        renderEmployees(employeesData);
-        updateStats();
-      } catch (error) {
-        console.error(error);
-        employeesContainer.innerHTML = `<div class="p-8 text-center text-rose-500 font-medium">Failed to load employee data. Please try again.</div>`;
+        renderRecords(employeesData);
+        updateKPIs();
+        recordSimulatedTraffic();
+      } catch (err) {
+        console.error(err);
+        recordsContainer.innerHTML = `<div class="col-span-full p-8 text-center text-rose-400 font-medium bg-slate-800/40 rounded-2xl border border-rose-500/30">Failed to fetch Personnel Records from REST API.</div>`;
       } finally {
         loadingState.classList.add('hidden');
       }
     }
 
-    // Render list
-    function renderEmployees(items) {
-      filteredCountBadge.textContent = `${items.length} employee${items.length === 1 ? '' : 's'}`;
+    // Render Records UI (Cards or List)
+    function renderRecords(items) {
+      badgeFilteredCount.textContent = `${items.length} record${items.length === 1 ? '' : 's'}`;
 
       if (items.length === 0) {
         emptyState.classList.remove('hidden');
@@ -433,99 +651,151 @@
       }
       emptyState.classList.add('hidden');
 
-      employeesContainer.innerHTML = items.map(emp => {
-        const initials = emp.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
-        const statusColor = emp.status === 'Active' 
-          ? 'bg-emerald-50 text-emerald-700 border-emerald-200' 
-          : 'bg-amber-50 text-amber-700 border-amber-200';
+      if (viewMode === 'grid') {
+        recordsContainer.className = "grid grid-cols-1 md:grid-cols-2 gap-4";
+        recordsContainer.innerHTML = items.map(emp => {
+          const avatar = emp.avatar || emp.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+          const statusColor = emp.status === 'Active' 
+            ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30' 
+            : 'bg-amber-500/10 text-amber-400 border-amber-500/30';
 
-        return `
-          <div class="p-4 sm:p-5 flex items-center justify-between hover:bg-slate-50/70 transition group">
-            <div class="flex items-center space-x-4 min-w-0">
-              <div class="w-11 h-11 rounded-xl bg-gradient-to-tr from-indigo-500 to-indigo-700 flex items-center justify-center text-white font-semibold text-sm shadow-sm flex-shrink-0">
-                ${initials}
-              </div>
-              <div class="min-w-0">
-                <div class="flex items-center space-x-2">
-                  <h4 class="text-sm font-semibold text-slate-900 truncate">${emp.name}</h4>
-                  <span class="text-xs px-2 py-0.5 rounded-full border ${statusColor} font-medium">${emp.status}</span>
+          return `
+            <div class="bg-slate-800/80 rounded-2xl p-5 border border-slate-700/80 hover:border-brand-500/50 hover:shadow-lg hover:shadow-brand-500/10 transition-all duration-200 flex flex-col justify-between group">
+              <div>
+                <div class="flex items-start justify-between">
+                  <div class="flex items-center space-x-3.5">
+                    <div class="w-12 h-12 rounded-xl bg-gradient-to-tr from-brand-600 via-indigo-600 to-violet-500 flex items-center justify-center text-white font-extrabold text-sm shadow-md shadow-brand-500/20 border border-white/10 group-hover:scale-105 transition">
+                      ${avatar}
+                    </div>
+                    <div>
+                      <h4 class="text-sm font-bold text-white group-hover:text-brand-300 transition tracking-wide">${emp.name}</h4>
+                      <p class="text-xs text-brand-400 font-medium mt-0.5">${emp.role}</p>
+                    </div>
+                  </div>
+                  <span class="text-[11px] px-2.5 py-0.5 rounded-full border ${statusColor} font-medium">${emp.status}</span>
                 </div>
-                <p class="text-xs text-indigo-600 font-medium mt-0.5 truncate">${emp.role}</p>
-                <div class="flex items-center space-x-3 text-xs text-slate-400 mt-1">
-                  <span class="flex items-center space-x-1 truncate">
-                    <i data-lucide="building" class="w-3.5 h-3.5"></i>
+
+                <div class="mt-4 pt-3 border-t border-slate-700/60 space-y-2 text-xs text-slate-300">
+                  <div class="flex items-center space-x-2 text-slate-300">
+                    <i data-lucide="building" class="w-3.5 h-3.5 text-indigo-400"></i>
                     <span>${emp.department}</span>
-                  </span>
-                  <span>&bull;</span>
-                  <span class="flex items-center space-x-1 truncate text-slate-500">
-                    <i data-lucide="mail" class="w-3.5 h-3.5"></i>
-                    <span>${emp.email}</span>
-                  </span>
+                  </div>
+                  <div class="flex items-center space-x-2 text-slate-400">
+                    <i data-lucide="mail" class="w-3.5 h-3.5 text-slate-500"></i>
+                    <span class="truncate">${emp.email}</span>
+                  </div>
+                  ${emp.location ? `
+                  <div class="flex items-center space-x-2 text-slate-400">
+                    <i data-lucide="map-pin" class="w-3.5 h-3.5 text-slate-500"></i>
+                    <span>${emp.location}</span>
+                  </div>` : ''}
+                </div>
+              </div>
+
+              <div class="mt-4 pt-3 border-t border-slate-700/60 flex items-center justify-between">
+                <span class="text-[11px] font-mono text-slate-500 bg-slate-900 px-2 py-0.5 rounded border border-slate-800">ID: #${emp.id}</span>
+                <div class="flex items-center space-x-1">
+                  <button onclick="copyEmail('${emp.email}')" class="p-1.5 text-slate-400 hover:text-white hover:bg-slate-700/60 rounded-lg transition" title="Copy email address">
+                    <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+                  </button>
+                  <button onclick="deleteRecord(${emp.id})" class="p-1.5 text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 rounded-lg transition" title="Delete record">
+                    <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                  </button>
                 </div>
               </div>
             </div>
-
-            <div class="flex items-center space-x-2">
-              <span class="text-xs font-mono text-slate-400 bg-slate-100 px-2 py-1 rounded">ID: #${emp.id}</span>
-              <button onclick="deleteEmployee(${emp.id})" class="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition" title="Delete employee">
-                <i data-lucide="trash-2" class="w-4 h-4"></i>
-              </button>
+          `;
+        }).join('');
+      } else {
+        // List mode
+        recordsContainer.className = "flex flex-col space-y-3";
+        recordsContainer.innerHTML = items.map(emp => {
+          const avatar = emp.avatar || emp.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+          return `
+            <div class="bg-slate-800/80 rounded-xl p-4 border border-slate-700/80 hover:border-brand-500/50 transition flex items-center justify-between">
+              <div class="flex items-center space-x-4">
+                <div class="w-10 h-10 rounded-lg bg-brand-600 flex items-center justify-center text-white font-bold text-xs">${avatar}</div>
+                <div>
+                  <h4 class="text-sm font-bold text-white">${emp.name}</h4>
+                  <p class="text-xs text-brand-400">${emp.role} &bull; ${emp.department}</p>
+                </div>
+              </div>
+              <div class="flex items-center space-x-3 text-xs">
+                <span class="text-slate-400 hidden sm:inline">${emp.email}</span>
+                <span class="font-mono text-slate-500">#${emp.id}</span>
+                <button onclick="deleteRecord(${emp.id})" class="p-1.5 text-slate-400 hover:text-rose-400 rounded-lg">
+                  <i data-lucide="trash-2" class="w-4 h-4"></i>
+                </button>
+              </div>
             </div>
-          </div>
-        `;
-      }).join('');
+          `;
+        }).join('');
+      }
 
-      // Refresh icons
       lucide.createIcons();
     }
 
-    // Update Top Stat Numbers
-    async function updateStats() {
-      // Fetch unfiltered total
-      const res = await fetch('/items');
-      const all = await res.json();
-      statTotalEmployees.textContent = all.length;
-      const depts = new Set(all.map(e => e.department));
-      statTotalDepts.textContent = depts.size;
+    // Switch View Mode (Grid vs List)
+    function setViewMode(mode) {
+      viewMode = mode;
+      document.getElementById('viewGridBtn').className = mode === 'grid' ? 'p-1.5 rounded-lg text-white bg-slate-800 transition' : 'p-1.5 rounded-lg text-slate-400 hover:text-white transition';
+      document.getElementById('viewListBtn').className = mode === 'list' ? 'p-1.5 rounded-lg text-white bg-slate-800 transition' : 'p-1.5 rounded-lg text-slate-400 hover:text-white transition';
+      renderRecords(employeesData);
     }
 
-    // Handle Form Submit (POST /items)
+    // Update KPI stats
+    async function updateKPIs() {
+      try {
+        const res = await fetch('/items');
+        const all = await res.json();
+        statTotalEmployees.textContent = all.length;
+        const depts = new Set(all.map(e => e.department));
+        statTotalDepts.textContent = depts.size;
+        statTotalCalls.textContent = requestCount;
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    // Add Personnel (POST /items)
     addEmployeeForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       const submitBtn = document.getElementById('submitBtn');
       submitBtn.disabled = true;
       submitBtn.innerHTML = `<span>Saving...</span>`;
 
-      const newEmp = {
+      const newRecord = {
         name: document.getElementById('nameInput').value.trim(),
         role: document.getElementById('roleInput').value.trim(),
         department: document.getElementById('deptInput').value,
         email: document.getElementById('emailInput').value.trim(),
-        status: document.getElementById('statusInput').value
+        status: document.getElementById('statusInput').value,
+        location: document.getElementById('locInput').value.trim()
       };
 
       try {
         const res = await fetch('/items', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(newEmp)
+          body: JSON.stringify(newRecord)
         });
 
         const data = await res.json();
-
         if (res.ok) {
           formFeedback.textContent = `Success: Added "${data.item.name}" (POST /items status 201)`;
-          formFeedback.className = "mt-3 text-xs p-2.5 rounded-lg bg-emerald-50 text-emerald-800 border border-emerald-200 block";
+          formFeedback.className = "mt-3 text-xs p-3 rounded-xl bg-emerald-500/10 text-emerald-300 border border-emerald-500/30 block";
           addEmployeeForm.reset();
+          document.getElementById('locInput').value = "Mumbai, India";
           loadEmployees();
           checkHealth();
+          requestCount += 1;
           setTimeout(() => { formFeedback.classList.add('hidden'); }, 4000);
         } else {
-          throw new Error(data.message || 'Error creating employee');
+          throw new Error(data.message || 'Error adding record');
         }
       } catch (err) {
         formFeedback.textContent = `Error: ${err.message}`;
-        formFeedback.className = "mt-3 text-xs p-2.5 rounded-lg bg-rose-50 text-rose-800 border border-rose-200 block";
+        formFeedback.className = "mt-3 text-xs p-3 rounded-xl bg-rose-500/10 text-rose-300 border border-rose-500/30 block";
       } finally {
         submitBtn.disabled = false;
         submitBtn.innerHTML = `<i data-lucide="plus-circle" class="w-4 h-4"></i><span>Save & Dispatch POST /items</span>`;
@@ -533,42 +803,73 @@
       }
     });
 
-    // Delete item (DELETE /items/:id)
-    async function deleteEmployee(id) {
-      if (!confirm(`Are you sure you want to remove employee ID #${id}?`)) return;
+    // Delete Record (DELETE /items/:id)
+    async function deleteRecord(id) {
+      if (!confirm(`Are you sure you want to remove Personnel Record #${id}?`)) return;
       try {
         const res = await fetch(`/items/${id}`, { method: 'DELETE' });
         if (res.ok) {
           loadEmployees();
+          requestCount += 1;
         }
       } catch (err) {
-        alert('Failed to delete employee: ' + err.message);
+        alert('Failed to delete: ' + err.message);
       }
     }
 
-    // Event listeners
-    searchInput.addEventListener('input', debounce(loadEmployees, 300));
-    departmentFilter.addEventListener('change', loadEmployees);
-    refreshBtn.addEventListener('click', () => {
-      loadEmployees();
-      checkHealth();
-    });
+    // Helper: Copy Email
+    function copyEmail(email) {
+      navigator.clipboard.writeText(email);
+      alert(`Copied ${email} to clipboard!`);
+    }
 
-    function debounce(func, wait) {
-      let timeout;
-      return function(...args) {
-        clearTimeout(timeout);
-        timeout = setTimeout(() => func.apply(this, args), wait);
+    // Quick scroll to form
+    function focusAddMemberForm() {
+      document.getElementById('nameInput').focus();
+      document.getElementById('addEmployeeForm').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    // Traffic Burst Simulator
+    async function triggerTrafficBurst() {
+      for (let i = 0; i < 5; i++) {
+        fetch('/health');
+        fetch('/items');
+      }
+      requestCount += 10;
+      recordSimulatedTraffic(10);
+    }
+
+    // Telemetry Update Loop
+    function recordSimulatedTraffic(extra = 1) {
+      telemetryHistory.shift();
+      const last = telemetryHistory[telemetryHistory.length - 1];
+      telemetryHistory.push(last + extra);
+      if (chartInstance) {
+        chartInstance.update();
+      }
+      statTotalCalls.textContent = requestCount;
+    }
+
+    // Debounce
+    function debounce(fn, ms) {
+      let t;
+      return (...args) => {
+        clearTimeout(t);
+        t = setTimeout(() => fn(...args), ms);
       };
     }
 
-    // Initial boot
+    searchInput.addEventListener('input', debounce(loadEmployees, 300));
+    departmentFilter.addEventListener('change', loadEmployees);
+
+    // Boot
     document.addEventListener('DOMContentLoaded', () => {
       lucide.createIcons();
+      initTelemetryChart();
       checkHealth();
       loadEmployees();
-      // Periodically poll health every 15s
       setInterval(checkHealth, 15000);
+      setInterval(() => recordSimulatedTraffic(0), 4000);
     });
   </script>
 </body>
