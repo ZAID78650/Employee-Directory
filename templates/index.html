@@ -860,37 +860,107 @@
       const container = canvas.parentElement;
       const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
       renderer.setSize(container.clientWidth, container.clientHeight);
-      renderer.setPixelRatio(window.devicePixelRatio);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
       const scene = new THREE.Scene();
       const camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 100);
-      camera.position.z = 5;
+      camera.position.z = 5.2;
 
-      // 3D Icosahedron Hologram
-      const geometry = new THREE.IcosahedronGeometry(1.6, 1);
-      const material = new THREE.MeshStandardMaterial({
-        color: 0x4f46e5,
-        wireframe: true,
-        roughness: 0.1,
-        metalness: 0.9
+      // Group to rotate everything with mouse
+      const worldGroup = new THREE.Group();
+      scene.add(worldGroup);
+
+      // 1. Central Metallic Gold & Indigo Core
+      const coreGeo = new THREE.IcosahedronGeometry(1.2, 2);
+      const coreMat = new THREE.MeshPhysicalMaterial({
+        color: 0x3b82f6,
+        emissive: 0x1d4ed8,
+        roughness: 0.2,
+        metalness: 0.8,
+        clearcoat: 1.0,
+        wireframe: true
       });
-      const mesh = new THREE.Mesh(geometry, material);
-      scene.add(mesh);
+      const coreMesh = new THREE.Mesh(coreGeo, coreMat);
+      worldGroup.add(coreMesh);
 
-      // Core sphere inside
-      const coreGeo = new THREE.SphereGeometry(0.8, 32, 32);
-      const coreMat = new THREE.MeshStandardMaterial({
-        color: 0x818cf8,
-        emissive: 0x4338ca,
-        roughness: 0.4
+      // Inner glowing core
+      const innerGeo = new THREE.SphereGeometry(0.7, 24, 24);
+      const innerMat = new THREE.MeshBasicMaterial({ color: 0x60a5fa, wireframe: false });
+      const innerMesh = new THREE.Mesh(innerGeo, innerMat);
+      worldGroup.add(innerMesh);
+
+      // 2. Holographic Personnel Network Constellation (Particles & Nodes)
+      const particleCount = 120;
+      const particleGeo = new THREE.BufferGeometry();
+      const positions = new Float32Array(particleCount * 3);
+      for (let i = 0; i < particleCount * 3; i += 3) {
+        const u = Math.random();
+        const v = Math.random();
+        const theta = u * 2.0 * Math.PI;
+        const phi = Math.acos(2.0 * v - 1.0);
+        const r = 1.6 + Math.random() * 0.4;
+        positions[i] = r * Math.sin(phi) * Math.cos(theta);
+        positions[i + 1] = r * Math.sin(phi) * Math.sin(theta);
+        positions[i + 2] = r * Math.cos(phi);
+      }
+      particleGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+      const particleMat = new THREE.PointsMaterial({
+        color: 0x38bdf8,
+        size: 0.08,
+        transparent: true,
+        opacity: 0.85
       });
-      const core = new THREE.Mesh(coreGeo, coreMat);
-      scene.add(core);
+      const points = new THREE.Points(particleGeo, particleMat);
+      worldGroup.add(points);
 
-      const light = new THREE.PointLight(0xa5b4fc, 2.5, 50);
-      light.position.set(3, 4, 4);
-      scene.add(light);
-      scene.add(new THREE.AmbientLight(0x22223b, 1));
+      // 3. Orbiting Team Rings
+      const ringGeo1 = new THREE.TorusGeometry(2.1, 0.02, 16, 100);
+      const ringMat1 = new THREE.MeshBasicMaterial({ color: 0x818cf8, transparent: true, opacity: 0.6 });
+      const ring1 = new THREE.Mesh(ringGeo1, ringMat1);
+      ring1.rotation.x = Math.PI / 3;
+      worldGroup.add(ring1);
+
+      const ringGeo2 = new THREE.TorusGeometry(2.3, 0.015, 16, 100);
+      const ringMat2 = new THREE.MeshBasicMaterial({ color: 0x34d399, transparent: true, opacity: 0.5 });
+      const ring2 = new THREE.Mesh(ringGeo2, ringMat2);
+      ring2.rotation.y = Math.PI / 4;
+      ring2.rotation.x = -Math.PI / 4;
+      worldGroup.add(ring2);
+
+      // Orbiting Satellites (Personnel Nodes)
+      const satGeo = new THREE.SphereGeometry(0.12, 16, 16);
+      const satMat1 = new THREE.MeshBasicMaterial({ color: 0xf59e0b });
+      const satellite1 = new THREE.Mesh(satGeo, satMat1);
+      worldGroup.add(satellite1);
+
+      const satMat2 = new THREE.MeshBasicMaterial({ color: 0x10b981 });
+      const satellite2 = new THREE.Mesh(satGeo, satMat2);
+      worldGroup.add(satellite2);
+
+      // Lighting
+      const pLight = new THREE.PointLight(0x60a5fa, 3, 50);
+      pLight.position.set(4, 5, 5);
+      scene.add(pLight);
+      scene.add(new THREE.AmbientLight(0x1e1b4b, 1.5));
+
+      // Interactive Mouse / Drag Rotation
+      let isDragging = false;
+      let prevMousePos = { x: 0, y: 0 };
+      let rotVelocity = { x: 0.005, y: 0.008 };
+
+      container.addEventListener('mousedown', (e) => {
+        isDragging = true;
+        prevMousePos = { x: e.clientX, y: e.clientY };
+      });
+      window.addEventListener('mouseup', () => isDragging = false);
+      window.addEventListener('mousemove', (e) => {
+        if (!isDragging) return;
+        const deltaX = e.clientX - prevMousePos.x;
+        const deltaY = e.clientY - prevMousePos.y;
+        worldGroup.rotation.y += deltaX * 0.008;
+        worldGroup.rotation.x += deltaY * 0.008;
+        prevMousePos = { x: e.clientX, y: e.clientY };
+      });
 
       window.addEventListener('resize', () => {
         if (!container.clientWidth) return;
@@ -899,11 +969,33 @@
         renderer.setSize(container.clientWidth, container.clientHeight);
       });
 
+      let clock = 0;
       function animateHero() {
         requestAnimationFrame(animateHero);
-        mesh.rotation.y += 0.008;
-        mesh.rotation.x += 0.005;
-        core.rotation.y -= 0.01;
+        clock += 0.02;
+
+        if (!isDragging) {
+          worldGroup.rotation.y += rotVelocity.y;
+          worldGroup.rotation.x += rotVelocity.x;
+        }
+
+        coreMesh.rotation.y -= 0.01;
+        ring1.rotation.z += 0.005;
+        ring2.rotation.z -= 0.006;
+
+        // Animate orbiting satellites
+        satellite1.position.x = 2.1 * Math.cos(clock);
+        satellite1.position.y = 2.1 * Math.sin(clock) * Math.sin(Math.PI / 3);
+        satellite1.position.z = 2.1 * Math.sin(clock) * Math.cos(Math.PI / 3);
+
+        satellite2.position.x = 2.3 * Math.cos(-clock * 0.8 + 1.5);
+        satellite2.position.y = 2.3 * Math.sin(-clock * 0.8 + 1.5);
+        satellite2.position.z = 2.3 * Math.cos(-clock * 0.8 + 1.5);
+
+        // Core pulsating effect
+        const scale = 1.0 + Math.sin(clock * 2) * 0.04;
+        innerMesh.scale.set(scale, scale, scale);
+
         renderer.render(scene, camera);
       }
       animateHero();
@@ -1409,6 +1501,33 @@
     searchInput.addEventListener('input', debounce(loadEmployees, 300));
     departmentFilter.addEventListener('change', loadEmployees);
 
+    // --- REAL-TIME PROMETHEUS METRIC HARVESTER ---
+    async function fetchLiveMetrics() {
+      try {
+        const res = await fetch('/metrics');
+        if (!res.ok) return;
+        const text = await res.text();
+        
+        // Extract total HTTP requests from Prometheus metrics
+        let total = 0;
+        const regex = /http_requests_total\{.*?\}\s+([0-9.]+)/g;
+        let match;
+        while ((match = regex.exec(text)) !== null) {
+          total += parseFloat(match[1]) || 0;
+        }
+
+        if (total > 0) {
+          requestCount = Math.round(total);
+          statTotalCalls.textContent = requestCount;
+
+          // Push into chart
+          telemetryHistory.shift();
+          telemetryHistory.push(requestCount);
+          if (chartInstance) chartInstance.update('none');
+        }
+      } catch(e) {}
+    }
+
     // Initial boot
     document.addEventListener('DOMContentLoaded', () => {
       lucide.createIcons();
@@ -1418,8 +1537,12 @@
       checkUserSession();
       checkHealth();
       loadEmployees();
-      setInterval(checkHealth, 15000);
-      setInterval(() => recordSimulatedTraffic(0), 4000);
+      fetchLiveMetrics();
+
+      // Dynamic real-time loops
+      setInterval(checkHealth, 8000);
+      setInterval(fetchLiveMetrics, 3000);
+      setInterval(updateKPIs, 5000);
     });
   </script>
 </body>
