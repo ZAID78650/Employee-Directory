@@ -1,0 +1,973 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Employee Directory — Enterprise Authentication</title>
+  <link rel="icon" type="image/jpeg" href="/static/logo_text_badge.jpg" />
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  
+  <!-- Google Identity Services (Official GIS SDK) -->
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  
+  <!-- Google Fonts: Plus Jakarta Sans & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Plus Jakarta Sans', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            slate: {
+              750: '#1e293b',
+              850: '#0f172a',
+              900: '#0b0f19',
+              950: '#030712',
+            },
+            brand: {
+              50: '#eef2ff',
+              100: '#e0e7ff',
+              200: '#c7d2fe',
+              300: '#a5b4fc',
+              400: '#818cf8',
+              500: '#6366f1',
+              600: '#4f46e5',
+              700: '#4338ca',
+              800: '#3730a3',
+              900: '#312e81',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* Premium Enterprise Grid & Lighting Atmosphere */
+    .cyber-grid-bg {
+      background-image: 
+        linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+      background-size: 40px 40px;
+      mask-image: radial-gradient(circle at 50% 50%, black 50%, transparent 100%);
+      -webkit-mask-image: radial-gradient(circle at 50% 50%, black 50%, transparent 100%);
+    }
+
+    .ambient-glow-indigo {
+      background: radial-gradient(circle 600px at 15% 20%, rgba(99, 102, 241, 0.15), transparent 70%);
+    }
+    
+    .ambient-glow-cyan {
+      background: radial-gradient(circle 550px at 85% 80%, rgba(6, 182, 212, 0.10), transparent 70%);
+    }
+
+    /* Fluid Animations & Field Transitions */
+    @keyframes fadeInScale {
+      from {
+        opacity: 0;
+        transform: translateY(8px) scale(0.98);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    @keyframes slideDownField {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+        max-height: 0;
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+        max-height: 250px;
+      }
+    }
+
+    .animate-tab-content {
+      animation: fadeInScale 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    .animate-field-in {
+      animation: slideDownField 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    /* Tab Indicator Sliding Pill */
+    .tab-slider-pill {
+      transition: transform 0.32s cubic-bezier(0.4, 0, 0.2, 1), width 0.3s ease;
+    }
+
+    /* Interactive Input Focus Styling */
+    .enterprise-input {
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .enterprise-input:focus {
+      border-color: #6366f1;
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.25), 0 0 20px rgba(99, 102, 241, 0.12);
+    }
+
+    /* Form Autofill Styling */
+    input:-webkit-autofill,
+    input:-webkit-autofill:hover, 
+    input:-webkit-autofill:focus {
+      -webkit-text-fill-color: #f8fafc;
+      -webkit-box-shadow: 0 0 0px 1000px #0b1120 inset;
+      transition: background-color 5000s ease-in-out 0s;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+      }
+    }
+  </style>
+</head>
+<body class="h-full bg-slate-950 text-slate-100 flex flex-col font-sans antialiased selection:bg-brand-600 selection:text-white relative overflow-x-hidden">
+
+  <!-- ========================================== -->
+  <!-- 1. AMBIENT ATMOSPHERE & LIGHTING LAYERS   -->
+  <!-- ========================================== -->
+  <!-- Base Near-Black Navy Layer -->
+  <div class="fixed inset-0 z-0 bg-[#030712] pointer-events-none"></div>
+
+  <!-- Soft Ambient Glows -->
+  <div class="fixed inset-0 z-0 ambient-glow-indigo pointer-events-none"></div>
+  <div class="fixed inset-0 z-0 ambient-glow-cyan pointer-events-none"></div>
+
+  <!-- Subtle Subtle Background Image Texture with Blur Blend -->
+  <div class="fixed inset-0 z-0 bg-cover bg-center opacity-10 blur-sm pointer-events-none mix-blend-screen" style="background-image: url('/static/auth_bg.jpg');"></div>
+
+  <!-- Cybernetic Grid Overlay -->
+  <div class="fixed inset-0 z-0 cyber-grid-bg pointer-events-none"></div>
+
+  <!-- ========================================== -->
+  <!-- 2. MAIN SPLIT AUTHENTICATION CONTAINER    -->
+  <!-- ========================================== -->
+  <div class="flex-1 flex flex-col lg:flex-row relative z-10 min-h-screen">
+
+    <!-- ---------------------------------------- -->
+    <!-- LEFT SIDE: BRAND / TRUST PANEL (46%)     -->
+    <!-- ---------------------------------------- -->
+    <section class="hidden lg:flex lg:w-[46%] border-r border-slate-800/60 p-10 xl:p-14 flex-col justify-between relative bg-slate-950/40 backdrop-blur-md">
+
+      <!-- Top Section -->
+      <div class="relative z-10 space-y-8">
+        
+        <!-- Brand Title & Live Health Badge -->
+        <div class="flex items-center justify-between">
+          <div class="flex items-center space-x-4">
+            <div class="h-14 w-14 rounded-2xl bg-slate-900 border border-slate-700/80 p-1 flex items-center justify-center shadow-lg shadow-indigo-500/10 ring-1 ring-white/10">
+              <img src="/static/logo_text_badge.jpg" alt="Badge Emblem" class="h-full w-full rounded-xl object-cover" />
+            </div>
+            <div>
+              <h1 class="text-2xl font-black text-white tracking-tight flex items-center gap-2">
+                <span>Employee Directory</span>
+              </h1>
+              <div class="flex items-center gap-2 mt-0.5">
+                <span class="px-2 py-0.5 rounded-md text-[11px] font-mono font-bold bg-indigo-500/15 text-indigo-300 border border-indigo-500/30 tracking-wide">ENTERPRISE</span>
+                <p class="text-xs text-slate-400 font-semibold">DevOps Practical 10 &bull; Group B3–G3</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Dynamic Realtime Health Badge -->
+          <div id="systemHealthBadge" class="flex items-center space-x-2 px-3.5 py-1.5 rounded-full text-xs font-mono font-semibold bg-emerald-950/40 border border-emerald-500/30 text-emerald-300 transition-colors shadow-sm" title="Dynamic status from GET /health">
+            <span id="healthPulseDot" class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+            <span id="healthStatusLabel">System Operational</span>
+          </div>
+        </div>
+
+        <!-- Headline & Value Pitch -->
+        <div class="space-y-3.5 pt-2">
+          <h2 class="text-3xl xl:text-4xl font-extrabold text-white tracking-tight leading-[1.2]">
+            Centralized Personnel & Access Intelligence
+          </h2>
+          <p class="text-base text-slate-300 leading-relaxed max-w-lg font-normal">
+            Manage employee records, organizational roles, and telemetry access securely from one centralized, enterprise-grade directory platform.
+          </p>
+        </div>
+
+        <!-- 3 Bento Feature Cards -->
+        <div class="pt-2 space-y-3.5 max-w-lg">
+          
+          <div class="flex items-start space-x-3.5 p-4 rounded-2xl bg-slate-900/60 border border-slate-800/80 shadow-sm hover:border-indigo-500/40 hover:bg-slate-900/80 transition duration-200 group">
+            <div class="p-2 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 group-hover:scale-105 transition-transform flex-shrink-0">
+              <i data-lucide="check-circle-2" class="w-5 h-5"></i>
+            </div>
+            <div>
+              <p class="text-sm font-bold text-slate-100">Secure Authentication & SSO</p>
+              <p class="text-xs sm:text-sm text-slate-400 mt-0.5 leading-relaxed">Direct Google OAuth 2.0 Identity integration and encrypted AES-256 session state.</p>
+            </div>
+          </div>
+
+          <div class="flex items-start space-x-3.5 p-4 rounded-2xl bg-slate-900/60 border border-slate-800/80 shadow-sm hover:border-indigo-500/40 hover:bg-slate-900/80 transition duration-200 group">
+            <div class="p-2 rounded-xl bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 group-hover:scale-105 transition-transform flex-shrink-0">
+              <i data-lucide="shield-check" class="w-5 h-5"></i>
+            </div>
+            <div>
+              <p class="text-sm font-bold text-slate-100">Role-Based Access Control (RBAC)</p>
+              <p class="text-xs sm:text-sm text-slate-400 mt-0.5 leading-relaxed">Structured departmental routing (R1–R4 roles) with granular directory permissions.</p>
+            </div>
+          </div>
+
+          <div class="flex items-start space-x-3.5 p-4 rounded-2xl bg-slate-900/60 border border-slate-800/80 shadow-sm hover:border-cyan-500/40 hover:bg-slate-900/80 transition duration-200 group">
+            <div class="p-2 rounded-xl bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 group-hover:scale-105 transition-transform flex-shrink-0">
+              <i data-lucide="activity" class="w-5 h-5"></i>
+            </div>
+            <div>
+              <p class="text-sm font-bold text-slate-100">Live Prometheus Telemetry</p>
+              <p class="text-xs sm:text-sm text-slate-400 mt-0.5 leading-relaxed">Real-time scrape endpoints, latency histograms, and system health validation.</p>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- High-Tech Architecture Pipeline HUD -->
+      <div class="relative z-10 py-5 my-auto">
+        <div class="border border-slate-800/90 rounded-2xl p-4 bg-slate-900/70 backdrop-blur-md text-xs font-mono text-slate-300 space-y-2.5 shadow-inner">
+          <div class="flex items-center justify-between text-slate-400 pb-2 border-b border-slate-800">
+            <span class="flex items-center gap-2">
+              <i data-lucide="server" class="w-4 h-4 text-indigo-400"></i>
+              <span class="font-bold text-slate-200">SYSTEM_AUTH_PIPELINE</span>
+            </span>
+            <span class="flex items-center gap-1.5 text-emerald-400 text-[11px] font-bold">
+              <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+              ACTIVE
+            </span>
+          </div>
+          <div class="grid grid-cols-3 gap-2.5 text-center text-xs">
+            <div class="p-2.5 rounded-xl bg-slate-950/80 border border-slate-800/80">
+              <span class="text-slate-500 block text-[10px] uppercase font-bold tracking-wider">Gateway</span>
+              <span class="text-white font-bold">Flask REST</span>
+            </div>
+            <div class="p-2.5 rounded-xl bg-slate-950/80 border border-slate-800/80">
+              <span class="text-slate-500 block text-[10px] uppercase font-bold tracking-wider">Identity</span>
+              <span class="text-brand-400 font-bold">OAuth 2.0</span>
+            </div>
+            <div class="p-2.5 rounded-xl bg-slate-950/80 border border-slate-800/80">
+              <span class="text-slate-500 block text-[10px] uppercase font-bold tracking-wider">Telemetry</span>
+              <span class="text-cyan-400 font-bold">:9090 Prom</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bottom Footer Info -->
+      <div class="relative z-10 pt-4 border-t border-slate-800/60 text-xs text-slate-400 flex items-center justify-between">
+        <span>&copy; 2026 Employee Directory &bull; Enterprise Edition</span>
+        <span class="font-mono text-xs text-slate-400">DevOps Practical 10 | B3–G3</span>
+      </div>
+
+    </section>
+
+    <!-- ---------------------------------------- -->
+    <!-- RIGHT SIDE: AUTHENTICATION PANEL (54%)   -->
+    <!-- ---------------------------------------- -->
+    <main class="w-full lg:w-[54%] flex items-center justify-center p-4 sm:p-8 lg:p-12 relative bg-transparent overflow-hidden">
+      
+      <div class="w-full max-w-[480px] space-y-6 relative z-10">
+
+        <!-- Mobile-Only Brand Header -->
+        <div class="lg:hidden text-center pb-2">
+          <div class="inline-flex items-center justify-center h-14 w-14 rounded-2xl bg-slate-800/90 backdrop-blur-md border border-slate-700 mb-3 shadow-md">
+            <img src="/static/logo_text_badge.jpg" alt="Logo" class="h-10 w-10 rounded-xl object-cover" />
+          </div>
+          <h2 class="text-xl font-extrabold text-white">Employee Directory</h2>
+          <p class="text-sm text-slate-400">Secure Employee Management Platform</p>
+        </div>
+
+        <!-- Auth Card Container with Glassmorphism & Hairline Highlight -->
+        <div class="bg-[#0b1222]/90 backdrop-blur-2xl rounded-3xl p-7 sm:p-9 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.8)] border border-slate-750/90 relative overflow-hidden">
+          
+          <!-- Subtle Top Glowing Highlight Bar -->
+          <div class="absolute top-0 inset-x-0 h-[2px] bg-gradient-to-r from-transparent via-indigo-500/60 to-transparent"></div>
+
+          <!-- Card Header Hierarchy -->
+          <div id="authHeaderContainer" class="space-y-2 mb-6">
+            <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
+              <i data-lucide="shield" class="w-3.5 h-3.5"></i>
+              <span id="authKicker">Authentication Portal</span>
+            </div>
+            <h1 id="authHeading" class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">Welcome back</h1>
+            <p id="authSubheading" class="text-sm sm:text-base text-slate-300 font-medium">Sign in to your Employee Directory account</p>
+          </div>
+
+          <!-- Animated Segmented Tab Control [ Sign In ] [ Create Account ] -->
+          <div class="relative grid grid-cols-2 p-1.5 bg-slate-950/90 rounded-2xl border border-slate-800 mb-6 shadow-inner" role="tablist" aria-label="Authentication Options">
+            <!-- Smooth Sliding Pill Background Indicator -->
+            <div 
+              id="tabSlidingPill" 
+              class="absolute top-1.5 bottom-1.5 left-1.5 w-[calc(50%-6px)] bg-gradient-to-r from-indigo-600 to-indigo-500 rounded-xl shadow-lg shadow-indigo-600/30 tab-slider-pill pointer-events-none"
+            ></div>
+
+            <button 
+              id="tabSignIn" 
+              type="button" 
+              role="tab" 
+              aria-selected="true" 
+              aria-controls="panelSignIn"
+              onclick="setAuthMode('signin')" 
+              class="relative z-10 py-3 text-sm sm:text-base font-bold rounded-xl text-white transition-colors duration-200 flex items-center justify-center gap-2 focus:outline-none"
+            >
+              <i data-lucide="log-in" class="w-4 h-4"></i>
+              <span>Sign In</span>
+            </button>
+            <button 
+              id="tabSignUp" 
+              type="button" 
+              role="tab" 
+              aria-selected="false" 
+              aria-controls="panelSignUp"
+              onclick="setAuthMode('signup')" 
+              class="relative z-10 py-3 text-sm sm:text-base font-bold rounded-xl text-slate-400 hover:text-white transition-colors duration-200 flex items-center justify-center gap-2 focus:outline-none"
+            >
+              <i data-lucide="user-plus" class="w-4 h-4"></i>
+              <span>Create Account</span>
+            </button>
+          </div>
+
+          <!-- Live Accessible Error / Status Feedback Banner -->
+          <div 
+            id="authFeedbackBanner" 
+            class="hidden mb-6 p-4 rounded-2xl text-xs sm:text-sm font-medium border flex items-start gap-3 transition-all" 
+            role="alert" 
+            aria-live="polite"
+          >
+            <div id="feedbackIcon" class="flex-shrink-0 mt-0.5"></div>
+            <div class="flex-1">
+              <p id="feedbackTitle" class="font-bold text-xs sm:text-sm"></p>
+              <p id="feedbackMessage" class="text-xs sm:text-sm opacity-90 mt-0.5 leading-relaxed"></p>
+            </div>
+            <button type="button" onclick="clearFeedback()" class="text-slate-400 hover:text-white p-1 rounded-lg" aria-label="Dismiss message">
+              <i data-lucide="x" class="w-4 h-4"></i>
+            </button>
+          </div>
+
+          <!-- ---------------------------------------- -->
+          <!-- 1. GOOGLE IDENTITY OAUTH 2.0 SECTION     -->
+          <!-- ---------------------------------------- -->
+          <div class="space-y-2.5 mb-6">
+            
+            <!-- Enterprise Styled Direct Google Action Button with Authentic SVG -->
+            <a 
+              id="googleAuthBtn"
+              href="/auth/google" 
+              class="w-full flex items-center justify-center gap-3.5 py-3.5 px-5 rounded-2xl bg-white hover:bg-slate-50 active:bg-slate-100 text-slate-900 font-bold text-sm sm:text-base tracking-wide shadow-md shadow-slate-950/20 hover:shadow-indigo-500/15 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-150 border border-slate-200 focus:outline-none focus:ring-2 focus:ring-brand-400 cursor-pointer"
+            >
+              <!-- Official Google Icon -->
+              <svg class="w-5 h-5 flex-shrink-0" viewBox="0 0 24 24">
+                <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-9.17z"/>
+                <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.15C3.26 21.36 7.33 24 12 24z"/>
+                <path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.25C.45 8.18 0 9.98 0 12s.45 3.82 1.25 5.42l4.03-3.15z"/>
+                <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.26 2.64 1.25 6.58l4.03 3.15c.95-2.83 3.6-4.98 6.72-4.98z"/>
+              </svg>
+              <span id="googleBtnText">Continue with Google</span>
+            </a>
+
+            <!-- Clean Verified OAuth Security Assurance Note -->
+            <div class="flex items-center justify-center gap-1.5 text-xs text-slate-400 pt-1">
+              <i data-lucide="lock" class="w-3.5 h-3.5 text-emerald-400"></i>
+              <span>Official Google Identity &bull; 256-bit Encrypted Session</span>
+            </div>
+          </div>
+
+          <!-- Divider -->
+          <div class="relative flex items-center my-6">
+            <div class="flex-grow border-t border-slate-800"></div>
+            <span class="flex-shrink mx-4 text-xs text-slate-400 font-mono uppercase tracking-wider">or continue with email</span>
+            <div class="flex-grow border-t border-slate-800"></div>
+          </div>
+
+          <!-- ---------------------------------------- -->
+          <!-- 2. EMAIL AUTHENTICATION FORMS            -->
+          <!-- ---------------------------------------- -->
+          <form id="mainAuthForm" onsubmit="executeAuthSubmit(event)" class="space-y-4.5" novalidate>
+            
+            <!-- Full Name (Only for Registration) -->
+            <div id="fieldGroupName" class="hidden space-y-1.5">
+              <label for="inputName" class="block text-sm font-semibold text-slate-200">
+                Full Name <span class="text-rose-400">*</span>
+              </label>
+              <div class="relative">
+                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400">
+                  <i data-lucide="user" class="w-5 h-5"></i>
+                </div>
+                <input 
+                  type="text" 
+                  id="inputName" 
+                  name="name" 
+                  autocomplete="name"
+                  placeholder="e.g. Shaikh Zaid" 
+                  class="w-full bg-slate-900/90 text-slate-100 placeholder-slate-500 text-sm sm:text-base rounded-2xl pl-12 pr-4 py-3 sm:py-3.5 border border-slate-800 enterprise-input"
+                />
+              </div>
+            </div>
+
+            <!-- Email Address Field -->
+            <div class="space-y-1.5">
+              <label for="inputEmail" class="block text-sm font-semibold text-slate-200">
+                Email Address <span class="text-rose-400">*</span>
+              </label>
+              <div class="relative">
+                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400">
+                  <i data-lucide="mail" class="w-5 h-5"></i>
+                </div>
+                <input 
+                  type="email" 
+                  id="inputEmail" 
+                  name="email" 
+                  required 
+                  autocomplete="username email"
+                  placeholder="name@company.com or @student.college.edu" 
+                  class="w-full bg-slate-900/90 text-slate-100 placeholder-slate-500 text-sm sm:text-base rounded-2xl pl-12 pr-4 py-3 sm:py-3.5 border border-slate-800 enterprise-input"
+                />
+              </div>
+            </div>
+
+            <!-- Department Selection (Only for Registration) -->
+            <div id="fieldGroupDept" class="hidden space-y-1.5">
+              <label for="inputDept" class="block text-sm font-semibold text-slate-200">
+                Department / Division
+              </label>
+              <div class="relative">
+                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400">
+                  <i data-lucide="briefcase" class="w-5 h-5"></i>
+                </div>
+                <select 
+                  id="inputDept" 
+                  name="department" 
+                  class="w-full bg-slate-900/90 text-slate-100 text-sm sm:text-base rounded-2xl pl-12 pr-4 py-3 sm:py-3.5 border border-slate-800 enterprise-input"
+                >
+                  <option value="Engineering">Engineering (R3 / Dev)</option>
+                  <option value="Platform & Cloud">Platform & Cloud (R1 / DevOps)</option>
+                  <option value="AI & Data Science">AI & Data Science (R2 / Analytics)</option>
+                  <option value="Core Infrastructure">Core Infrastructure (R4 / Monitoring)</option>
+                  <option value="Operations">Operations & Product</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Password Field -->
+            <div class="space-y-1.5">
+              <div class="flex items-center justify-between">
+                <label for="inputPassword" class="block text-sm font-semibold text-slate-200">
+                  Password <span class="text-rose-400">*</span>
+                </label>
+                <span id="passwordHeaderHint" class="text-xs text-slate-400 font-mono">Min. 6 characters</span>
+              </div>
+              <div class="relative">
+                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400">
+                  <i data-lucide="lock" class="w-5 h-5"></i>
+                </div>
+                <input 
+                  type="password" 
+                  id="inputPassword" 
+                  name="password" 
+                  required 
+                  autocomplete="current-password"
+                  placeholder="••••••••••••" 
+                  oninput="handlePasswordStrengthCheck(this.value)"
+                  class="w-full bg-slate-900/90 text-slate-100 placeholder-slate-500 text-sm sm:text-base rounded-2xl pl-12 pr-12 py-3 sm:py-3.5 border border-slate-800 enterprise-input"
+                />
+                <button 
+                  type="button" 
+                  onclick="togglePasswordVisibility('inputPassword', 'togglePwdIcon')" 
+                  class="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-slate-200 focus:outline-none"
+                  aria-label="Toggle password visibility"
+                >
+                  <i id="togglePwdIcon" data-lucide="eye" class="w-5 h-5"></i>
+                </button>
+              </div>
+            </div>
+
+            <!-- Password Strength Indicator (Only for Registration) -->
+            <div id="fieldGroupPasswordStrength" class="hidden space-y-2.5 pt-1">
+              <div class="flex items-center justify-between text-xs sm:text-sm">
+                <span class="text-slate-400 font-medium">Password strength:</span>
+                <span id="strengthText" class="font-bold text-slate-400">Enter password</span>
+              </div>
+              <div class="grid grid-cols-3 gap-2 h-2">
+                <div id="strengthBar1" class="rounded-full bg-slate-800 transition-colors duration-200"></div>
+                <div id="strengthBar2" class="rounded-full bg-slate-800 transition-colors duration-200"></div>
+                <div id="strengthBar3" class="rounded-full bg-slate-800 transition-colors duration-200"></div>
+              </div>
+              <div class="space-y-1.5 text-xs sm:text-sm text-slate-400 pt-1">
+                <p id="reqLength" class="flex items-center gap-2 text-slate-400">
+                  <i data-lucide="circle" class="w-3.5 h-3.5"></i>
+                  <span>At least 6 characters</span>
+                </p>
+                <p id="reqContent" class="flex items-center gap-2 text-slate-400">
+                  <i data-lucide="circle" class="w-3.5 h-3.5"></i>
+                  <span>Letters and numbers recommended</span>
+                </p>
+              </div>
+            </div>
+
+            <!-- Confirm Password Field (Only for Registration) -->
+            <div id="fieldGroupConfirmPassword" class="hidden space-y-1.5">
+              <label for="inputConfirmPassword" class="block text-sm font-semibold text-slate-200">
+                Confirm Password <span class="text-rose-400">*</span>
+              </label>
+              <div class="relative">
+                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400">
+                  <i data-lucide="check-shield" class="w-5 h-5"></i>
+                </div>
+                <input 
+                  type="password" 
+                  id="inputConfirmPassword" 
+                  name="confirmPassword" 
+                  autocomplete="new-password"
+                  placeholder="••••••••••••" 
+                  class="w-full bg-slate-900/90 text-slate-100 placeholder-slate-500 text-sm sm:text-base rounded-2xl pl-12 pr-12 py-3 sm:py-3.5 border border-slate-800 enterprise-input"
+                />
+                <button 
+                  type="button" 
+                  onclick="togglePasswordVisibility('inputConfirmPassword', 'toggleConfirmPwdIcon')" 
+                  class="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-slate-200 focus:outline-none"
+                  aria-label="Toggle confirm password visibility"
+                >
+                  <i id="toggleConfirmPwdIcon" data-lucide="eye" class="w-5 h-5"></i>
+                </button>
+              </div>
+            </div>
+
+            <!-- Primary Submit Button with Gradient & Micro-Hover Elevation -->
+            <div class="pt-2">
+              <button 
+                type="submit" 
+                id="btnPrimarySubmit" 
+                class="w-full py-3.5 sm:py-4 px-6 rounded-2xl bg-gradient-to-r from-indigo-600 via-indigo-500 to-indigo-600 hover:from-indigo-500 hover:to-indigo-400 active:from-indigo-700 active:to-indigo-600 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold text-sm sm:text-base tracking-wide shadow-xl shadow-indigo-600/30 hover:shadow-indigo-600/50 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-150 flex items-center justify-center gap-2.5 focus:outline-none focus:ring-2 focus:ring-brand-400 cursor-pointer"
+              >
+                <span id="btnSubmitLabel">Sign In to Dashboard</span>
+                <i id="btnSubmitIcon" data-lucide="arrow-right" class="w-5 h-5"></i>
+              </button>
+            </div>
+
+          </form>
+
+        </div>
+
+        <!-- Security Footer Badge -->
+        <div class="text-center space-y-2 pt-1">
+          <p class="text-xs sm:text-sm text-slate-400 flex items-center justify-center gap-2">
+            <i data-lucide="shield-check" class="w-4 h-4 text-emerald-400"></i>
+            <span>Protected by secure session authentication & OAuth 2.0</span>
+          </p>
+          <div class="flex items-center justify-center space-x-3 text-xs text-slate-500 font-medium">
+            <span>Role-Based Access</span>
+            <span>&bull;</span>
+            <span>Prometheus Telemetry</span>
+            <span>&bull;</span>
+            <span>DevOps Lab B3-G3</span>
+          </div>
+        </div>
+
+      </div>
+
+    </main>
+
+  </div>
+
+  <!-- ========================================== -->
+  <!-- 3. JAVASCRIPT AUTHENTICATION CONTROLLER    -->
+  <!-- ========================================== -->
+  <script>
+    let activeAuthMode = 'signin'; // 'signin' or 'signup'
+    let isSubmitting = false;
+
+    // --- Dynamic System Health Polling (GET /health) ---
+    async function checkApiHealth() {
+      const dot = document.getElementById('healthPulseDot');
+      const label = document.getElementById('healthStatusLabel');
+      try {
+        const res = await fetch('/health');
+        if (res.ok) {
+          const data = await res.json();
+          dot.className = "w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse";
+          label.textContent = "System Operational";
+          label.parentElement.className = "flex items-center space-x-2 px-3.5 py-1.5 rounded-full text-xs font-mono font-semibold bg-emerald-950/40 border border-emerald-500/30 text-emerald-300 transition-colors shadow-sm";
+        } else {
+          throw new Error('Non-200');
+        }
+      } catch (e) {
+        dot.className = "w-2.5 h-2.5 rounded-full bg-rose-500";
+        label.textContent = "API Unavailable";
+        label.parentElement.className = "flex items-center space-x-2 px-3.5 py-1.5 rounded-full text-xs font-mono font-semibold bg-rose-950/40 border border-rose-500/30 text-rose-300 transition-colors shadow-sm";
+      }
+    }
+
+    // --- Tab Mode Switcher with Smooth Sliding Indicator & Animations ---
+    function setAuthMode(mode) {
+      activeAuthMode = mode;
+      clearFeedback();
+
+      const pill = document.getElementById('tabSlidingPill');
+      const tabSignIn = document.getElementById('tabSignIn');
+      const tabSignUp = document.getElementById('tabSignUp');
+      const fieldGroupName = document.getElementById('fieldGroupName');
+      const fieldGroupDept = document.getElementById('fieldGroupDept');
+      const fieldGroupPasswordStrength = document.getElementById('fieldGroupPasswordStrength');
+      const fieldGroupConfirmPassword = document.getElementById('fieldGroupConfirmPassword');
+      const authHeaderContainer = document.getElementById('authHeaderContainer');
+      const authHeading = document.getElementById('authHeading');
+      const authSubheading = document.getElementById('authSubheading');
+      const authKicker = document.getElementById('authKicker');
+      const btnSubmitLabel = document.getElementById('btnSubmitLabel');
+      const googleBtnText = document.getElementById('googleBtnText');
+      const inputPassword = document.getElementById('inputPassword');
+
+      // Trigger subtle header text animation
+      if (authHeaderContainer) {
+        authHeaderContainer.classList.remove('animate-tab-content');
+        void authHeaderContainer.offsetWidth; // trigger reflow
+        authHeaderContainer.classList.add('animate-tab-content');
+      }
+
+      const regFields = [fieldGroupName, fieldGroupDept, fieldGroupPasswordStrength, fieldGroupConfirmPassword];
+
+      if (mode === 'signup') {
+        // Slide Pill to Right (Create Account)
+        if (pill) {
+          pill.style.transform = 'translateX(100%)';
+        }
+        
+        tabSignUp.className = "relative z-10 py-3 text-sm sm:text-base font-extrabold rounded-xl text-white transition-colors duration-200 flex items-center justify-center gap-2 focus:outline-none";
+        tabSignIn.className = "relative z-10 py-3 text-sm sm:text-base font-semibold rounded-xl text-slate-400 hover:text-white transition-colors duration-200 flex items-center justify-center gap-2 focus:outline-none";
+        
+        tabSignUp.setAttribute('aria-selected', 'true');
+        tabSignIn.setAttribute('aria-selected', 'false');
+
+        regFields.forEach(f => {
+          if (f) {
+            f.classList.remove('hidden');
+            f.classList.remove('animate-field-in');
+            void f.offsetWidth; // trigger reflow
+            f.classList.add('animate-field-in');
+          }
+        });
+        
+        authKicker.textContent = "Registration Portal";
+        authHeading.textContent = "Create an account";
+        authSubheading.textContent = "Get started with enterprise directory access";
+        btnSubmitLabel.textContent = "Create Employee Account";
+        googleBtnText.textContent = "Create Account with Google";
+        inputPassword.autocomplete = "new-password";
+      } else {
+        // Slide Pill to Left (Sign In)
+        if (pill) {
+          pill.style.transform = 'translateX(0%)';
+        }
+
+        tabSignIn.className = "relative z-10 py-3 text-sm sm:text-base font-extrabold rounded-xl text-white transition-colors duration-200 flex items-center justify-center gap-2 focus:outline-none";
+        tabSignUp.className = "relative z-10 py-3 text-sm sm:text-base font-semibold rounded-xl text-slate-400 hover:text-white transition-colors duration-200 flex items-center justify-center gap-2 focus:outline-none";
+        
+        tabSignIn.setAttribute('aria-selected', 'true');
+        tabSignUp.setAttribute('aria-selected', 'false');
+
+        regFields.forEach(f => {
+          if (f) {
+            f.classList.add('hidden');
+            f.classList.remove('animate-field-in');
+          }
+        });
+
+        authKicker.textContent = "Authentication Portal";
+        authHeading.textContent = "Welcome back";
+        authSubheading.textContent = "Sign in to your Employee Directory account";
+        btnSubmitLabel.textContent = "Sign In to Dashboard";
+        googleBtnText.textContent = "Continue with Google";
+        inputPassword.autocomplete = "current-password";
+      }
+      lucide.createIcons();
+    }
+
+    // --- Password Visibility Toggle ---
+    function togglePasswordVisibility(fieldId, iconId) {
+      const input = document.getElementById(fieldId);
+      const icon = document.getElementById(iconId);
+      if (input.type === 'password') {
+        input.type = 'text';
+        icon.setAttribute('data-lucide', 'eye-off');
+      } else {
+        input.type = 'password';
+        icon.setAttribute('data-lucide', 'eye');
+      }
+      lucide.createIcons();
+    }
+
+    // --- Password Strength Meter ---
+    function handlePasswordStrengthCheck(password) {
+      if (activeAuthMode !== 'signup') return;
+
+      const bar1 = document.getElementById('strengthBar1');
+      const bar2 = document.getElementById('strengthBar2');
+      const bar3 = document.getElementById('strengthBar3');
+      const strengthText = document.getElementById('strengthText');
+      const reqLength = document.getElementById('reqLength');
+      const reqContent = document.getElementById('reqContent');
+
+      const hasLength = password.length >= 6;
+      const hasMixed = /[a-zA-Z]/.test(password) && /[0-9]/.test(password);
+      const isStrong = password.length >= 8 && hasMixed && /[^a-zA-Z0-9]/.test(password);
+
+      // Requirement indicators
+      if (hasLength) {
+        reqLength.className = "flex items-center gap-1.5 text-emerald-400";
+        reqLength.querySelector('i').setAttribute('data-lucide', 'check-circle-2');
+      } else {
+        reqLength.className = "flex items-center gap-1.5 text-slate-500";
+        reqLength.querySelector('i').setAttribute('data-lucide', 'circle');
+      }
+
+      if (hasMixed) {
+        reqContent.className = "flex items-center gap-1.5 text-emerald-400";
+        reqContent.querySelector('i').setAttribute('data-lucide', 'check-circle-2');
+      } else {
+        reqContent.className = "flex items-center gap-1.5 text-slate-500";
+        reqContent.querySelector('i').setAttribute('data-lucide', 'circle');
+      }
+
+      // Strength Bars
+      if (!password) {
+        bar1.className = "rounded-full bg-slate-800 transition-colors";
+        bar2.className = "rounded-full bg-slate-800 transition-colors";
+        bar3.className = "rounded-full bg-slate-800 transition-colors";
+        strengthText.textContent = "Enter password";
+        strengthText.className = "font-semibold text-slate-500";
+      } else if (!hasLength) {
+        bar1.className = "rounded-full bg-rose-500 transition-colors";
+        bar2.className = "rounded-full bg-slate-800 transition-colors";
+        bar3.className = "rounded-full bg-slate-800 transition-colors";
+        strengthText.textContent = "Weak";
+        strengthText.className = "font-semibold text-rose-400";
+      } else if (!hasMixed) {
+        bar1.className = "rounded-full bg-amber-500 transition-colors";
+        bar2.className = "rounded-full bg-amber-500 transition-colors";
+        bar3.className = "rounded-full bg-slate-800 transition-colors";
+        strengthText.textContent = "Fair";
+        strengthText.className = "font-semibold text-amber-400";
+      } else {
+        bar1.className = "rounded-full bg-emerald-500 transition-colors";
+        bar2.className = "rounded-full bg-emerald-500 transition-colors";
+        bar3.className = "rounded-full bg-emerald-500 transition-colors";
+        strengthText.textContent = isStrong ? "Strong" : "Good";
+        strengthText.className = "font-semibold text-emerald-400";
+      }
+      lucide.createIcons();
+    }
+
+    // --- Form Submission Handler ---
+    async function executeAuthSubmit(e) {
+      e.preventDefault();
+      if (isSubmitting) return;
+
+      const email = document.getElementById('inputEmail').value.trim();
+      const password = document.getElementById('inputPassword').value;
+      const name = document.getElementById('inputName').value.trim();
+      const dept = document.getElementById('inputDept').value;
+      const confirmPassword = document.getElementById('inputConfirmPassword').value;
+      const btn = document.getElementById('btnPrimarySubmit');
+      const label = document.getElementById('btnSubmitLabel');
+      const icon = document.getElementById('btnSubmitIcon');
+
+      // Client Validations
+      if (!email || !password) {
+        showFeedback('Validation error', 'Please provide both your email address and password.', 'error');
+        return;
+      }
+
+      if (activeAuthMode === 'signup') {
+        if (!name) {
+          showFeedback('Validation error', 'Please enter your full name.', 'error');
+          return;
+        }
+        if (password.length < 6) {
+          showFeedback('Password too short', 'Password must be at least 6 characters long.', 'error');
+          return;
+        }
+        if (password !== confirmPassword) {
+          showFeedback('Passwords do not match', 'Please ensure both password fields are identical.', 'error');
+          return;
+        }
+      }
+
+      // Enter Loading State
+      isSubmitting = true;
+      btn.disabled = true;
+      label.textContent = activeAuthMode === 'signup' ? 'Creating account...' : 'Signing in...';
+      icon.setAttribute('data-lucide', 'loader-2');
+      icon.classList.add('animate-spin');
+      lucide.createIcons();
+      clearFeedback();
+
+      try {
+        const endpoint = activeAuthMode === 'signup' ? '/api/auth/signup' : '/api/auth/login';
+        const payload = {
+          email: email,
+          password: password,
+          name: name,
+          department: dept
+        };
+
+        const res = await fetch(endpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        const data = await res.json();
+
+        if (res.ok) {
+          showFeedback(
+            'Authentication successful',
+            `Welcome, ${data.user ? data.user.name : 'User'}! Launching Employee Directory...`,
+            'success'
+          );
+          setTimeout(() => {
+            window.location.href = data.redirect || '/';
+          }, 600);
+        } else {
+          showFeedback(
+            'Unable to authenticate',
+            data.message || 'The credentials you entered could not be verified. Please try again.',
+            'error'
+          );
+          resetSubmitButton();
+        }
+      } catch (err) {
+        showFeedback('Network error', 'Unable to reach authentication service: ' + err.message, 'error');
+        resetSubmitButton();
+      }
+    }
+
+    function resetSubmitButton() {
+      isSubmitting = false;
+      const btn = document.getElementById('btnPrimarySubmit');
+      const label = document.getElementById('btnSubmitLabel');
+      const icon = document.getElementById('btnSubmitIcon');
+      btn.disabled = false;
+      label.textContent = activeAuthMode === 'signup' ? 'Create Employee Account' : 'Sign In to Dashboard';
+      icon.setAttribute('data-lucide', 'arrow-right');
+      icon.classList.remove('animate-spin');
+      lucide.createIcons();
+    }
+
+    // --- Feedback Banner UI ---
+    function showFeedback(title, message, type = 'error') {
+      const banner = document.getElementById('authFeedbackBanner');
+      const icon = document.getElementById('feedbackIcon');
+      const titleEl = document.getElementById('feedbackTitle');
+      const msgEl = document.getElementById('feedbackMessage');
+
+      banner.classList.remove('hidden');
+      titleEl.textContent = title;
+      msgEl.textContent = message;
+
+      if (type === 'success') {
+        banner.className = 'mb-5 p-3.5 rounded-xl text-xs font-medium bg-emerald-950/70 text-emerald-300 border border-emerald-500/40 flex items-start gap-2.5 transition-all';
+        icon.innerHTML = '<i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-400"></i>';
+      } else if (type === 'info') {
+        banner.className = 'mb-5 p-3.5 rounded-xl text-xs font-medium bg-indigo-950/70 text-indigo-300 border border-indigo-500/40 flex items-start gap-2.5 transition-all';
+        icon.innerHTML = '<i data-lucide="info" class="w-4 h-4 text-indigo-400"></i>';
+      } else if (type === 'warning') {
+        banner.className = 'mb-5 p-3.5 rounded-xl text-xs font-medium bg-amber-950/70 text-amber-300 border border-amber-500/40 flex items-start gap-2.5 transition-all';
+        icon.innerHTML = '<i data-lucide="alert-triangle" class="w-4 h-4 text-amber-400"></i>';
+      } else {
+        banner.className = 'mb-5 p-3.5 rounded-xl text-xs font-medium bg-rose-950/70 text-rose-300 border border-rose-500/40 flex items-start gap-2.5 transition-all';
+        icon.innerHTML = '<i data-lucide="alert-circle" class="w-4 h-4 text-rose-400"></i>';
+      }
+      lucide.createIcons();
+    }
+
+    function clearFeedback() {
+      document.getElementById('authFeedbackBanner').classList.add('hidden');
+    }
+
+    // --- URL OAuth Feedback Parser ---
+    function parseAuthUrlErrors() {
+      const params = new URLSearchParams(window.location.search);
+      const err = params.get('error');
+      if (!err) return;
+
+      if (err === 'oauth_unavailable' || err === 'oauth_not_configured') {
+        showFeedback(
+          'Google sign-in is temporarily unavailable.',
+          'Please sign in with your email and password, or configure your Google Cloud Console credentials in .env according to GOOGLE_OAUTH_SETUP.md.',
+          'warning'
+        );
+      } else if (err === 'access_denied') {
+        showFeedback(
+          'Google Authentication Cancelled',
+          'The Google Sign-In request was cancelled or consent was denied.',
+          'info'
+        );
+      } else if (err === 'invalid_state') {
+        showFeedback(
+          'Security Verification Error',
+          'CSRF state token validation failed. Please try signing in again.',
+          'error'
+        );
+      } else if (err === 'token_exchange_failed') {
+        showFeedback(
+          'OAuth Token Exchange Failed',
+          'Unable to exchange authorization code with Google OAuth servers. Check client credentials.',
+          'error'
+        );
+      } else if (err === 'userinfo_failed') {
+        showFeedback(
+          'User Profile Error',
+          'Could not retrieve user profile from Google UserInfo endpoint.',
+          'error'
+        );
+      } else if (err === 'missing_email') {
+        showFeedback(
+          'Email Required',
+          'Your Google account did not return a verified email address.',
+          'error'
+        );
+      } else {
+        showFeedback(
+          'Authentication Notice',
+          `OAuth request returned status: ${err}`,
+          'error'
+        );
+      }
+    }
+
+    // --- Initialization ---
+    document.addEventListener('DOMContentLoaded', () => {
+      lucide.createIcons();
+      parseAuthUrlErrors();
+      checkApiHealth();
+      setInterval(checkApiHealth, 15000);
+
+      const googleBtn = document.getElementById('googleAuthBtn');
+      if (googleBtn) {
+        googleBtn.addEventListener('click', () => {
+          const txt = document.getElementById('googleBtnText');
+          if (txt) txt.textContent = 'Connecting to Google...';
+        });
+      }
+    });
+  </script>
+
+</body>
+</html>
