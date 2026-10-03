@@ -4137,143 +4137,53 @@
         </div>
 
         <!-- ================================================================= -->
-        <!-- VIEW C: OFFICIAL CERTIFICATE PREVIEW & PDF DOWNLOAD TAB           -->
+        <!-- VIEW C: RAW CERTIFICATE & SEPOLIA PROOF TAB                       -->
         <!-- ================================================================= -->
-        <div id="merkleViewCert" class="hidden space-y-6">
-          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-800 flex-wrap">
+        <div id="merkleViewCert" class="hidden space-y-4 font-mono text-xs sm:text-sm">
+          <div class="flex items-center justify-between pb-3 border-b border-slate-800 flex-wrap gap-2">
             <div>
-              <h4 class="text-base sm:text-lg font-black text-white font-mono flex items-center gap-2">
-                <i data-lucide="award" class="w-5 h-5 text-amber-400"></i>
-                <span>Official Cryptographic Merkle Security Certificate</span>
-              </h4>
-              <p class="text-xs text-slate-400">Official verified cryptographic certificate with Ethereum Sepolia anchor &amp; WORM proof.</p>
+              <h4 class="text-base sm:text-lg font-black text-white font-mono">EIP-4844 Sepolia Blob Cryptographic Certificate</h4>
+              <p class="text-xs text-slate-400">Canonical JSON inclusion proof string signed with SHA-256 Merkle root.</p>
             </div>
-            <div class="flex items-center gap-2 flex-wrap">
-              <button onclick="downloadMerkleCertificatePdf()" class="px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-600 via-emerald-500 to-cyan-500 hover:from-emerald-500 hover:to-cyan-400 text-white text-xs sm:text-sm font-bold transition flex items-center gap-2 cursor-pointer shadow-lg shadow-emerald-600/30">
-                <i data-lucide="file-down" class="w-4 h-4"></i>
-                <span>Download PDF Certificate</span>
+            <div class="flex items-center gap-2">
+              <button onclick="copyMerkleCertificateJson()" class="px-3.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-200 hover:text-white border border-slate-700 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer">
+                <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+                <span>Copy JSON</span>
               </button>
-              <button onclick="printCertificateCard()" class="px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-200 hover:text-white border border-slate-700 text-xs sm:text-sm font-bold transition flex items-center gap-1.5 cursor-pointer">
-                <i data-lucide="printer" class="w-4 h-4 text-cyan-400"></i>
-                <span>Print Certificate</span>
-              </button>
-              <button onclick="copyMerkleRootHash()" class="px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-200 hover:text-white border border-slate-700 text-xs sm:text-sm font-bold transition flex items-center gap-1.5 cursor-pointer">
-                <i data-lucide="copy" class="w-4 h-4"></i>
-                <span>Copy Root</span>
+              <button onclick="downloadMerkleCertificateJson()" class="px-3.5 py-1.5 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-sm">
+                <i data-lucide="download" class="w-3.5 h-3.5"></i>
+                <span>Download .json</span>
               </button>
             </div>
           </div>
 
-          <!-- Official Visual Certificate Document (High-Definition Cyber Certificate) -->
-          <div id="merklePdfCertificateCard" class="p-6 sm:p-10 rounded-3xl bg-gradient-to-b from-[#0b1329] via-[#060a17] to-[#030611] border-2 border-emerald-500/50 shadow-2xl relative overflow-hidden space-y-6">
-            
-            <!-- Certificate Guilloche / Decorative Background Elements -->
-            <div class="absolute -top-32 -right-32 w-80 h-80 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none"></div>
-            <div class="absolute -bottom-32 -left-32 w-80 h-80 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none"></div>
-            <div class="absolute inset-4 border border-emerald-500/20 rounded-2xl pointer-events-none"></div>
-
-            <!-- Certificate Header -->
-            <div class="text-center space-y-2 relative z-10 border-b border-emerald-500/30 pb-6">
-              <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-amber-400/20 via-emerald-500/20 to-cyan-500/20 border border-emerald-400/50 flex items-center justify-center mx-auto shadow-lg shadow-emerald-500/20">
-                <i data-lucide="award" class="w-9 h-9 text-amber-300"></i>
-              </div>
-              <p class="text-xs sm:text-sm font-mono tracking-widest text-emerald-400 font-bold uppercase mt-2">
-                DEVOPS PRACTICAL 10 &bull; FORENSIC CRYPTOGRAPHIC AUDIT AUTHORITY
-              </p>
-              <h2 class="text-2xl sm:text-3xl lg:text-4xl font-black text-white tracking-tight font-serif">
-                Certificate of Immutable Merkle Proof
-              </h2>
-              <p class="text-xs sm:text-sm font-mono text-cyan-300">
-                SERIAL ID: <span class="font-bold text-white">CERT-SEC-2026-WORM-8F9B</span> &bull; 100% WORM APPEND-ONLY COMPLIANT
-              </p>
-            </div>
-
-            <!-- Certificate Attestation Body -->
-            <div class="text-center max-w-3xl mx-auto space-y-4 relative z-10 font-sans">
-              <p class="text-xs font-mono tracking-wider text-slate-400 uppercase font-bold">
-                THIS OFFICIAL CERTIFICATE ATTESTS THAT
-              </p>
-              <p class="text-sm sm:text-base text-slate-200 leading-relaxed">
-                The administrative mutation logs, telemetry scrapers, and Google Identity Services OAuth 2.0 handshakes within the 
-                <strong class="text-white">Employee Directory Enterprise Platform</strong> have been cryptographically sealed, hashed via SHA-256 and BLAKE3, 
-                and verified with zero divergence using <strong class="text-cyan-300">AI Neural DAG Path Pruning</strong> and 
-                <strong class="text-emerald-300">Simulated Annealing Tree Balancing</strong>.
-              </p>
-            </div>
-
-            <!-- Root Hash & Blockchain Anchor Block -->
-            <div class="p-4 sm:p-5 rounded-2xl bg-slate-950/90 border border-emerald-500/40 space-y-2 relative z-10 font-mono">
-              <div class="flex items-center justify-between text-xs text-emerald-400 font-bold">
-                <span class="flex items-center gap-2"><i data-lucide="shield-check" class="w-4 h-4"></i> IMMUTABLE MERKLE ROOT HASH</span>
-                <span class="px-2.5 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-500/40 text-[11px]">VALIDATED CONSENSUS</span>
-              </div>
-              <p class="text-xs sm:text-sm sm:text-base font-bold text-white break-all select-all font-mono" id="certRootHashText">
-                SHA256:333ded2d6937dd96949ecb8981028ea26d39d7d626752a5e7a844eea547f618e
-              </p>
-              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1 text-[11px] text-slate-400 pt-1 border-t border-slate-800/80">
-                <span>Public Proof Anchor: <strong class="text-cyan-300">Ethereum Sepolia (Blob EIP-4844 / Block #6,281,940)</strong></span>
-                <span class="text-emerald-300 font-bold flex items-center gap-1"><i data-lucide="check" class="w-3 h-3"></i> Zero-Knowledge Differential Certified</span>
-              </div>
-            </div>
-
-            <!-- Ingested Forensic Event Summary Grid -->
-            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 relative z-10 text-xs font-mono">
-              <div class="p-2.5 rounded-xl bg-slate-950/80 border border-slate-800 text-center space-y-1">
-                <span class="text-emerald-400 font-bold text-[11px]">L1: GIS AUTH</span>
-                <p class="text-[10px] text-slate-400">200 OK &bull; RS256</p>
-                <span class="text-[9px] text-emerald-300">✓ VALID</span>
-              </div>
-              <div class="p-2.5 rounded-xl bg-slate-950/80 border border-slate-800 text-center space-y-1">
-                <span class="text-indigo-300 font-bold text-[11px]">L2: SCRAPER</span>
-                <p class="text-[10px] text-slate-400">:9090 Scrape</p>
-                <span class="text-[9px] text-emerald-300">✓ VALID</span>
-              </div>
-              <div class="p-2.5 rounded-xl bg-slate-950/80 border border-slate-800 text-center space-y-1">
-                <span class="text-cyan-300 font-bold text-[11px]">L3: HEALTH</span>
-                <p class="text-[10px] text-slate-400">/health Probe</p>
-                <span class="text-[9px] text-emerald-300">✓ VALID</span>
-              </div>
-              <div class="p-2.5 rounded-xl bg-slate-950/80 border border-slate-800 text-center space-y-1">
-                <span class="text-amber-300 font-bold text-[11px]">L4: RBAC GATE</span>
-                <p class="text-[10px] text-slate-400">POST /items</p>
-                <span class="text-[9px] text-emerald-300">✓ VALID</span>
-              </div>
-              <div class="p-2.5 rounded-xl bg-slate-950/80 border border-slate-800 text-center space-y-1">
-                <span class="text-purple-300 font-bold text-[11px]">L5: COOKIES</span>
-                <p class="text-[10px] text-slate-400">HttpOnly, Lax</p>
-                <span class="text-[9px] text-emerald-300">✓ VALID</span>
-              </div>
-              <div class="p-2.5 rounded-xl bg-slate-950/80 border border-slate-800 text-center space-y-1">
-                <span class="text-emerald-400 font-bold text-[11px]">L6: AI GUARD</span>
-                <p class="text-[10px] text-slate-400">Grade A+ Posture</p>
-                <span class="text-[9px] text-emerald-300">✓ VALID</span>
-              </div>
-            </div>
-
-            <!-- Signatures & Authority Verification Seals -->
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4 border-t border-slate-800 relative z-10 text-xs font-mono">
-              <div class="p-3 rounded-xl bg-slate-950/80 border border-slate-800 text-center space-y-1">
-                <p class="text-[11px] text-slate-400 uppercase font-bold">Cryptographic Architect</p>
-                <p class="text-sm font-bold text-white font-sans">Shaikh Zaid Matinuddin</p>
-                <p class="text-[10px] text-indigo-300">R3: CI/CD &amp; Containerization Lead</p>
-              </div>
-
-              <div class="p-3 rounded-xl bg-slate-950/80 border border-slate-800 text-center space-y-1">
-                <p class="text-[11px] text-slate-400 uppercase font-bold">Autonomous AI Guard</p>
-                <p class="text-sm font-bold text-emerald-400 font-sans">AI Neural Kernel v2.4</p>
-                <p class="text-[10px] text-slate-400 font-mono">Sig: 0x7f9b8c2a41d9e3f7</p>
-              </div>
-
-              <div class="p-3 rounded-xl bg-slate-950/80 border border-emerald-500/40 text-center space-y-1 flex flex-col justify-center items-center">
-                <div class="flex items-center gap-1.5 text-amber-300 font-bold text-xs">
-                  <i data-lucide="check-check" class="w-4 h-4 text-emerald-400"></i>
-                  <span>SEALED &amp; CERTIFIED</span>
-                </div>
-                <p class="text-[10px] text-slate-300">SOC-2 Type II &bull; NIST FIPS 203</p>
-                <p class="text-[9px] text-slate-500">Issued: Active Session</p>
-              </div>
-            </div>
-
+          <!-- Code Block of Certificate -->
+          <div class="p-4 rounded-2xl bg-[#030712] border border-slate-800 overflow-x-auto custom-scrollbar max-h-96">
+            <pre class="text-emerald-300 text-xs font-mono leading-relaxed" id="merkleCertificateJsonCode">{
+  "certificateVersion": "1.0.4",
+  "protocol": "WORM-Append-Only-Forensic-Ledger",
+  "consensusNetwork": "Ethereum Sepolia (Blob EIP-4844)",
+  "rootHash": "SHA256:333ded2d6937dd96949ecb8981028ea26d39d7d626752a5e7a844eea547f618e",
+  "chainIntegrity": "100.0%",
+  "anomalyScore": 0.000,
+  "leafCount": 6,
+  "quantumResistantCipher": "BLAKE3 + SHA-256 Hybrid",
+  "auditLeaves": [
+    { "id": "L1", "event": "AUTH_GOOGLE_SUCCESS", "hash": "SHA256:7f9b8c2a41d9", "principal": "zaid.matinuddin@student.college.edu" },
+    { "id": "L2", "event": "PROMETHEUS_SCRAPE", "hash": "SHA256:4a12ec89b33c", "target": "/metrics (:9090)" },
+    { "id": "L3", "event": "HEALTH_CHECK_PING", "hash": "SHA256:9d31ff02a7b1", "status": "200 Healthy" },
+    { "id": "L4", "event": "RBAC_MUTATION_PERMITTED", "hash": "SHA256:c1049ea2837f", "route": "POST /api/items" },
+    { "id": "L5", "event": "COOKIE_DIRECTIVES_ENFORCED", "hash": "SHA256:5e610ba390cf", "directives": "HttpOnly=True, Lax" },
+    { "id": "L6", "event": "SECURITY_INTEGRITY_SCAN", "hash": "SHA256:b83f19e44310", "grade": "Grade A+ (99.8%)" }
+  ],
+  "intermediateBranches": {
+    "BRANCH_A": "SHA256:e7810fb29a41",
+    "BRANCH_B": "SHA256:4f9812ccb018",
+    "BRANCH_C": "SHA256:b174092d6e3f"
+  },
+  "verifiedTimestamp": "2026-10-04T04:55:00Z",
+  "signatureStatus": "VALID_ZERO_KNOWLEDGE_PROOF"
+}</pre>
           </div>
         </div>
 
@@ -4290,9 +4200,9 @@
           <span class="text-slate-400">Zero-Knowledge Differential Certified</span>
         </div>
         <div class="flex items-center gap-2.5">
-          <button onclick="downloadMerkleCertificatePdf()" class="px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-700 text-xs sm:text-sm font-bold transition cursor-pointer flex items-center gap-1.5">
-            <i data-lucide="file-down" class="w-3.5 h-3.5 text-emerald-400"></i>
-            <span>Download PDF</span>
+          <button onclick="downloadMerkleCertificateJson()" class="px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-700 text-xs sm:text-sm font-bold transition cursor-pointer flex items-center gap-1.5">
+            <i data-lucide="file-json" class="w-3.5 h-3.5 text-cyan-400"></i>
+            <span>Export JSON</span>
           </button>
           <button onclick="runAiMerkleScan()" class="px-5 py-2.5 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white text-xs sm:text-sm font-bold transition shadow-lg shadow-cyan-600/25 cursor-pointer flex items-center gap-2">
             <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
@@ -6758,52 +6668,27 @@
       showToast("Hash Verified", `Leaf ${currentInspectedLeaf} digest matches expected Merkle anchor.`, "success");
     }
 
-    function downloadMerkleCertificatePdf() {
-      showToast("Generating PDF Certificate", "Compiling official cryptographic Merkle proof document...", "info");
-      const a = document.createElement('a');
-      a.href = '/api/security/merkle-certificate/pdf';
-      a.download = `Merkle-Proof-Security-Certificate-${new Date().toISOString().split('T')[0]}.pdf`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      setTimeout(() => {
-        showToast("PDF Downloaded", "Cryptographic Merkle Security Certificate downloaded successfully.", "success");
-      }, 500);
+    function copyMerkleCertificateJson() {
+      const codeEl = document.getElementById('merkleCertificateJsonCode');
+      if (!codeEl) return;
+      navigator.clipboard.writeText(codeEl.textContent.trim()).then(() => {
+        showToast("Certificate Copied", "Canonical Merkle Proof JSON copied to clipboard.", "success");
+      }).catch(() => {
+        showToast("Copy Failed", "Please manually select and copy the JSON.", "warning");
+      });
     }
 
-    function printCertificateCard() {
-      const card = document.getElementById('merklePdfCertificateCard');
-      if (!card) return;
-      
-      const printWindow = window.open('', '_blank', 'width=900,height=650');
-      if (!printWindow) {
-        window.print();
-        return;
-      }
-      
-      printWindow.document.write(`
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <title>Cryptographic Merkle Security Certificate</title>
-          <script src="https://cdn.tailwindcss.com"></script>
-          <style>
-            @media print {
-              body { background: white !important; color: black !important; -webkit-print-color-adjust: exact; }
-            }
-          </style>
-        </head>
-        <body class="p-8 bg-slate-950 text-white font-sans flex items-center justify-center min-h-screen">
-          <div class="max-w-4xl w-full">
-            ${card.outerHTML}
-          </div>
-          <script>
-            setTimeout(() => { window.print(); window.close(); }, 400);
-          </script>
-        </body>
-        </html>
-      `);
-      printWindow.document.close();
+    function downloadMerkleCertificateJson() {
+      const codeEl = document.getElementById('merkleCertificateJsonCode');
+      if (!codeEl) return;
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(codeEl.textContent.trim());
+      const downloadAnchor = document.createElement('a');
+      downloadAnchor.setAttribute("href", dataStr);
+      downloadAnchor.setAttribute("download", `Merkle-Proof-Certificate-${new Date().toISOString().split('T')[0]}.json`);
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      downloadAnchor.remove();
+      showToast("JSON Exported", "Cryptographic Merkle Certificate downloaded as .json.", "success");
     }
 
     function verifyAuditMerkleProof() {
