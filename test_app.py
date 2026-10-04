@@ -589,3 +589,103 @@ def test_forgot_password_endpoint(client):
     )
     assert res.status_code == 200
     assert "recovery instructions" in res.get_json()["message"].lower()
+
+
+def test_oauth_diagnostic_endpoint(client, monkeypatch):
+    """Test GET /api/auth/diagnostic reports accurate provider status without leaking secrets"""
+    import app as app_module
+    monkeypatch.setattr(app_module, "GOOGLE_CLIENT_ID", "diag-google-id")
+    monkeypatch.setattr(app_module, "GOOGLE_CLIENT_SECRET", "diag-google-secret")
+    monkeypatch.setattr(app_module, "GITHUB_CLIENT_ID", "")
+    monkeypatch.setattr(app_module, "GITHUB_CLIENT_SECRET", "")
+    monkeypatch.setattr(app_module, "GITLAB_CLIENT_ID", "diag-gl-id")
+    monkeypatch.setattr(app_module, "GITLAB_CLIENT_SECRET", "")  # Invalid: ID present, secret missing
+
+    res = client.get("/api/auth/diagnostic")
+    assert res.status_code == 200
+    data = res.get_json()
+    assert data["status"] == "ok"
+    assert "providers" in data
+
+    # Check Google is CONFIGURED
+    assert data["providers"]["google"]["status"] == "CONFIGURED"
+    assert data["providers"]["google"]["client_id_present"] == "YES"
+    assert data["providers"]["google"]["client_secret_present"] == "YES"
+
+    # Check GitHub is MISSING
+    assert data["providers"]["github"]["status"] == "MISSING"
+    assert data["providers"]["github"]["client_id_present"] == "NO"
+    assert data["providers"]["github"]["client_secret_present"] == "NO"
+
+    # Check GitLab is INVALID
+    assert data["providers"]["gitlab"]["status"] == "INVALID"
+    assert data["providers"]["gitlab"]["client_id_present"] == "YES"
+    assert data["providers"]["gitlab"]["client_secret_present"] == "NO"
+
+    # CRITICAL: Verify secret values are NEVER exposed in the JSON response
+    response_text = res.data.decode("utf-8")
+    assert "diag-google-secret" not in response_text
+
+
+def test_gitlab_oauth_callback_success(client, monkeypatch):
+    """Test GET /auth/gitlab/callback token exchange, profile retrieval, and session creation"""
+    import app as app_module
+    monkeypatch.setattr(app_module, "GITLAB_CLIENT_ID", "gl-test-client-id")
+    monkeypatch.setattr(app_module, "GITLAB_CLIENT_SECRET", "gl-test-client-secret")
+
+    class MockResponse:
+        def __init__(self, json_data, status_code=200):
+            self._json_data = json_data
+            self.status_code = status_code
+
+        def json(self):
+            return self._json_data
+
+    def mock_post(url, *args, **kwargs):
+        if "gitlab.com/oauth/token" in url:
+            return MockResponse({"access_token": "gl-mock-access-token-999"})
+        return MockResponse({}, 404)
+
+    def mock_get(url, *args, **kwargs):
+        if "gitlab.com/api/v4/user" in url:
+            return MockResponse({
+                "id": 998811,
+                "name": "GitLab Engineer",
+                "username": "glengineer",
+                "email": "gitlab.dev@student.college.edu",
+                "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar.png"
+            })
+        return MockResponse({}, 404)
+
+    monkeypatch.setattr(app_module.requests, "post", mock_post)
+    monkeypatch.setattr(app_module.requests, "get", mock_get)
+
+    with client.session_transaction() as sess:
+        sess["gitlab_oauth_state"] = "gl_csrf_secret_token"
+
+    res = client.get("/auth/gitlab/callback?code=gl_code_123&state=gl_csrf_secret_token", follow_redirects=False)
+    assert res.status_code == 302
+    assert res.location in ["/", "/dashboard"]
+
+    with client.session_transaction() as sess:
+        assert sess.get("user") is not None
+        assert sess["user"]["email"] == "gitlab.dev@student.college.edu"
+        assert sess["user"]["auth_provider"] == "gitlab"
+
+
+def test_oauth_csrf_state_mismatches(client):
+    """Test CSRF state mismatch handling across GitHub and GitLab OAuth callbacks"""
+    # 1. GitHub state mismatch
+    with client.session_transaction() as sess:
+        sess["github_oauth_state"] = "expected_state_abc"
+    res = client.get("/auth/github/callback?code=some_code&state=wrong_state", follow_redirects=False)
+    assert res.status_code == 302
+    assert "error=invalid_state" in res.location
+
+    # 2. GitLab state mismatch
+    with client.session_transaction() as sess:
+        sess["gitlab_oauth_state"] = "expected_state_xyz"
+    res = client.get("/auth/gitlab/callback?code=some_code&state=wrong_state", follow_redirects=False)
+    assert res.status_code == 302
+    assert "error=invalid_state" in res.location
+

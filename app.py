@@ -3,6 +3,7 @@ Employee Directory REST API & Web Application
 Practical 10: End-to-End DevOps Pipeline (B3-G3: Employee Directory)
 """
 
+import sys
 import time
 import os
 import secrets
@@ -14,12 +15,16 @@ from datetime import timedelta
 import requests
 from dotenv import load_dotenv
 from werkzeug.security import generate_password_hash, check_password_hash
-from flask import Flask, request, jsonify, render_template, Response, session, redirect, url_for, send_from_directory
+from werkzeug.middleware.proxy_fix import ProxyFix
+from flask import Flask, request, jsonify, render_template, Response, session, redirect, url_for, send_from_directory, has_request_context
 from prometheus_client import Counter, Histogram, generate_latest, CONTENT_TYPE_LATEST
 
 load_dotenv()
 
 app = Flask(__name__)
+# Reverse proxy / Vercel compatibility for SSL and host header resolution
+app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
+
 app.secret_key = os.environ.get("SECRET_KEY", "devops-employee-directory-secret-key-2026")
 
 # Hardened Session Cookie Configuration
@@ -50,6 +55,66 @@ GITLAB_CLIENT_ID = os.environ.get("GITLAB_CLIENT_ID", "").strip()
 GITLAB_CLIENT_SECRET = os.environ.get("GITLAB_CLIENT_SECRET", "").strip()
 GITLAB_REDIRECT_URI = os.environ.get("GITLAB_REDIRECT_URI", "http://localhost:5001/auth/gitlab/callback").strip()
 GITLAB_SCOPES = os.environ.get("GITLAB_SCOPES", "read_user openid profile email").strip()
+
+
+def get_oauth_redirect_uri(provider: str) -> str:
+    """
+    Dynamically computes or validates the OAuth redirect URI for a provider.
+    - If running on a live host (such as Vercel) and the configured URI points to localhost,
+      constructs the live canonical URL matching the active request host & scheme.
+    - Otherwise returns the configured URI or default local endpoint.
+    """
+    prefix = provider.upper()
+    cur_mod = sys.modules.get(__name__)
+    mod_uri = getattr(cur_mod, f"{prefix}_REDIRECT_URI", None)
+    configured_uri = (mod_uri if mod_uri is not None else os.environ.get(f"{prefix}_REDIRECT_URI", "")).strip()
+
+    if has_request_context():
+        host = request.host.lower()
+        is_live_host = "localhost" not in host and "127.0.0.1" not in host
+        if configured_uri and is_live_host and ("localhost" in configured_uri or "127.0.0.1" in configured_uri):
+            scheme = request.headers.get("X-Forwarded-Proto", request.scheme)
+            return f"{scheme}://{request.host}/auth/{provider}/callback"
+        if not configured_uri:
+            scheme = request.headers.get("X-Forwarded-Proto", request.scheme)
+            return f"{scheme}://{request.host}/auth/{provider}/callback"
+
+    if configured_uri:
+        return configured_uri
+    return f"http://localhost:5001/auth/{provider}/callback"
+
+
+def get_oauth_config(provider: str):
+    """
+    Retrieves OAuth credentials and settings for the specified provider ('google', 'github', 'gitlab').
+    Prioritizes module-level variables (for test monkeypatching) with fallback to runtime environment variables.
+    """
+    prefix = provider.upper()
+    cur_mod = sys.modules.get(__name__)
+    mod_id = getattr(cur_mod, f"{prefix}_CLIENT_ID", None)
+    mod_secret = getattr(cur_mod, f"{prefix}_CLIENT_SECRET", None)
+
+    client_id = (mod_id if mod_id is not None else os.environ.get(f"{prefix}_CLIENT_ID", "")).strip()
+    client_secret = (mod_secret if mod_secret is not None else os.environ.get(f"{prefix}_CLIENT_SECRET", "")).strip()
+
+    redirect_uri = get_oauth_redirect_uri(provider)
+    scopes = os.environ.get(f"{prefix}_SCOPES", "").strip()
+    if not scopes:
+        if provider == "google":
+            scopes = "openid profile email"
+        elif provider == "github":
+            scopes = "read:user user:email"
+        elif provider == "gitlab":
+            scopes = "read_user openid profile email"
+
+    return {
+        "client_id": client_id,
+        "client_secret": client_secret,
+        "redirect_uri": redirect_uri,
+        "scopes": scopes,
+        "is_configured": bool(client_id and client_secret)
+    }
+
 
 # In-memory registered users store (Secured with Werkzeug PBKDF2 Password Hashes)
 registered_users = {
@@ -166,7 +231,7 @@ def record_metrics(response):
 
 # --- 1. Web UI & Protected Authentication Routes ---
 @app.route("/", methods=["GET"])
-@app.route("/dashboard", methods=["GET"])
+@app.route("/dashboard", methods=["GET"], endpoint="dashboard")
 def index():
     user = session.get("user")
     if not user or not isinstance(user, dict) or not user.get("email"):
@@ -181,7 +246,7 @@ def index():
 def login_page():
     user = session.get("user")
     if user and isinstance(user, dict) and user.get("email"):
-        return redirect(url_for("index"))
+        return redirect(url_for("dashboard"))
     return render_template("login.html")
 
 
@@ -203,7 +268,8 @@ def auth_google_redirect():
     If unconfigured in environment, redirects to /login?error=oauth_not_configured&provider=google.
     """
     action = request.args.get("action", "signin").strip().lower()
-    if not GOOGLE_CLIENT_ID or not GOOGLE_CLIENT_SECRET:
+    config = get_oauth_config("google")
+    if not config["is_configured"]:
         log_security_event("GOOGLE_AUTH_UNCONFIGURED", "Missing Client Credentials", request.remote_addr or "127.0.0.1", "anonymous", "Low")
         return redirect(url_for("login_page", error="oauth_not_configured", provider="google"))
 
@@ -215,10 +281,10 @@ def auth_google_redirect():
     log_security_event("GOOGLE_AUTH_STARTED", "Initiated", request.remote_addr or "127.0.0.1", "anonymous", "Low")
 
     auth_params = {
-        "client_id": GOOGLE_CLIENT_ID,
-        "redirect_uri": GOOGLE_REDIRECT_URI,
+        "client_id": config["client_id"],
+        "redirect_uri": config["redirect_uri"],
         "response_type": "code",
-        "scope": GOOGLE_SCOPES,
+        "scope": config["scopes"],
         "state": state,
         "access_type": "offline",
         "prompt": "select_account"
@@ -255,15 +321,16 @@ def auth_google_callback():
         log_security_event("GOOGLE_AUTH_FAILED", "Missing Authorization Code", request.remote_addr or "127.0.0.1", "anonymous", "Medium")
         return redirect(url_for("login_page", error="missing_code", provider="google"))
 
+    config = get_oauth_config("google")
     # Exchange authorization code for tokens via Google Token Endpoint
     try:
         token_resp = requests.post(
             "https://oauth2.googleapis.com/token",
             data={
                 "code": code,
-                "client_id": GOOGLE_CLIENT_ID,
-                "client_secret": GOOGLE_CLIENT_SECRET,
-                "redirect_uri": GOOGLE_REDIRECT_URI,
+                "client_id": config["client_id"],
+                "client_secret": config["client_secret"],
+                "redirect_uri": config["redirect_uri"],
                 "grant_type": "authorization_code"
             },
             headers={"Accept": "application/json"},
@@ -353,7 +420,7 @@ def auth_google_callback():
     safe_user = sanitize_user(user_info)
     session.permanent = True
     session["user"] = safe_user
-    return redirect(url_for("index"))
+    return redirect(url_for("dashboard"))
 
 
 # --- 3. GitHub OAuth 2.0 Integration ---
@@ -363,7 +430,8 @@ def auth_github_redirect():
     Initiates GitHub OAuth 2.0 authorization flow.
     If unconfigured in environment, redirects to /login?error=oauth_not_configured&provider=github.
     """
-    if not GITHUB_CLIENT_ID or not GITHUB_CLIENT_SECRET:
+    config = get_oauth_config("github")
+    if not config["is_configured"]:
         log_security_event("GITHUB_AUTH_UNCONFIGURED", "Missing Client Credentials", request.remote_addr or "127.0.0.1", "anonymous", "Low")
         return redirect(url_for("login_page", error="oauth_not_configured", provider="github"))
 
@@ -372,9 +440,9 @@ def auth_github_redirect():
     log_security_event("GITHUB_AUTH_STARTED", "Initiated", request.remote_addr or "127.0.0.1", "anonymous", "Low")
 
     params = {
-        "client_id": GITHUB_CLIENT_ID,
-        "redirect_uri": GITHUB_REDIRECT_URI,
-        "scope": GITHUB_SCOPES,
+        "client_id": config["client_id"],
+        "redirect_uri": config["redirect_uri"],
+        "scope": config["scopes"],
         "state": state
     }
     github_url = f"https://github.com/login/oauth/authorize?{urllib.parse.urlencode(params)}"
@@ -405,14 +473,15 @@ def auth_github_callback():
         log_security_event("GITHUB_AUTH_FAILED", "Missing Authorization Code", request.remote_addr or "127.0.0.1", "anonymous", "Medium")
         return redirect(url_for("login_page", error="missing_code", provider="github"))
 
+    config = get_oauth_config("github")
     try:
         token_resp = requests.post(
             "https://github.com/login/oauth/access_token",
             data={
-                "client_id": GITHUB_CLIENT_ID,
-                "client_secret": GITHUB_CLIENT_SECRET,
+                "client_id": config["client_id"],
+                "client_secret": config["client_secret"],
                 "code": code,
-                "redirect_uri": GITHUB_REDIRECT_URI
+                "redirect_uri": config["redirect_uri"]
             },
             headers={"Accept": "application/json"},
             timeout=10
@@ -507,7 +576,7 @@ def auth_github_callback():
     session.permanent = True
     session["user"] = safe_user
     log_activity("GitHub OAuth Authenticated", f"{name} ({email}) signed in via GitHub.", name, "github", "security")
-    return redirect(url_for("index"))
+    return redirect(url_for("dashboard"))
 
 
 # --- 4. GitLab OAuth 2.0 Integration ---
@@ -517,7 +586,8 @@ def auth_gitlab_redirect():
     Initiates GitLab OAuth 2.0 authorization flow.
     If unconfigured in environment, redirects to /login?error=oauth_not_configured&provider=gitlab.
     """
-    if not GITLAB_CLIENT_ID or not GITLAB_CLIENT_SECRET:
+    config = get_oauth_config("gitlab")
+    if not config["is_configured"]:
         log_security_event("GITLAB_AUTH_UNCONFIGURED", "Missing Client Credentials", request.remote_addr or "127.0.0.1", "anonymous", "Low")
         return redirect(url_for("login_page", error="oauth_not_configured", provider="gitlab"))
 
@@ -526,10 +596,10 @@ def auth_gitlab_redirect():
     log_security_event("GITLAB_AUTH_STARTED", "Initiated", request.remote_addr or "127.0.0.1", "anonymous", "Low")
 
     params = {
-        "client_id": GITLAB_CLIENT_ID,
-        "redirect_uri": GITLAB_REDIRECT_URI,
+        "client_id": config["client_id"],
+        "redirect_uri": config["redirect_uri"],
         "response_type": "code",
-        "scope": GITLAB_SCOPES,
+        "scope": config["scopes"],
         "state": state
     }
     gitlab_url = f"https://gitlab.com/oauth/authorize?{urllib.parse.urlencode(params)}"
@@ -558,15 +628,16 @@ def auth_gitlab_callback():
         log_security_event("GITLAB_AUTH_FAILED", "Missing Authorization Code", request.remote_addr or "127.0.0.1", "anonymous", "Medium")
         return redirect(url_for("login_page", error="missing_code", provider="gitlab"))
 
+    config = get_oauth_config("gitlab")
     try:
         token_resp = requests.post(
             "https://gitlab.com/oauth/token",
             data={
-                "client_id": GITLAB_CLIENT_ID,
-                "client_secret": GITLAB_CLIENT_SECRET,
+                "client_id": config["client_id"],
+                "client_secret": config["client_secret"],
                 "code": code,
                 "grant_type": "authorization_code",
-                "redirect_uri": GITLAB_REDIRECT_URI
+                "redirect_uri": config["redirect_uri"]
             },
             headers={"Accept": "application/json"},
             timeout=10
@@ -646,7 +717,53 @@ def auth_gitlab_callback():
     session.permanent = True
     session["user"] = safe_user
     log_activity("GitLab OAuth Authenticated", f"{name} ({email}) signed in via GitLab.", name, "gitlab", "security")
-    return redirect(url_for("index"))
+    return redirect(url_for("dashboard"))
+
+
+# --- Safe OAuth Diagnostic Endpoint (Phase 9) ---
+@app.route("/api/auth/diagnostic", methods=["GET"])
+@app.route("/api/auth/oauth-status", methods=["GET"])
+def auth_diagnostic():
+    """
+    Safe OAuth & Identity Configuration Diagnostic.
+    Reports configuration status (CONFIGURED / MISSING / INVALID) without leaking secret credentials.
+    Usable both locally and in production.
+    """
+    diagnostics = {}
+    for prov in ["google", "github", "gitlab"]:
+        cfg = get_oauth_config(prov)
+        has_id = bool(cfg["client_id"])
+        has_secret = bool(cfg["client_secret"])
+        has_redirect = bool(cfg["redirect_uri"])
+
+        if has_id and has_secret and has_redirect:
+            prov_status = "CONFIGURED"
+        elif not has_id and not has_secret:
+            prov_status = "MISSING"
+        else:
+            prov_status = "INVALID"
+
+        diagnostics[prov] = {
+            "client_id_present": "YES" if has_id else "NO",
+            "client_secret_present": "YES" if has_secret else "NO",
+            "redirect_uri_present": "YES" if has_redirect else "NO",
+            "client_id": "CONFIGURED" if has_id else "MISSING",
+            "client_secret": "CONFIGURED" if has_secret else "MISSING",
+            "redirect_uri": cfg["redirect_uri"] if has_redirect else "MISSING",
+            "status": prov_status
+        }
+
+    is_vercel = bool(os.environ.get("VERCEL"))
+    env_name = os.environ.get("VERCEL_ENV", "production" if is_vercel else "development")
+
+    return jsonify({
+        "status": "ok",
+        "environment": env_name,
+        "is_vercel": is_vercel,
+        "base_url": request.host_url.rstrip("/"),
+        "providers": diagnostics
+    }), 200
+
 
 
 # --- 5. Auth API Endpoints (Direct JSON APIs & Session Verification) ---
