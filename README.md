@@ -1,313 +1,527 @@
-# Employee Directory — Enterprise Distributed Cloud & DevOps Platform
-
 <div align="center">
 
-![Employee Directory Logo](static/logo_text_badge.jpg)
+<img src="static/logo_text_badge.jpg" alt="Employee Directory" width="140" />
 
-**Next-Generation Personnel Intelligence, RBAC Security Governance & Autonomous Observability Platform**
+# Employee Directory
 
-[![CI/CD Pipeline](https://img.shields.io/badge/CI%2FCD-GitHub%20Actions-blue?style=for-the-badge&logo=githubactions&logoColor=white)](https://github.com/ZAID78650)
-[![Docker](https://img.shields.io/badge/Docker-Containerized-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com)
-[![Prometheus](https://img.shields.io/badge/Telemetry-Prometheus-E6522C?style=for-the-badge&logo=prometheus&logoColor=white)](https://prometheus.io)
-[![Grafana](https://img.shields.io/badge/Monitoring-Grafana-F46800?style=for-the-badge&logo=grafana&logoColor=white)](https://grafana.com)
-[![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
-[![Security](https://img.shields.io/badge/Security-WORM%20Merkle%20DAG-059669?style=for-the-badge&logo=shield&logoColor=white)](https://github.com/ZAID78650)
+### Enterprise Workforce Management Platform with an End-to-End DevOps Pipeline
+
+*Flask REST services · Google OAuth 2.0 · RBAC · Forensic Audit Ledger · Prometheus & Grafana · Docker · GitHub Actions*
+
+<br/>
+
+[![CI/CD](https://img.shields.io/badge/CI%2FCD-GitHub%20Actions-2088FF?style=for-the-badge&logo=githubactions&logoColor=white)](.github/workflows/ci-cd.yml)
+[![Python](https://img.shields.io/badge/Python-3.10-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
+[![Flask](https://img.shields.io/badge/Flask-3.0.3-000000?style=for-the-badge&logo=flask&logoColor=white)](https://flask.palletsprojects.com/)
+[![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?style=for-the-badge&logo=docker&logoColor=white)](docker-compose.yml)
+[![Prometheus](https://img.shields.io/badge/Prometheus-Metrics-E6522C?style=for-the-badge&logo=prometheus&logoColor=white)](prometheus.yml)
+[![Grafana](https://img.shields.io/badge/Grafana-Dashboards-F46800?style=for-the-badge&logo=grafana&logoColor=white)](grafana/)
+[![Tests](https://img.shields.io/badge/Tests-17%2F17%20Passing-22C55E?style=for-the-badge&logo=pytest&logoColor=white)](test_app.py)
+
+**ASDD — Agile Software Development & DevOps Lab · Practical 10 · Batch B3 / Group B3-G3**
+
+[Introduction](#-introduction) ·
+[Architecture](#-workflow-architecture) ·
+[Implementation](#-implementation) ·
+[Core Functioning](#-core-functioning) ·
+[Tech Stack](#-tech-stack) ·
+[Quick Start](#-quick-start) ·
+[API](#-api-reference) ·
+[Conclusion](#-conclusion)
 
 </div>
 
 ---
 
-## 📑 Table of Contents
-1. [Introduction](#-introduction)
-2. [Workflow Architecture Diagram](#-workflow-architecture-diagram)
-3. [Implementation Details](#-implementation-details)
-4. [Core Functioning & Key Features](#-core-functioning--key-features)
-5. [Tech Stack](#-tech-stack)
-6. [DevOps Practical 10 Role Mapping](#-devops-practical-10-role-mapping)
-7. [API Endpoints Reference](#-api-endpoints-reference)
-8. [Quick Start & Setup Guide](#-quick-start--setup-guide)
-9. [Automated Testing](#-automated-testing)
-10. [Conclusion](#-conclusion)
+## 📖 Introduction
+
+**Employee Directory** is a full-stack workforce management platform built to demonstrate a complete, production-style **DevOps lifecycle**: from Agile planning and version control to automated testing, containerization, deployment, and live monitoring.
+
+On the surface it is a modern, dark-themed admin dashboard for managing employees, departments, attendance, and access control. Underneath, every layer follows DevOps best practices:
+
+| Goal | How it is achieved |
+| :--- | :--- |
+| **Plan** | Jira epics & user stories (`EMP-1xx`) tracked per sprint |
+| **Code** | Feature branches (`feature/EMP-102-rest-endpoints`) merged into `main` |
+| **Build & Test** | GitHub Actions runs **17 pytest tests** on every push and pull request |
+| **Package** | Docker image built from a slim Python 3.10 base with a built-in healthcheck |
+| **Deploy** | Docker Compose starts the app, Prometheus, and Grafana on one bridge network |
+| **Monitor** | Prometheus scrapes `/metrics` every **5 s**; Grafana visualizes traffic & latency |
+
+### ✨ Highlights
+
+- 🔐 **Secure authentication**: Google OAuth 2.0 (authorization-code flow with CSRF `state` validation) and email/password sign-up, backed by signed, `HttpOnly` Flask session cookies.
+- 👥 **Workforce management**: search, filter, sort, paginate, create, update, and delete employees, then export to CSV.
+- ⏱️ **Attendance tracking**: check-in/out, work-mode switching (office / remote / hybrid), leave requests, and timesheet export.
+- 🛡️ **Security center**: posture scoring, RBAC probe, session inspector, token tester, and a security-event feed.
+- 🌳 **Forensic audit ledger**: audit events are hashed into a **SHA-256 Merkle tree**. The UI verifies the root hash, inspects proof paths per leaf, and exports a canonical JSON proof certificate.
+- 📊 **Observability**: request counters and latency histograms exposed in Prometheus format.
+- 🎨 **Polished UI**: glassmorphic design built with Tailwind CSS, Chart.js analytics, and an animated, interactive particle-constellation background rendered on HTML5 Canvas.
 
 ---
 
-## 🌟 Introduction
+## 🏛️ Workflow Architecture
 
-The **Employee Directory Platform** is an enterprise-grade, microservices-ready distributed web application designed for comprehensive workforce lifecycle management, cryptographic audit verification, role-based governance, and real-time observability.
-
-Engineered as part of the **Agile Software Development & DevOps Lab (Practical 10)**, the system combines high-performance **Flask REST microservices**, **Google OAuth 2.0 / OIDC Identity Services**, an immutable **WORM (Write-Once-Read-Many) Forensic Merkle Tree Verification Engine**, and full-stack **Prometheus & Grafana telemetry scraping**.
-
-### Key Architectural Highlights
-- **Zero-Trust Identity**: Official Google Identity Services (GIS) One-Tap & OAuth 2.0 PKCE authentication flow.
-- **Cryptographic Auditability**: WORM append-only forensic audit trail verified against Ethereum Sepolia public blob anchors via multi-tier SHA-256 Merkle proofs.
-- **AI-Accelerated Scanning**: 5 cryptographic scanning kernels (*Neural DAG Pruner*, *Simulated Annealing Tree Balancer*, *Genetic Hash Entropy Optimizer*, *Convex Hull Batch Gate*, and *ZK-Transformer*).
-- **Immersive Cyber Interface**: Glassmorphic UI with GPU-accelerated interactive quantum particle constellation engine, animated aurora gradient plasma meshes, and real-time Chart.js telemetry visualization.
-- **Production DevOps Pipeline**: Automated GitHub Actions continuous integration, 17/17 pytest validation coverage, multi-stage Docker builds, and multi-container Docker Compose orchestration.
-
----
-
-## 🏛️ Workflow Architecture Diagram
-
-The end-to-end operational and DevOps architectural lifecycle is illustrated in the diagram below:
+### 1. System Architecture
 
 ```mermaid
-flowchart TD
-    subgraph ClientLayer["🖥️ Client & Authentication Layer"]
-        User["👤 System Administrator / Employee"]
-        UI["✨ Cyber Glassmorphic UI / SPA Controller"]
-        GIS["🔑 Google Identity Services (OAuth 2.0 / OIDC)"]
-        User -->|Interacts| UI
-        UI -->|Authenticate| GIS
-        GIS -->|RS256 JWT Callback| UI
+flowchart LR
+    subgraph Client["🖥️ Browser"]
+        UI["Dashboard SPA<br/>(Tailwind · Chart.js · Canvas)"]
+        Login["Login / Sign-up Page"]
     end
 
-    subgraph AppLayer["⚙️ Core Application Engine (Flask REST)"]
-        Router["⚡ HTTP Router & RBAC Gatekeeper"]
-        AuthModule["🔐 Auth & Session Controller (AES-256)"]
-        EmployeeAPI["👥 Personnel Management API"]
-        AttendanceAPI["⏱️ Biometric & Geolocation Check-in"]
-        MerkleEngine["🌳 WORM Merkle DAG Proof Engine"]
-        MetricsModule["📊 Prometheus Metrics Collector"]
-
-        UI -->|REST / JSON API Calls| Router
-        Router --> AuthModule
-        Router --> EmployeeAPI
-        Router --> AttendanceAPI
-        Router --> MerkleEngine
-        Router --> MetricsModule
+    subgraph Google["🔑 Google Cloud"]
+        OAuth["OAuth 2.0<br/>Authorization Server"]
     end
 
-    subgraph AISecurity["🧠 Cryptographic AI & Optimization Kernels"]
-        K1["Neural DAG Pruner (O(1) Fast Path)"]
-        K2["Simulated Annealing Tree Balancer"]
-        K3["Genetic Hash Entropy Optimizer"]
-        K4["Convex Hull Geometric Gate"]
-        K5["ZK-Transformer (Microsecond SNARK)"]
-
-        MerkleEngine --> K1
-        MerkleEngine --> K2
-        MerkleEngine --> K3
-        MerkleEngine --> K4
-        MerkleEngine --> K5
+    subgraph App["⚙️ Flask Application :5001"]
+        direction TB
+        Auth["Auth & Session Layer<br/>/auth/* · /api/auth/*"]
+        Core["Employee & Department APIs<br/>/items · /api/employees"]
+        Att["Attendance APIs<br/>/api/attendance/*"]
+        Sec["Security & Audit APIs<br/>/api/security/*"]
+        Mem[("In-memory<br/>data store")]
+        Met["Prometheus Instrumentation<br/>/metrics"]
+        Auth --> Mem
+        Core --> Mem
+        Att --> Mem
+        Sec --> Mem
     end
 
-    subgraph Observability["📈 Monitoring & Observability Stack"]
-        Prometheus["🔥 Prometheus Scraper (Port :9090)"]
-        Grafana["📊 Grafana Visual Dashboards (Port :3000)"]
-        PromScrapeTarget["Endpoint: /metrics (:5001)"]
-
-        MetricsModule --> PromScrapeTarget
-        Prometheus -->|Scrapes Every 5s| PromScrapeTarget
-        Grafana -->|Queries PromQL| Prometheus
+    subgraph Obs["📈 Observability"]
+        Prom["Prometheus :9090"]
+        Graf["Grafana :3000"]
     end
 
-    subgraph DevOpsPipeline["🚀 DevOps CI/CD & Deployment Pipeline"]
-        GitRepo["🐙 GitHub Repository (ZAID78650)"]
-        GHA["⚙️ GitHub Actions CI Pipeline"]
-        PytestRunner["🧪 Automated Pytest Suite (17 Tests)"]
-        DockerHub["🐳 Docker Image Build & Push"]
-        Compose["📦 Docker Compose Orchestrator"]
+    Login -->|"Sign in with Google"| OAuth
+    OAuth -->|"callback + code"| Auth
+    UI -->|"REST / JSON"| Core
+    UI --> Att
+    UI --> Sec
+    Prom -->|"scrape every 5s"| Met
+    Graf -->|"PromQL"| Prom
+```
 
-        GitRepo -->|git push main| GHA
-        GHA --> PytestRunner
-        PytestRunner -->|Pass 100%| DockerHub
-        DockerHub --> Compose
-        Compose -->|Runs Container| Router
+### 2. CI/CD Pipeline
+
+```mermaid
+flowchart LR
+    Dev["👨‍💻 Developer"] -->|"git push"| GH["🐙 GitHub<br/>main / feature/*"]
+    GH --> J1
+
+    subgraph GHA["⚙️ GitHub Actions — ci-cd.yml"]
+        J1["Job 1: build-and-test<br/>Python 3.10 · pip install<br/>pytest -v --junitxml"]
+        J2["Job 2: docker-build-push<br/>Buildx · login · build"]
+        J1 -->|"✅ tests pass<br/>(main only)"| J2
     end
+
+    J2 -->|"push :latest & :sha"| Hub["🐳 Docker Hub"]
+    Hub -->|"docker compose up"| Run["📦 App + Prometheus + Grafana"]
+```
+
+### 3. Google OAuth 2.0 Sign-in Flow
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor U as User
+    participant B as Browser
+    participant F as Flask App
+    participant G as Google OAuth
+
+    U->>B: Click "Sign in with Google"
+    B->>F: GET /auth/google
+    F->>F: Generate CSRF state, store in session
+    F-->>B: 302 → Google consent screen
+    B->>G: Authorize (client_id, scope, state)
+    G-->>B: 302 → /auth/google/callback?code&state
+    B->>F: GET /auth/google/callback
+    F->>F: Validate state (reject on mismatch)
+    F->>G: Exchange code for tokens
+    G-->>F: access_token + id_token
+    F->>G: Fetch user profile (email, name, picture)
+    F->>F: Create signed session cookie
+    F-->>B: 302 → /dashboard
 ```
 
 ---
 
-## 🛠️ Implementation Details
+## 🛠️ Implementation
 
-### 1. Zero-Trust Authentication & Google OAuth 2.0
-- Integrates Google Identity Services (GIS) One-Tap login and standard OAuth 2.0 authorization code flow.
-- Secures user state with `HttpOnly`, `SameSite=Lax`, and cryptographically signed session cookies.
-- Fallback support for administrative passkeys and role-based test credential provisioning.
+### Project Structure
 
-### 2. Forensic WORM Merkle DAG & AI Optimization Kernels
-- Ingests 6 critical administrative and telemetry forensic leaves:
-  1. `L1`: Google Authentication Handshake (`AUTH_GOOGLE_SUCCESS`)
-  2. `L2`: Prometheus Scraper Telemetry Event (`PROMETHEUS_SCRAPE`)
-  3. `L3`: Cluster Health Probe (`HEALTH_CHECK_PING`)
-  4. `L4`: Role-Based Access Mutation (`RBAC_MUTATION_PERMITTED`)
-  5. `L5`: Security Cookie Directives (`COOKIE_DIRECTIVES_ENFORCED`)
-  6. `L6`: AI Neural Security Integrity Scan (`SECURITY_INTEGRITY_SCAN`)
-- Computes SHA-256 branch hashes `H(L1+L2)`, `H(L3+L4)`, `H(L5+L6)` to construct the immutable Merkle Root `SHA256:333ded2d6937dd96949ecb8981028ea26d39d7d626752a5e7a844eea547f618e`.
-- Offers real-time anomaly isolation and auto-healing from append-only forensic state.
+```text
+Employee-Directory/
+├── app.py                      # Flask app: routes, auth, APIs, metrics
+├── test_app.py                 # 17 pytest unit & integration tests
+├── requirements.txt            # Pinned Python dependencies
+├── Dockerfile                  # python:3.10-slim image + healthcheck
+├── docker-compose.yml          # app + prometheus + grafana stack
+├── prometheus.yml              # Scrape config for Docker network
+├── prometheus_local.yml        # Scrape config for local (non-Docker) runs
+├── .env.example                # Environment variable template
+├── GOOGLE_OAUTH_SETUP.md       # Step-by-step Google Cloud credential guide
+├── PROJECT_REPORT.md           # Practical 10 project report
+├── .github/workflows/
+│   └── ci-cd.yml               # Build → Test → Docker pipeline
+├── grafana/provisioning/
+│   ├── datasources/            # Auto-wires Prometheus as a datasource
+│   └── dashboards/             # Pre-provisioned dashboards
+├── templates/
+│   ├── login.html              # Auth page (Google + email/password)
+│   └── index.html              # Main dashboard SPA
+└── static/                     # Logos, backgrounds, images
+```
 
-### 3. High-Performance Quantum Constellation Background Canvas
-- Custom 2D hardware-accelerated Canvas engine running at 60 FPS.
-- Generates 65 multi-colored floating quantum nodes connected by dynamic distance-weighted constellation interconnect lines.
-- Periodically dispatches shooting cyber data packets across linked edges to visualize real-time network throughput.
-- Full interactive gravitational mouse spring attraction and laser beam tracking.
+### Key Implementation Details
+
+<details open>
+<summary><b>🔐 Authentication & Sessions</b></summary>
+
+- `/auth/google` builds the Google authorization URL and stores a random **CSRF `state`** in the session.
+- `/auth/google/callback` rejects any `state` mismatch and handles `access_denied`, token-exchange failures, and missing emails, each with a user-friendly error banner.
+- If Google credentials are not configured, the app falls back gracefully (`?error=oauth_unavailable`) so email/password login keeps working.
+- Session cookies are signed with `SECRET_KEY` and are `HttpOnly` (Flask default), so they can't be read by page JavaScript.
+</details>
+
+<details>
+<summary><b>👥 Employee, Department & Search APIs</b></summary>
+
+- `/items` provides the original rubric-compliant CRUD API, with input validation that returns `400` on missing fields.
+- `/api/employees` is the richer dashboard API, supporting filtering, sorting, pagination, and `PUT` updates.
+- `/api/search` offers global search across employees, departments, and actions.
+- `/api/export/csv` streams the full directory as a downloadable CSV file.
+</details>
+
+<details>
+<summary><b>⏱️ Attendance Module</b></summary>
+
+- Check-in/check-out toggling with timestamps (`/api/attendance/checkin`).
+- Work-mode switching between office, remote, and hybrid (`/api/attendance/mode`).
+- Leave requests (`/api/attendance/leave`) and CSV timesheet export (`/api/attendance/export`).
+</details>
+
+<details>
+<summary><b>🌳 Forensic Audit Ledger & Merkle Verification</b></summary>
+
+- Six audit events (Google auth, Prometheus scrape, health ping, RBAC mutation, cookie policy, security scan) form the **leaves** of the tree.
+- Leaves are hashed with SHA-256, combined in pairs into three branch nodes, and rolled up into a single **Merkle root**.
+- `/api/security/merkle-verify` recomputes the tree. You can choose one of five selectable scan strategies (Neural DAG Pruner, Simulated Annealing, Genetic Entropy, Convex Hull, ZK-Transformer); each reports simulated latency, throughput, and compression telemetry for demonstration.
+- In the UI you can inspect any leaf's proof path, inject a simulated tamper anomaly to watch detection and recovery, and export the proof as a canonical **JSON certificate** (`/api/security/merkle-certificate`).
+
+> [!NOTE]
+> The public-chain anchor (Ethereum Sepolia) and the AI scan "kernels" are **simulated for demonstration**. The SHA-256 hashing and Merkle root computation are real.
+</details>
+
+<details>
+<summary><b>📊 Prometheus Instrumentation</b></summary>
+
+Two metrics are recorded for every request through Flask `before_request` / `after_request` hooks:
+
+| Metric | Type | Labels |
+| :--- | :--- | :--- |
+| `http_requests_total` | Counter | `method`, `endpoint`, `status` |
+| `http_request_duration_seconds` | Histogram | `endpoint` |
+</details>
+
+<details>
+<summary><b>🎨 Frontend</b></summary>
+
+- A single-page dashboard (`index.html`) with hash-based tab routing for 11 views: Overview, Employees, Departments, Analytics, Attendance, Activity, Reports, Security, RBAC, Audit, and Health.
+- A Canvas background engine draws glowing particles, constellation links, travelling "data packets", and cursor-reactive beams. It pauses automatically when the browser tab is hidden to save CPU.
+- Toast notifications, modals, drawers, and smooth view transitions throughout.
+</details>
 
 ---
 
-## 🎯 Core Functioning & Key Features
+## ⚙️ Core Functioning
 
-| Feature Module | Capabilities |
+```mermaid
+flowchart TD
+    A["User opens /"] --> B{"Session valid?"}
+    B -- No --> C["/login<br/>Google OAuth or Email"]
+    C --> D["Session cookie issued"]
+    B -- Yes --> E["/dashboard"]
+    D --> E
+    E --> F["Overview · KPIs & charts"]
+    E --> G["Employees · CRUD, search, CSV"]
+    E --> H["Attendance · check-in, leave"]
+    E --> I["Security · posture, RBAC, audit"]
+    I --> J["Merkle verify → JSON certificate"]
+    E -.->|"every request"| K["Prometheus counters<br/>& latency histograms"]
+```
+
+| Module | What it does |
 | :--- | :--- |
-| **Directory Master View** | Instant personnel search, multi-field filtering by department/status, sorting, pagination, and CSV export. |
-| **Personnel Provisioning Modal** | 3-tab creation wizard (*Identity Profile*, *Role & Department*, *Access & Permissions*) with instant avatar preview. |
-| **Real-time Analytics** | Live department headcount distribution donuts and organizational growth velocity charts powered by Chart.js. |
-| **Biometric Attendance** | Live clock-in/clock-out tracking, status badges, geolocation stamping, and exportable timesheets. |
-| **RBAC Matrix** | Granular permission inspection for Tier 1 to Tier 4 roles (*Admin*, *Security Analyst*, *DevOps Lead*, *Member*). |
-| **Forensic Audit Ledger** | Chronological record of administrative events with instant SHA-256 cryptographic verification and CSV export. |
-| **Merkle Proof Certificate** | High-contrast canonical JSON proof certificate generator with one-click copy and `.json` download. |
-| **Autonomous AI Copilot** | Interactive natural-language dialog for querying directory stats, security health, and cluster metrics. |
+| **Overview** | Live KPIs (headcount, active staff, departments) plus growth and department-distribution charts |
+| **Employees** | Searchable, sortable, paginated table; a 3-tab "Add Employee" wizard; detail drawer; CSV export |
+| **Departments** | Department cards with headcount and leadership |
+| **Analytics** | Hiring velocity and department performance charts |
+| **Attendance** | Check-in/out, work mode, leave requests, timesheet export |
+| **Activity / Reports** | Chronological activity feed and downloadable reports |
+| **Security** | Posture score, session inspector, token tester, RBAC probe |
+| **RBAC** | Role-to-permission matrix (Admin, Security Analyst, DevOps Lead, Member) |
+| **Audit** | Forensic event ledger, Merkle proof verification, JSON certificate export |
+| **Health** | Service uptime, latency, and dependency status (`/api/system/health`) |
 
 ---
 
 ## 💻 Tech Stack
 
-```
-Frontend:
-├── HTML5 / Semantic DOM Architecture
-├── Tailwind CSS 3.4 (Custom Glassmorphic Theme)
-├── Lucide Icons (Unified Modern Iconography)
-├── Chart.js 4.4 (Dynamic Data Visualizations)
-└── HTML5 Canvas API (Quantum Particle Background Engine)
-
-Backend:
-├── Python 3.10+
-├── Flask 3.0.3 (WSGI REST API Server)
-├── Werkzeug 3.0.3 (Routing & Security Utilities)
-└── Python-Dotenv (Environment Configuration)
-
-Testing & Quality Assurance:
-├── Pytest 8.2.2 (Unit & Integration Testing)
-└── AnyIO (Asynchronous Test Runners)
-
-Monitoring & Observability:
-├── Prometheus Client 0.20.0 (Python Metric Exporter)
-├── Prometheus Server 2.50+ (Time-Series Metric Scraping)
-└── Grafana 10.3+ (Visual Observability Dashboards)
-
-DevOps & Infrastructure:
-├── Docker (Multi-Stage Container Builds)
-├── Docker Compose (Multi-Service Orchestration)
-└── GitHub Actions (Continuous Integration & Automated Testing)
-```
+| Layer | Technologies |
+| :--- | :--- |
+| **Backend** | ![Python](https://img.shields.io/badge/-Python%203.10-3776AB?logo=python&logoColor=white) ![Flask](https://img.shields.io/badge/-Flask%203.0.3-000000?logo=flask&logoColor=white) ![Werkzeug](https://img.shields.io/badge/-Werkzeug%203.0.3-333333) ![dotenv](https://img.shields.io/badge/-python--dotenv-ECD53F?logoColor=black) |
+| **Frontend** | ![HTML5](https://img.shields.io/badge/-HTML5-E34F26?logo=html5&logoColor=white) ![Tailwind](https://img.shields.io/badge/-Tailwind%20CSS-06B6D4?logo=tailwindcss&logoColor=white) ![Chart.js](https://img.shields.io/badge/-Chart.js-FF6384?logo=chartdotjs&logoColor=white) ![Lucide](https://img.shields.io/badge/-Lucide%20Icons-F56565) ![Canvas](https://img.shields.io/badge/-HTML5%20Canvas-E34F26) |
+| **Auth** | ![Google](https://img.shields.io/badge/-Google%20OAuth%202.0-4285F4?logo=google&logoColor=white) ![Requests](https://img.shields.io/badge/-requests%202.32-2CA5E0) |
+| **Testing** | ![Pytest](https://img.shields.io/badge/-pytest%208.2.2-0A9EDC?logo=pytest&logoColor=white) |
+| **Monitoring** | ![Prometheus](https://img.shields.io/badge/-Prometheus-E6522C?logo=prometheus&logoColor=white) ![prometheus_client](https://img.shields.io/badge/-prometheus__client%200.20-E6522C) ![Grafana](https://img.shields.io/badge/-Grafana-F46800?logo=grafana&logoColor=white) |
+| **DevOps** | ![Docker](https://img.shields.io/badge/-Docker-2496ED?logo=docker&logoColor=white) ![Compose](https://img.shields.io/badge/-Docker%20Compose-2496ED?logo=docker&logoColor=white) ![GitHub Actions](https://img.shields.io/badge/-GitHub%20Actions-2088FF?logo=githubactions&logoColor=white) ![Jira](https://img.shields.io/badge/-Jira-0052CC?logo=jira&logoColor=white) |
 
 ---
 
-## 👥 DevOps Practical 10 Role Mapping
+## 🚀 Quick Start
 
-| Role Designation | Team Member | Responsibilities & Deliverables |
-| :--- | :--- | :--- |
-| **Roll 67 (R1)** | Agile Planner & Documentation Lead | Sprint backlog planning, Jira User Stories (`EMP-115` to `EMP-128`), and project reporting. |
-| **Roll 56 (R2)** | Developer & Version Control | Flask microservices, REST API endpoints, security middleware, and Git branch management. |
-| **Roll 60 (R3)** | CI/CD & Containerization Engineer | Automated GitHub Actions CI workflow, Dockerfile optimization, and automated pytest validation. |
-| **Roll 61 (R4)** | Deployment & Monitoring Engineer | Docker Compose orchestration, Prometheus metrics scraping, and Grafana dashboard visualization. |
+### Prerequisites
+- Python **3.10+**
+- *(Optional)* Docker & Docker Compose
+- *(Optional)* Google Cloud OAuth credentials, see [`GOOGLE_OAUTH_SETUP.md`](GOOGLE_OAUTH_SETUP.md)
 
----
-
-## 📡 API Endpoints Reference
-
-### Core Personnel API
-- `GET /health` — Service health probe and uptime status.
-- `GET /items` — Ingests employee records with optional `?search=` and `?department=` filters.
-- `POST /items` — Provisions a new employee record with input validation.
-- `GET /items/<id>` — Retrieves details of an individual employee.
-- `DELETE /items/<id>` — Removes an employee from the directory.
-- `GET /api/export/csv` — Generates and downloads the full directory database as a CSV file.
-
-### Security & Cryptographic Proof API
-- `POST /api/security/merkle-verify` — Executes AI heuristic scanning on WORM audit leaves and returns integrity score.
-- `GET /api/security/merkle-certificate` — Returns canonical JSON Merkle root certificate and inclusion proofs.
-- `GET /api/security/scan` — Runs automated security posture and SSL/cookie compliance audits.
-
-### Attendance & Telemetry API
-- `GET /api/attendance` — Returns active attendance roster and status summary.
-- `POST /api/attendance/checkin` — Toggles check-in / check-out state for a user.
-- `GET /metrics` — Exposes Prometheus scrapable metric counters and latency histograms.
-
----
-
-## 🚀 Quick Start & Setup Guide
-
-### Option 1: Native Python Environment
+### Option A: Run Locally
 
 ```bash
-# 1. Clone the repository
+# 1. Clone
 git clone https://github.com/ZAID78650/Employee-Directory.git
 cd Employee-Directory
 
-# 2. Configure Environment Variables
-cp .env.example .env
+# 2. Create a virtual environment (recommended)
+python3 -m venv .venv && source .venv/bin/activate
 
 # 3. Install dependencies
 pip install -r requirements.txt
 
-# 4. Execute Automated Test Suite (17 Tests)
+# 4. Configure environment
+cp .env.example .env        # then edit SECRET_KEY / Google credentials
+
+# 5. Run tests
 pytest -v
 
-# 5. Start the Application Server
+# 6. Start the server
 python app.py
 ```
 
-Access the application at [http://localhost:5001](http://localhost:5001).
+Open **http://localhost:5001** in your browser.
 
----
-
-### Option 2: Docker Compose Orchestration
+### Option B: Run the Full Stack with Docker Compose
 
 ```bash
-# Build and launch App + Prometheus + Grafana in detached mode
 docker compose up --build -d
+docker compose ps          # all three services should show as running/healthy
 ```
 
-| Service | Target Port | URL | Default Credentials |
-| :--- | :--- | :--- | :--- |
-| **Employee Directory UI** | `5001` | [http://localhost:5001](http://localhost:5001) | *Direct Access* |
-| **Prometheus Telemetry** | `9090` | [http://localhost:9090](http://localhost:9090) | *No Auth* |
-| **Grafana Monitoring** | `3000` | [http://localhost:3000](http://localhost:3000) | `admin` / `admin` |
+| Service | URL | Credentials |
+| :--- | :--- | :--- |
+| 🧑‍💼 Employee Directory | http://localhost:5001 | Sign up or use Google |
+| ❤️ Health check | http://localhost:5001/health | — |
+| 📈 Raw metrics | http://localhost:5001/metrics | — |
+| 🔥 Prometheus | http://localhost:9090 | — |
+| 📊 Grafana | http://localhost:3000 | `admin` / `admin` |
+
+Stop the stack with `docker compose down`.
+
+### ⚙️ Environment Variables
+
+| Variable | Purpose | Example |
+| :--- | :--- | :--- |
+| `PORT` | HTTP port | `5001` |
+| `SECRET_KEY` | Signs session cookies, **change in production** | random 32+ char string |
+| `GOOGLE_CLIENT_ID` | Google OAuth client ID | `xxxx.apps.googleusercontent.com` |
+| `GOOGLE_CLIENT_SECRET` | Google OAuth client secret | `GOCSPX-...` |
+| `GOOGLE_REDIRECT_URI` | OAuth callback URL | `http://localhost:5001/auth/google/callback` |
+| `GOOGLE_SCOPES` | Requested scopes | `openid email profile` |
+
+> [!IMPORTANT]
+> Never commit your real `.env`. It is already listed in `.gitignore`.
 
 ---
 
-## 🧪 Automated Testing
+## 📡 API Reference
 
-The repository includes comprehensive automated tests covering authentication, REST endpoints, RBAC permission checks, Google OAuth redirects, attendance logging, and Merkle proof integrity:
+<details open>
+<summary><b>Core & Health</b></summary>
+
+| Method | Endpoint | Description |
+| :---: | :--- | :--- |
+| `GET` | `/health` | Service health probe |
+| `GET` | `/items` | List employees (`?search=`, `?department=`) |
+| `POST` | `/items` | Create employee (`name`, `role`, `department` required) |
+| `GET` | `/items/<id>` | Get one employee |
+| `DELETE` | `/items/<id>` | Delete employee |
+| `GET` | `/metrics` | Prometheus metrics |
+</details>
+
+<details>
+<summary><b>Authentication</b></summary>
+
+| Method | Endpoint | Description |
+| :---: | :--- | :--- |
+| `GET` | `/auth/google` | Start the Google OAuth flow |
+| `GET` | `/auth/google/callback` | OAuth callback handler |
+| `POST` | `/api/auth/google` | Google ID-token sign-in |
+| `POST` | `/api/auth/signup` | Email/password registration |
+| `POST` | `/api/auth/login` | Email/password login |
+| `GET` | `/api/auth/me` | Current user profile |
+| `GET/POST` | `/logout` | End the session |
+</details>
+
+<details>
+<summary><b>Dashboard, Employees & Search</b></summary>
+
+| Method | Endpoint | Description |
+| :---: | :--- | :--- |
+| `GET` | `/api/dashboard/summary` | KPI summary |
+| `GET` | `/api/dashboard/analytics` | Chart datasets |
+| `GET` | `/api/employees` | Filtered, sorted, paginated list |
+| `GET/PUT/DELETE` | `/api/employees/<id>` | Read, update, or delete an employee |
+| `GET` | `/api/departments` | Department list |
+| `GET` | `/api/search` | Global search |
+| `GET` | `/api/activity` | Activity feed |
+| `GET` | `/api/notifications` | Notifications |
+| `POST` | `/api/notifications/read` | Mark notifications read |
+| `GET` | `/api/export/csv` | Download directory CSV |
+| `GET` | `/api/system/health` | Detailed system health |
+</details>
+
+<details>
+<summary><b>Attendance</b></summary>
+
+| Method | Endpoint | Description |
+| :---: | :--- | :--- |
+| `GET` | `/api/attendance` | Attendance roster & summary |
+| `POST` | `/api/attendance/checkin` | Toggle check-in/out |
+| `POST` | `/api/attendance/mode` | Set work mode |
+| `POST` | `/api/attendance/leave` | Submit a leave request |
+| `GET` | `/api/attendance/export` | Download timesheet CSV |
+</details>
+
+<details>
+<summary><b>Security & Audit</b></summary>
+
+| Method | Endpoint | Description |
+| :---: | :--- | :--- |
+| `GET/POST` | `/api/security/scan` | Run a security scan |
+| `GET` | `/api/security/posture` | Security posture score |
+| `GET` | `/api/security/events` | Security event feed |
+| `POST` | `/api/security/ai-optimize` | Apply recommended hardening |
+| `POST` | `/api/security/test-token` | Validate a token |
+| `GET/POST` | `/api/security/inspect-session` | Inspect session cookie flags |
+| `POST` | `/api/security/rbac-probe` | Test role permissions |
+| `GET/POST` | `/api/security/merkle-verify` | Recompute & verify the Merkle tree |
+| `GET` | `/api/security/merkle-certificate` | JSON proof certificate |
+</details>
+
+**Example:**
+
+```bash
+curl -X POST http://localhost:5001/items \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Ada Lovelace","role":"Engineer","department":"Platform & Cloud"}'
+```
+
+---
+
+## 📈 Monitoring
+
+Useful PromQL queries for Prometheus or Grafana:
+
+```promql
+# Requests per second, by endpoint
+sum by (endpoint) (rate(http_requests_total[1m]))
+
+# Error rate (5xx)
+sum(rate(http_requests_total{status=~"5.."}[5m]))
+
+# 95th-percentile latency per endpoint
+histogram_quantile(0.95, sum by (le, endpoint) (rate(http_request_duration_seconds_bucket[5m])))
+```
+
+---
+
+## 🧪 Testing
 
 ```bash
 pytest -v
 ```
 
-```
-============================= test session starts ==============================
-test_app.py::test_health_check PASSED                                    [  5%]
-test_app.py::test_get_items PASSED                                       [ 11%]
-test_app.py::test_post_item_success PASSED                               [ 17%]
-test_app.py::test_post_item_validation_failure PASSED                    [ 23%]
-test_app.py::test_metrics_endpoint PASSED                                [ 29%]
-test_app.py::test_auth_google_login PASSED                               [ 35%]
-test_app.py::test_auth_signup_and_login PASSED                           [ 41%]
-test_app.py::test_google_oauth_redirect_unconfigured PASSED              [ 47%]
-test_app.py::test_google_oauth_redirect_configured PASSED                [ 52%]
-test_app.py::test_google_oauth_callback_access_denied PASSED             [ 58%]
-test_app.py::test_google_oauth_callback_state_mismatch PASSED            [ 64%]
-test_app.py::test_google_oauth_callback_success PASSED                   [ 70%]
-test_app.py::test_dashboard_access_and_logout PASSED                     [ 76%]
-test_app.py::test_attendance_endpoints PASSED                            [ 82%]
-test_app.py::test_export_directory_csv PASSED                            [ 88%]
-test_app.py::test_system_health_and_activity PASSED                      [ 94%]
-test_app.py::test_security_scan_and_ai_defense PASSED                    [100%]
+The **17 tests** in [`test_app.py`](test_app.py) cover:
 
+- ✅ Health check, CRUD endpoints, and validation failures
+- ✅ Prometheus `/metrics` exposure
+- ✅ Email/password sign-up & login, plus Google ID-token login
+- ✅ Google OAuth redirects (configured and unconfigured), `access_denied`, CSRF state mismatch, and a successful callback
+- ✅ Dashboard access control and logout
+- ✅ Attendance endpoints and CSV export
+- ✅ System health, activity feed, and security scan
+
+```text
 ============================== 17 passed in 0.29s ==============================
 ```
 
 ---
 
+## 👥 Team & Roles
+
+| Role | Responsibility | Deliverables |
+| :---: | :--- | :--- |
+| **R1** | Agile Planner & Documentation Lead | Jira project, epics, stories, sprint plan, report |
+| **R2** | Developer & Version Control | Flask REST app, unit tests, Git branching & PRs |
+| **R3** | CI/CD & Containerization Engineer | GitHub Actions workflow, Dockerfile, Docker Hub |
+| **R4** | Deployment & Monitoring Engineer | Docker Compose, Prometheus, Grafana |
+
+---
+
+## 🧯 Troubleshooting
+
+| Problem | Fix |
+| :--- | :--- |
+| `Address already in use` on port 5001 | `lsof -i :5001` then kill the process, or set `PORT=5002` |
+| "Google sign-in is temporarily unavailable" | Add `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` to `.env` (see [`GOOGLE_OAUTH_SETUP.md`](GOOGLE_OAUTH_SETUP.md)) |
+| `redirect_uri_mismatch` from Google | The redirect URI in Google Cloud Console must exactly match `GOOGLE_REDIRECT_URI` |
+| Prometheus target shows **DOWN** | When running locally (not in Docker), use `prometheus_local.yml`, which targets `localhost:5001` |
+| Data disappears after restart | Expected: storage is in memory (see Roadmap) |
+
+---
+
+## 🗺️ Roadmap
+
+- [ ] Persistent storage (PostgreSQL + SQLAlchemy migrations)
+- [ ] Production WSGI server (Gunicorn) behind Nginx
+- [ ] Kubernetes manifests / Helm chart
+- [ ] Alertmanager rules for error-rate and latency SLOs
+- [ ] Real on-chain anchoring of the Merkle root
+
+---
+
 ## 🏁 Conclusion
 
-The **Employee Directory Enterprise Platform** successfully demonstrates a modern, end-to-end DevOps engineering paradigm. By integrating agile project methodologies, microservice-based Python engineering, zero-trust authentication, cryptographic forensic audit ledgers, automated CI/CD pipelines, and multi-tier Prometheus/Grafana observability, the platform meets strict industry standards for high availability, fault tolerance, and security compliance.
+**Employee Directory** shows how a team can take an application from idea to a monitored, containerized service using real DevOps practices:
+
+- **Agile** planning turned requirements into trackable Jira stories.
+- **Git** feature branches kept development organized and reviewable.
+- **Automated testing** (17 tests) and **GitHub Actions** catch regressions on every push.
+- **Docker** and **Docker Compose** make the whole stack reproducible with a single command.
+- **Prometheus** and **Grafana** provide live insight into traffic, errors, and latency.
+
+Together with secure Google OAuth sign-in, role-based access control, and a verifiable audit ledger, the project offers a practical blueprint for building, shipping, and operating modern web services.
 
 ---
 
 <div align="center">
 
-**Developed by Batch B3 — Group B3-G3 &bull; ASDD DevOps Practical 10**  
-*Maintained by [@ZAID78650](https://github.com/ZAID78650)*
+**Built by Batch B3 · Group B3-G3, ASDD DevOps Practical 10**
+
+Maintained by [**@ZAID78650**](https://github.com/ZAID78650)
+
+⭐ If you found this project useful, consider giving it a star!
 
 </div>
