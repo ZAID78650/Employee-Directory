@@ -1169,7 +1169,6 @@
       const authSubheading = document.getElementById('authSubheading');
       const authKicker = document.getElementById('authKicker');
       const btnSubmitLabel = document.getElementById('btnSubmitLabel');
-      const googleBtnText = document.getElementById('googleBtnText');
       const inputPassword = document.getElementById('inputPassword');
 
       // Trigger subtle header text animation
@@ -1206,7 +1205,6 @@
         authHeading.textContent = "Create an account";
         authSubheading.textContent = "Get started with enterprise directory access";
         btnSubmitLabel.textContent = "Create Employee Account";
-        googleBtnText.textContent = "Create Account with Google";
         inputPassword.autocomplete = "new-password";
       } else {
         // Slide Pill to Left (Sign In)
@@ -1231,7 +1229,6 @@
         authHeading.textContent = "Welcome back";
         authSubheading.textContent = "Sign in to your Employee Directory account";
         btnSubmitLabel.textContent = "Sign In to Dashboard";
-        googleBtnText.textContent = "Sign in with Google";
         inputPassword.autocomplete = "current-password";
       }
       lucide.createIcons();
