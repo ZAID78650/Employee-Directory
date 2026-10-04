@@ -398,5 +398,59 @@ def test_security_scan_and_ai_defense(client):
     assert "SOC-2 Type II" in posture_data["compliance"]
 
 
+def test_login_page_renders_badge_and_google_sso(client):
+    """Test GET /login renders 3D metallic shield badge, Google auth button, and account chooser modal"""
+    response = client.get("/login")
+    assert response.status_code == 200
+    html = response.data.decode("utf-8")
+    assert "advanced_employee_directory_logo.png" in html
+    assert "floating-shield" in html
+    assert "googleAccountModal" in html
+    assert "openGoogleAccountChooser" in html
+    assert "Sign in with Google" in html
 
 
+def test_google_create_account_sso_flow(client):
+    """Test POST /api/auth/sso provisions a new Google account and registers employee"""
+    new_email = "new.google.user@eng.rizvi.edu.in"
+    payload = {
+        "provider": "google",
+        "name": "New Google Candidate",
+        "email": new_email,
+        "role": "Full Stack Engineer",
+        "department": "Engineering"
+    }
+    response = client.post(
+        "/api/auth/sso",
+        data=json.dumps(payload),
+        content_type="application/json"
+    )
+    assert response.status_code == 200
+    data = response.get_json()
+    assert data["user"]["email"] == new_email
+    assert data["redirect"] == "/"
+
+    # Verify session is populated
+    with client.session_transaction() as sess:
+        assert sess.get("user") is not None
+        assert sess["user"]["email"] == new_email
+
+    # Verify employee record is auto-provisioned
+    emp_res = client.get("/items")
+    assert emp_res.status_code == 200
+    items = emp_res.get_json()
+    assert any(e["email"].lower() == new_email.lower() for e in items)
+
+
+def test_developer_sso_github_gitlab(client):
+    """Test POST /api/auth/sso for GitHub and GitLab providers"""
+    for prov in ["github", "gitlab"]:
+        payload = {
+            "provider": prov,
+            "name": f"Developer {prov.title()}",
+            "email": f"dev.{prov}@student.college.edu"
+        }
+        res = client.post("/api/auth/sso", data=json.dumps(payload), content_type="application/json")
+        assert res.status_code == 200
+        data = res.get_json()
+        assert data["user"]["auth_provider"] == prov
