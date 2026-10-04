@@ -97,6 +97,29 @@ def test_auth_google_login(client):
     assert data["user"]["email"] == "google.tester@student.college.edu"
 
 
+def test_auth_sso_endpoint(client):
+    """Test POST /api/auth/sso logs in via SSO provider and auto-provisions user"""
+    sso_payload = {
+        "provider": "google",
+        "name": "Zaid Shaikh",
+        "email": "szaid8364@eng.rizvi.edu.in",
+        "role": "Lead DevOps Architect",
+        "department": "Engineering"
+    }
+    response = client.post(
+        "/api/auth/sso",
+        data=json.dumps(sso_payload),
+        content_type="application/json"
+    )
+    assert response.status_code == 200
+    data = response.get_json()
+    assert "successful" in data["message"]
+    assert data["user"]["email"] == "szaid8364@eng.rizvi.edu.in"
+    with client.session_transaction() as sess:
+        assert sess.get("user") is not None
+        assert sess["user"]["email"] == "szaid8364@eng.rizvi.edu.in"
+
+
 def test_auth_signup_and_login(client):
     """Test standard signup and login endpoints"""
     signup_payload = {
