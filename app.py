@@ -19,7 +19,12 @@ from werkzeug.middleware.proxy_fix import ProxyFix
 from flask import Flask, request, jsonify, render_template, Response, session, redirect, url_for, send_from_directory, has_request_context
 from prometheus_client import Counter, Histogram, generate_latest, CONTENT_TYPE_LATEST
 
-load_dotenv()
+basedir = os.path.abspath(os.path.dirname(__file__))
+dotenv_path = os.path.join(basedir, ".env")
+if os.path.exists(dotenv_path):
+    load_dotenv(dotenv_path)
+else:
+    load_dotenv()
 
 app = Flask(__name__)
 # Reverse proxy / Vercel compatibility for SSL and host header resolution
@@ -38,23 +43,23 @@ app.config.update(
 # Email Format Regex Pattern
 EMAIL_REGEX = re.compile(r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$")
 
-# Google Cloud OAuth 2.0 Web Client Configuration
-GOOGLE_CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID", "").strip()
-GOOGLE_CLIENT_SECRET = os.environ.get("GOOGLE_CLIENT_SECRET", "").strip()
-GOOGLE_REDIRECT_URI = os.environ.get("GOOGLE_REDIRECT_URI", "http://localhost:5001/auth/google/callback").strip()
-GOOGLE_SCOPES = os.environ.get("GOOGLE_SCOPES", "openid profile email").strip()
+# Google Cloud OAuth 2.0 Web Client Configuration (None allows os.environ fallback; monkeypatchable in tests)
+GOOGLE_CLIENT_ID = None
+GOOGLE_CLIENT_SECRET = None
+GOOGLE_REDIRECT_URI = None
+GOOGLE_SCOPES = None
 
 # GitHub OAuth App Configuration
-GITHUB_CLIENT_ID = os.environ.get("GITHUB_CLIENT_ID", "").strip()
-GITHUB_CLIENT_SECRET = os.environ.get("GITHUB_CLIENT_SECRET", "").strip()
-GITHUB_REDIRECT_URI = os.environ.get("GITHUB_REDIRECT_URI", "http://localhost:5001/auth/github/callback").strip()
-GITHUB_SCOPES = os.environ.get("GITHUB_SCOPES", "read:user user:email").strip()
+GITHUB_CLIENT_ID = None
+GITHUB_CLIENT_SECRET = None
+GITHUB_REDIRECT_URI = None
+GITHUB_SCOPES = None
 
 # GitLab OAuth Application Configuration
-GITLAB_CLIENT_ID = os.environ.get("GITLAB_CLIENT_ID", "").strip()
-GITLAB_CLIENT_SECRET = os.environ.get("GITLAB_CLIENT_SECRET", "").strip()
-GITLAB_REDIRECT_URI = os.environ.get("GITLAB_REDIRECT_URI", "http://localhost:5001/auth/gitlab/callback").strip()
-GITLAB_SCOPES = os.environ.get("GITLAB_SCOPES", "read_user openid profile email").strip()
+GITLAB_CLIENT_ID = None
+GITLAB_CLIENT_SECRET = None
+GITLAB_REDIRECT_URI = None
+GITLAB_SCOPES = None
 
 
 def get_oauth_redirect_uri(provider: str) -> str:
@@ -87,15 +92,23 @@ def get_oauth_redirect_uri(provider: str) -> str:
 def get_oauth_config(provider: str):
     """
     Retrieves OAuth credentials and settings for the specified provider ('google', 'github', 'gitlab').
-    Prioritizes module-level variables (for test monkeypatching) with fallback to runtime environment variables.
+    Prioritizes explicit test monkeypatching while reliably resolving runtime environment variables.
     """
     prefix = provider.upper()
     cur_mod = sys.modules.get(__name__)
     mod_id = getattr(cur_mod, f"{prefix}_CLIENT_ID", None)
     mod_secret = getattr(cur_mod, f"{prefix}_CLIENT_SECRET", None)
 
-    client_id = (mod_id if mod_id is not None else os.environ.get(f"{prefix}_CLIENT_ID", "")).strip()
-    client_secret = (mod_secret if mod_secret is not None else os.environ.get(f"{prefix}_CLIENT_SECRET", "")).strip()
+    # If explicitly monkeypatched (even to ""), respect the test override; otherwise resolve from os.environ
+    if mod_id is not None:
+        client_id = mod_id.strip()
+    else:
+        client_id = os.environ.get(f"{prefix}_CLIENT_ID", "").strip()
+
+    if mod_secret is not None:
+        client_secret = mod_secret.strip()
+    else:
+        client_secret = os.environ.get(f"{prefix}_CLIENT_SECRET", "").strip()
 
     redirect_uri = get_oauth_redirect_uri(provider)
     scopes = os.environ.get(f"{prefix}_SCOPES", "").strip()
@@ -763,6 +776,28 @@ def auth_diagnostic():
         "base_url": request.host_url.rstrip("/"),
         "providers": diagnostics
     }), 200
+
+
+@app.route("/api/auth/config-status", methods=["GET"])
+def auth_config_status():
+    """
+    Safe OAuth Provider Configuration Status Diagnostic (Rule #14).
+    Reports strictly 'configured' or 'missing' for clientId, clientSecret, and redirectUri.
+    Never exposes raw secret values.
+    """
+    def check_status(val):
+        return "configured" if bool(val and str(val).strip()) else "missing"
+
+    result = {}
+    for prov in ["google", "github", "gitlab"]:
+        cfg = get_oauth_config(prov)
+        result[prov] = {
+            "clientId": check_status(cfg["client_id"]),
+            "clientSecret": check_status(cfg["client_secret"]),
+            "redirectUri": check_status(cfg["redirect_uri"])
+        }
+    return jsonify(result), 200
+
 
 
 

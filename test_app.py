@@ -689,3 +689,19 @@ def test_oauth_csrf_state_mismatches(client):
     assert res.status_code == 302
     assert "error=invalid_state" in res.location
 
+
+def test_auth_config_status_schema(client):
+    """Test GET /api/auth/config-status returns exact Rule #14 schema"""
+    res = client.get("/api/auth/config-status")
+    assert res.status_code == 200
+    data = res.get_json()
+    for prov in ["google", "github", "gitlab"]:
+        assert prov in data
+        assert "clientId" in data[prov]
+        assert "clientSecret" in data[prov]
+        assert "redirectUri" in data[prov]
+        assert data[prov]["clientId"] in ["configured", "missing"]
+        assert data[prov]["clientSecret"] in ["configured", "missing"]
+        assert data[prov]["redirectUri"] in ["configured", "missing"]
+
+
