@@ -11,7 +11,7 @@ import json
 import urllib.parse
 import requests
 from dotenv import load_dotenv
-from flask import Flask, request, jsonify, render_template, Response, session, redirect, url_for
+from flask import Flask, request, jsonify, render_template, Response, session, redirect, url_for, send_from_directory
 from prometheus_client import Counter, Histogram, generate_latest, CONTENT_TYPE_LATEST
 
 load_dotenv()
@@ -1965,6 +1965,15 @@ def metrics():
     Prometheus metrics target for scrapers (Role R4/R5).
     """
     return Response(generate_latest(), mimetype=CONTENT_TYPE_LATEST)
+
+
+@app.route("/static/<path:filename>")
+def serve_static(filename):
+    """
+    Explicitly serve static assets (badges, logos, styles) reliably across serverless runtimes.
+    """
+    static_dir = os.path.join(app.root_path, "static")
+    return send_from_directory(static_dir, filename)
 
 
 if __name__ == "__main__":
