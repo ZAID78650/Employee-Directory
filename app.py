@@ -1009,6 +1009,7 @@ def auth_login():
 
 
 @app.route("/api/auth/signup", methods=["POST"])
+@app.route("/api/auth/register", methods=["POST"])
 def auth_signup():
     """
     Standard Account Registration API.

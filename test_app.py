@@ -705,3 +705,20 @@ def test_auth_config_status_schema(client):
         assert data[prov]["redirectUri"] in ["configured", "missing"]
 
 
+def test_auth_register_endpoint(client):
+    """Test POST /api/auth/register creates user and authenticates"""
+    payload = {
+        "name": "Register Alias User",
+        "email": "alias.user@corp.internal",
+        "password": "Password123!",
+        "department": "Engineering"
+    }
+    res = client.post("/api/auth/register", json=payload)
+    assert res.status_code == 201
+    data = res.get_json()
+    assert data["message"] == "Account created successfully"
+    assert data["redirect"] == "/dashboard"
+    assert data["user"]["email"] == "alias.user@corp.internal"
+
+
+
