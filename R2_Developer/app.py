@@ -1,4 +1,4 @@
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
 
 app = Flask(__name__)
 
@@ -9,6 +9,13 @@ employees = []
 @app.route('/items', methods=['GET'])
 def get_employees():
     return jsonify(employees), 200
+
+# ED-3: Add Employee
+@app.route('/items', methods=['POST'])
+def add_employee():
+    data = request.get_json()
+    employees.append(data)
+    return jsonify({"message": "Employee added"}), 201
 
 # ED-4: Health Check
 @app.route('/health', methods=['GET'])
