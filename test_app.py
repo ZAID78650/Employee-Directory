@@ -568,3 +568,24 @@ def test_developer_sso_github_gitlab(client):
         assert res.status_code == 200
         data = res.get_json()
         assert data["user"]["auth_provider"] == prov
+
+
+def test_forgot_password_endpoint(client):
+    """Test POST /api/auth/forgot-password validation and response"""
+    # Bad email
+    res = client.post(
+        "/api/auth/forgot-password",
+        data=json.dumps({"email": "not-an-email"}),
+        content_type="application/json"
+    )
+    assert res.status_code == 400
+    assert "valid email" in res.get_json()["message"].lower()
+
+    # Valid email
+    res = client.post(
+        "/api/auth/forgot-password",
+        data=json.dumps({"email": "zaid.matinuddin@student.college.edu"}),
+        content_type="application/json"
+    )
+    assert res.status_code == 200
+    assert "recovery instructions" in res.get_json()["message"].lower()

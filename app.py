@@ -966,6 +966,37 @@ def auth_me():
     return jsonify({"authenticated": True, "user": sanitize_user(user)}), 200
 
 
+@app.route("/api/auth/forgot-password", methods=["POST"])
+def auth_forgot_password():
+    """
+    Password Recovery Request API.
+    Validates email format, logs security event, and simulates secure recovery dispatch.
+    """
+    data = request.get_json(silent=True) or {}
+    email = data.get("email", "").strip().lower()
+
+    if not email:
+        return jsonify({
+            "error": "Validation Error",
+            "message": "Email address is required."
+        }), 400
+
+    if not EMAIL_REGEX.match(email):
+        return jsonify({
+            "error": "Validation Error",
+            "message": "Please enter a valid email address format."
+        }), 400
+
+    log_security_event("PASSWORD_RESET_REQUESTED", "Dispatched", request.remote_addr or "127.0.0.1", email, "Low")
+    log_activity("Password Reset Dispatched", f"Recovery instructions requested for {email}.", email.split("@")[0], "key", "security")
+
+    return jsonify({
+        "message": f"If an account exists for {email}, password recovery instructions have been sent to your inbox.",
+        "success": True
+    }), 200
+
+
+
 # --- 2. Mandatory Endpoints as specified in Practical Handout ---
 
 @app.route("/health", methods=["GET"])
