@@ -8,9 +8,12 @@ import os
 import secrets
 import hashlib
 import json
+import re
 import urllib.parse
+from datetime import timedelta
 import requests
 from dotenv import load_dotenv
+from werkzeug.security import generate_password_hash, check_password_hash
 from flask import Flask, request, jsonify, render_template, Response, session, redirect, url_for, send_from_directory
 from prometheus_client import Counter, Histogram, generate_latest, CONTENT_TYPE_LATEST
 
@@ -19,29 +22,66 @@ load_dotenv()
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "devops-employee-directory-secret-key-2026")
 
+# Hardened Session Cookie Configuration
+app.config.update(
+    SESSION_COOKIE_HTTPONLY=True,
+    SESSION_COOKIE_SAMESITE="Lax",
+    SESSION_COOKIE_SECURE=False,  # Enforced dynamically on HTTPS/proxy connections
+    PERMANENT_SESSION_LIFETIME=timedelta(hours=24)
+)
+
+# Email Format Regex Pattern
+EMAIL_REGEX = re.compile(r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$")
+
 # Google Cloud OAuth 2.0 Web Client Configuration
 GOOGLE_CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID", "").strip()
 GOOGLE_CLIENT_SECRET = os.environ.get("GOOGLE_CLIENT_SECRET", "").strip()
 GOOGLE_REDIRECT_URI = os.environ.get("GOOGLE_REDIRECT_URI", "http://localhost:5001/auth/google/callback").strip()
 GOOGLE_SCOPES = os.environ.get("GOOGLE_SCOPES", "openid profile email").strip()
 
-# In-memory registered users store
+# GitHub OAuth App Configuration
+GITHUB_CLIENT_ID = os.environ.get("GITHUB_CLIENT_ID", "").strip()
+GITHUB_CLIENT_SECRET = os.environ.get("GITHUB_CLIENT_SECRET", "").strip()
+GITHUB_REDIRECT_URI = os.environ.get("GITHUB_REDIRECT_URI", "http://localhost:5001/auth/github/callback").strip()
+GITHUB_SCOPES = os.environ.get("GITHUB_SCOPES", "read:user user:email").strip()
+
+# GitLab OAuth Application Configuration
+GITLAB_CLIENT_ID = os.environ.get("GITLAB_CLIENT_ID", "").strip()
+GITLAB_CLIENT_SECRET = os.environ.get("GITLAB_CLIENT_SECRET", "").strip()
+GITLAB_REDIRECT_URI = os.environ.get("GITLAB_REDIRECT_URI", "http://localhost:5001/auth/gitlab/callback").strip()
+GITLAB_SCOPES = os.environ.get("GITLAB_SCOPES", "read_user openid profile email").strip()
+
+# In-memory registered users store (Secured with Werkzeug PBKDF2 Password Hashes)
 registered_users = {
     "zaid.matinuddin@student.college.edu": {
         "id": 1,
         "name": "Shaikh Zaid Matinuddin",
         "email": "zaid.matinuddin@student.college.edu",
-        "password": "password123",
+        "password_hash": generate_password_hash("password123"),
         "google_sub": "109823471092837419283",
         "google_email": "zaid.matinuddin@student.college.edu",
-        "google_picture": "/static/logo_text_badge.jpg",
+        "picture": "/static/logo_text_badge.jpg",
         "role": "CI/CD & Containerization Engineer",
         "department": "Engineering",
-        "auth_provider": "google+local",
+        "auth_provider": "local",
         "email_verified": True,
+        "created_at": time.time(),
         "last_login_at": time.time()
     }
 }
+
+
+def sanitize_user(user):
+    """
+    Sanitizes user object by stripping internal password hashes.
+    Ensures sensitive credentials are never stored in client sessions or exposed in responses.
+    """
+    if not user:
+        return None
+    safe = dict(user)
+    safe.pop("password", None)
+    safe.pop("password_hash", None)
+    return safe
 
 # Prometheus Metrics definition
 REQUEST_COUNT = Counter(
@@ -124,88 +164,56 @@ def record_metrics(response):
     return response
 
 
-# --- 1. Web UI & Authentication Routes ---
+# --- 1. Web UI & Protected Authentication Routes ---
 @app.route("/", methods=["GET"])
 @app.route("/dashboard", methods=["GET"])
 def index():
-    if "user" not in session:
+    user = session.get("user")
+    if not user or not isinstance(user, dict) or not user.get("email"):
+        session.clear()
         return redirect(url_for("login_page"))
-    return render_template("index.html", user=session.get("user"))
+    return render_template("index.html", user=user)
 
 
 @app.route("/signup", methods=["GET"])
+@app.route("/register", methods=["GET"])
 @app.route("/login", methods=["GET"])
 def login_page():
-    if "user" in session:
+    user = session.get("user")
+    if user and isinstance(user, dict) and user.get("email"):
         return redirect(url_for("index"))
     return render_template("login.html")
 
 
 @app.route("/logout", methods=["GET", "POST"])
 def logout():
+    user = session.get("user")
+    if user:
+        log_security_event("LOGOUT", "User Logged Out", request.remote_addr or "127.0.0.1", user.get("email", "anonymous"), "Low")
     session.clear()
     return redirect(url_for("login_page"))
 
 
+# --- 2. Google OAuth 2.0 Web Client Integration ---
 @app.route("/auth/google", methods=["GET"])
 def auth_google_redirect():
     """
-    Initiates Google Authentication.
-    If Google OAuth credentials are provided in .env, redirects directly to Google Accounts (accounts.google.com).
-    If running locally, seamlessly authenticates the Google user and creates the directory session.
+    Initiates real Google OAuth 2.0 Flow.
+    Opens legitimate Google account chooser on accounts.google.com with prompt=select_account.
+    If unconfigured in environment, redirects to /login?error=oauth_not_configured&provider=google.
     """
+    action = request.args.get("action", "signin").strip().lower()
     if not GOOGLE_CLIENT_ID or not GOOGLE_CLIENT_SECRET:
-        # Seamless Google Authentication Gateway
-        email = "szaid8364@gmail.com"
-        name = "Shaikh Zaid"
-        user_info = registered_users.get(email)
-        if not user_info:
-            user_info = {
-                "id": len(registered_users) + 1,
-                "name": name,
-                "email": email,
-                "google_sub": "109823471092837419283",
-                "google_email": email,
-                "google_picture": "/static/logo_text_badge.jpg",
-                "role": "CI/CD & Containerization Engineer",
-                "department": "Engineering",
-                "auth_provider": "google",
-                "email_verified": True,
-                "last_login_at": time.time()
-            }
-            registered_users[email] = user_info
-        else:
-            user_info["last_login_at"] = time.time()
-
-        # Ensure employee record exists in Employee Directory list
-        existing_emp = next((e for e in employees if e["email"].lower() == email), None)
-        if not existing_emp:
-            global next_id
-            employees.append({
-                "id": next_id,
-                "name": name.upper(),
-                "role": "CI/CD & Containerization Engineer (R3)",
-                "department": "Engineering",
-                "email": email,
-                "status": "Active",
-                "avatar": "SZ",
-                "location": "Mumbai, India",
-                "phone": "+91 98203 33456"
-            })
-            next_id += 1
-
-        session["user"] = user_info
-        log_security_event("GOOGLE_AUTH_SUCCESS", "Authorized", request.remote_addr or "127.0.0.1", email, "Low")
-        log_activity("Google OAuth Authenticated", f"{name} ({email}) signed in via Google Account.", name, "shield-check", "security")
-        return redirect(url_for("index"))
+        log_security_event("GOOGLE_AUTH_UNCONFIGURED", "Missing Client Credentials", request.remote_addr or "127.0.0.1", "anonymous", "Low")
+        return redirect(url_for("login_page", error="oauth_not_configured", provider="google"))
 
     # Generate cryptographically secure random state parameter for CSRF mitigation
     state = secrets.token_urlsafe(32)
     session["oauth_state"] = state
+    session["oauth_action"] = action
 
     log_security_event("GOOGLE_AUTH_STARTED", "Initiated", request.remote_addr or "127.0.0.1", "anonymous", "Low")
 
-    # Google Authorization URL with standard OpenID Connect scopes
     auth_params = {
         "client_id": GOOGLE_CLIENT_ID,
         "redirect_uri": GOOGLE_REDIRECT_URI,
@@ -231,65 +239,21 @@ def auth_google_callback():
     if error:
         log_security_event("GOOGLE_AUTH_CANCELLED", f"Consent Denied ({error})", request.remote_addr or "127.0.0.1", "anonymous", "Low")
         log_activity("Google OAuth Cancelled", f"Google authentication was cancelled by the user ({error}).", "Anonymous", "alert-circle", "security")
-        return redirect(url_for("login_page", error="access_denied"))
-
-    # Direct SSO verified redirect callback (device account chooser)
-    direct_email = request.args.get("email", "").strip().lower()
-    if direct_email and not request.args.get("code"):
-        direct_name = request.args.get("name", "").strip() or direct_email.split("@")[0].capitalize()
-        user_info = registered_users.get(direct_email)
-        if not user_info:
-            user_info = {
-                "id": len(registered_users) + 1,
-                "name": direct_name,
-                "email": direct_email,
-                "google_sub": "109823471092837419283",
-                "google_email": direct_email,
-                "google_picture": "/static/logo_text_badge.jpg",
-                "role": "CI/CD & Containerization Engineer",
-                "department": "Engineering",
-                "auth_provider": "google",
-                "email_verified": True,
-                "last_login_at": time.time()
-            }
-            registered_users[direct_email] = user_info
-        else:
-            user_info["last_login_at"] = time.time()
-
-        existing_emp = next((e for e in employees if e["email"].lower() == direct_email), None)
-        if not existing_emp:
-            name_parts = direct_name.split()
-            avatar = "".join([p[0] for p in name_parts[:2]]).upper() if name_parts else "GU"
-            employees.append({
-                "id": next_id,
-                "name": direct_name.upper(),
-                "role": user_info.get("role", "Team Member"),
-                "department": user_info.get("department", "Engineering"),
-                "email": direct_email,
-                "status": "Active",
-                "avatar": avatar,
-                "location": "Mumbai, India",
-                "phone": "+91 98200 12345"
-            })
-            next_id += 1
-
-        session["user"] = user_info
-        log_security_event("GOOGLE_AUTH_SUCCESS", "Authorized", request.remote_addr or "127.0.0.1", direct_email, "Low")
-        log_activity("Google OAuth Authenticated", f"{direct_name} ({direct_email}) signed in via Google SSO.", direct_name, "shield-check", "security")
-        return redirect(url_for("index"))
+        return redirect(url_for("login_page", error="access_denied", provider="google"))
 
     # CSRF state verification
     received_state = request.args.get("state", "")
     stored_state = session.pop("oauth_state", None)
+    action = session.pop("oauth_action", "signin")
 
     if not stored_state or not received_state or not secrets.compare_digest(received_state, stored_state):
         log_security_event("GOOGLE_AUTH_FAILED", "State CSRF Mismatch", request.remote_addr or "127.0.0.1", "anonymous", "High")
-        return redirect(url_for("login_page", error="invalid_state"))
+        return redirect(url_for("login_page", error="invalid_state", provider="google"))
 
     code = request.args.get("code")
     if not code:
         log_security_event("GOOGLE_AUTH_FAILED", "Missing Authorization Code", request.remote_addr or "127.0.0.1", "anonymous", "Medium")
-        return redirect(url_for("login_page", error="missing_code"))
+        return redirect(url_for("login_page", error="missing_code", provider="google"))
 
     # Exchange authorization code for tokens via Google Token Endpoint
     try:
@@ -307,12 +271,12 @@ def auth_google_callback():
         )
         if token_resp.status_code != 200:
             log_security_event("Token Exchange Failed", "Failed", request.remote_addr or "127.0.0.1", "anonymous", "High")
-            return redirect(url_for("login_page", error="token_exchange_failed"))
+            return redirect(url_for("login_page", error="token_exchange_failed", provider="google"))
 
         tokens = token_resp.json()
         access_token = tokens.get("access_token")
         if not access_token:
-            return redirect(url_for("login_page", error="invalid_token_response"))
+            return redirect(url_for("login_page", error="invalid_token_response", provider="google"))
 
         # Retrieve profile information from Google UserInfo Endpoint
         userinfo_resp = requests.get(
@@ -321,12 +285,12 @@ def auth_google_callback():
             timeout=10
         )
         if userinfo_resp.status_code != 200:
-            return redirect(url_for("login_page", error="userinfo_failed"))
+            return redirect(url_for("login_page", error="userinfo_failed", provider="google"))
 
         profile = userinfo_resp.json()
     except Exception as e:
-        log_security_event("OAuth Network Error", "Failed", request.remote_addr or "127.0.0.1", "anonymous", "Medium")
-        return redirect(url_for("login_page", error="network_error"))
+        log_security_event("OAuth Network Error", str(e), request.remote_addr or "127.0.0.1", "anonymous", "Medium")
+        return redirect(url_for("login_page", error="network_error", provider="google"))
 
     google_sub = str(profile.get("sub", ""))
     email = profile.get("email", "").strip().lower()
@@ -335,35 +299,32 @@ def auth_google_callback():
     email_verified = profile.get("email_verified", False)
 
     if not email:
-        return redirect(url_for("login_page", error="missing_email"))
+        return redirect(url_for("login_page", error="missing_email", provider="google"))
 
-    # Check if user already exists
     user_info = registered_users.get(email)
     if user_info:
-        # Link Google account to existing user
         user_info["google_sub"] = google_sub
         user_info["google_email"] = email
         if picture:
-            user_info["google_picture"] = picture
+            user_info["picture"] = picture
         user_info["email_verified"] = email_verified
         user_info["last_login_at"] = time.time()
-        user_info["auth_provider"] = "google+local" if user_info.get("password") else "google"
+        user_info["auth_provider"] = "google+local" if user_info.get("password_hash") else "google"
         log_activity("Google Account Linked", f"User {email} authenticated via Google OAuth 2.0.", name, "shield-check", "security")
         log_security_event("GOOGLE_AUTH_SUCCESS", "Authorized", request.remote_addr or "127.0.0.1", email, "Low")
-        log_security_event("GOOGLE_ACCOUNT_LINKED", "Linked", request.remote_addr or "127.0.0.1", email, "Low")
     else:
-        # Auto-provision new enterprise user from verified Google identity
         user_info = {
             "id": len(registered_users) + 1,
             "name": name,
             "email": email,
             "google_sub": google_sub,
             "google_email": email,
-            "google_picture": picture,
+            "picture": picture,
             "role": "Team Member",
             "department": "Engineering",
             "auth_provider": "google",
             "email_verified": email_verified,
+            "created_at": time.time(),
             "last_login_at": time.time()
         }
         registered_users[email] = user_info
@@ -389,11 +350,306 @@ def auth_google_callback():
         })
         next_id += 1
 
-    session["user"] = user_info
+    safe_user = sanitize_user(user_info)
+    session.permanent = True
+    session["user"] = safe_user
     return redirect(url_for("index"))
 
 
-# --- Auth API Endpoints ---
+# --- 3. GitHub OAuth 2.0 Integration ---
+@app.route("/auth/github", methods=["GET"])
+def auth_github_redirect():
+    """
+    Initiates GitHub OAuth 2.0 authorization flow.
+    If unconfigured in environment, redirects to /login?error=oauth_not_configured&provider=github.
+    """
+    if not GITHUB_CLIENT_ID or not GITHUB_CLIENT_SECRET:
+        log_security_event("GITHUB_AUTH_UNCONFIGURED", "Missing Client Credentials", request.remote_addr or "127.0.0.1", "anonymous", "Low")
+        return redirect(url_for("login_page", error="oauth_not_configured", provider="github"))
+
+    state = secrets.token_urlsafe(32)
+    session["github_oauth_state"] = state
+    log_security_event("GITHUB_AUTH_STARTED", "Initiated", request.remote_addr or "127.0.0.1", "anonymous", "Low")
+
+    params = {
+        "client_id": GITHUB_CLIENT_ID,
+        "redirect_uri": GITHUB_REDIRECT_URI,
+        "scope": GITHUB_SCOPES,
+        "state": state
+    }
+    github_url = f"https://github.com/login/oauth/authorize?{urllib.parse.urlencode(params)}"
+    return redirect(github_url)
+
+
+@app.route("/auth/github/callback", methods=["GET"])
+def auth_github_callback():
+    """
+    GitHub OAuth 2.0 Authorization Callback Handler.
+    Exchanges code for access token, fetches authenticated user & email profile,
+    links or auto-provisions user, and establishes directory session.
+    """
+    global next_id
+    error = request.args.get("error")
+    if error:
+        log_security_event("GITHUB_AUTH_CANCELLED", f"Consent Denied ({error})", request.remote_addr or "127.0.0.1", "anonymous", "Low")
+        return redirect(url_for("login_page", error="access_denied", provider="github"))
+
+    received_state = request.args.get("state", "")
+    stored_state = session.pop("github_oauth_state", None)
+    if not stored_state or not received_state or not secrets.compare_digest(received_state, stored_state):
+        log_security_event("GITHUB_AUTH_FAILED", "State CSRF Mismatch", request.remote_addr or "127.0.0.1", "anonymous", "High")
+        return redirect(url_for("login_page", error="invalid_state", provider="github"))
+
+    code = request.args.get("code")
+    if not code:
+        log_security_event("GITHUB_AUTH_FAILED", "Missing Authorization Code", request.remote_addr or "127.0.0.1", "anonymous", "Medium")
+        return redirect(url_for("login_page", error="missing_code", provider="github"))
+
+    try:
+        token_resp = requests.post(
+            "https://github.com/login/oauth/access_token",
+            data={
+                "client_id": GITHUB_CLIENT_ID,
+                "client_secret": GITHUB_CLIENT_SECRET,
+                "code": code,
+                "redirect_uri": GITHUB_REDIRECT_URI
+            },
+            headers={"Accept": "application/json"},
+            timeout=10
+        )
+        if token_resp.status_code != 200:
+            return redirect(url_for("login_page", error="token_exchange_failed", provider="github"))
+
+        tokens = token_resp.json()
+        access_token = tokens.get("access_token")
+        if not access_token:
+            return redirect(url_for("login_page", error="invalid_token_response", provider="github"))
+
+        user_resp = requests.get(
+            "https://api.github.com/user",
+            headers={"Authorization": f"Bearer {access_token}", "Accept": "application/vnd.github+json"},
+            timeout=10
+        )
+        if user_resp.status_code != 200:
+            return redirect(url_for("login_page", error="userinfo_failed", provider="github"))
+
+        profile = user_resp.json()
+        email = profile.get("email")
+        if not email:
+            # Retrieve primary verified email from /user/emails endpoint
+            emails_resp = requests.get(
+                "https://api.github.com/user/emails",
+                headers={"Authorization": f"Bearer {access_token}", "Accept": "application/vnd.github+json"},
+                timeout=10
+            )
+            if emails_resp.status_code == 200:
+                emails_list = emails_resp.json()
+                primary = next((e["email"] for e in emails_list if e.get("primary") and e.get("verified")), None)
+                if not primary and emails_list:
+                    primary = emails_list[0].get("email")
+                email = primary
+
+        if not email:
+            return redirect(url_for("login_page", error="missing_email", provider="github"))
+
+        email = email.strip().lower()
+        name = profile.get("name") or profile.get("login") or email.split("@")[0].capitalize()
+        picture = profile.get("avatar_url") or ""
+        github_id = str(profile.get("id"))
+    except Exception as e:
+        log_security_event("GitHub OAuth Network Error", str(e), request.remote_addr or "127.0.0.1", "anonymous", "Medium")
+        return redirect(url_for("login_page", error="network_error", provider="github"))
+
+    user_info = registered_users.get(email)
+    if user_info:
+        user_info["github_id"] = github_id
+        if picture and not user_info.get("picture"):
+            user_info["picture"] = picture
+        user_info["last_login_at"] = time.time()
+        user_info["auth_provider"] = "github+local" if user_info.get("password_hash") else "github"
+        log_security_event("GITHUB_AUTH_SUCCESS", "Authorized", request.remote_addr or "127.0.0.1", email, "Low")
+    else:
+        user_info = {
+            "id": len(registered_users) + 1,
+            "name": name,
+            "email": email,
+            "github_id": github_id,
+            "picture": picture,
+            "role": "Team Member",
+            "department": "Engineering",
+            "auth_provider": "github",
+            "email_verified": True,
+            "created_at": time.time(),
+            "last_login_at": time.time()
+        }
+        registered_users[email] = user_info
+        log_security_event("GITHUB_ACCOUNT_CREATED", "Created", request.remote_addr or "127.0.0.1", email, "Low")
+
+    # Sync employee directory
+    existing_emp = next((e for e in employees if e["email"].lower() == email), None)
+    if not existing_emp:
+        name_parts = name.split()
+        avatar = "".join([p[0] for p in name_parts[:2]]).upper() if name_parts else "GH"
+        employees.append({
+            "id": next_id,
+            "name": name.upper(),
+            "role": user_info.get("role", "Team Member"),
+            "department": user_info.get("department", "Engineering"),
+            "email": email,
+            "status": "Active",
+            "avatar": avatar,
+            "location": "Mumbai, India",
+            "phone": "+91 98200 12345"
+        })
+        next_id += 1
+
+    safe_user = sanitize_user(user_info)
+    session.permanent = True
+    session["user"] = safe_user
+    log_activity("GitHub OAuth Authenticated", f"{name} ({email}) signed in via GitHub.", name, "github", "security")
+    return redirect(url_for("index"))
+
+
+# --- 4. GitLab OAuth 2.0 Integration ---
+@app.route("/auth/gitlab", methods=["GET"])
+def auth_gitlab_redirect():
+    """
+    Initiates GitLab OAuth 2.0 authorization flow.
+    If unconfigured in environment, redirects to /login?error=oauth_not_configured&provider=gitlab.
+    """
+    if not GITLAB_CLIENT_ID or not GITLAB_CLIENT_SECRET:
+        log_security_event("GITLAB_AUTH_UNCONFIGURED", "Missing Client Credentials", request.remote_addr or "127.0.0.1", "anonymous", "Low")
+        return redirect(url_for("login_page", error="oauth_not_configured", provider="gitlab"))
+
+    state = secrets.token_urlsafe(32)
+    session["gitlab_oauth_state"] = state
+    log_security_event("GITLAB_AUTH_STARTED", "Initiated", request.remote_addr or "127.0.0.1", "anonymous", "Low")
+
+    params = {
+        "client_id": GITLAB_CLIENT_ID,
+        "redirect_uri": GITLAB_REDIRECT_URI,
+        "response_type": "code",
+        "scope": GITLAB_SCOPES,
+        "state": state
+    }
+    gitlab_url = f"https://gitlab.com/oauth/authorize?{urllib.parse.urlencode(params)}"
+    return redirect(gitlab_url)
+
+
+@app.route("/auth/gitlab/callback", methods=["GET"])
+def auth_gitlab_callback():
+    """
+    GitLab OAuth 2.0 Authorization Callback Handler.
+    """
+    global next_id
+    error = request.args.get("error")
+    if error:
+        log_security_event("GITLAB_AUTH_CANCELLED", f"Consent Denied ({error})", request.remote_addr or "127.0.0.1", "anonymous", "Low")
+        return redirect(url_for("login_page", error="access_denied", provider="gitlab"))
+
+    received_state = request.args.get("state", "")
+    stored_state = session.pop("gitlab_oauth_state", None)
+    if not stored_state or not received_state or not secrets.compare_digest(received_state, stored_state):
+        log_security_event("GITLAB_AUTH_FAILED", "State CSRF Mismatch", request.remote_addr or "127.0.0.1", "anonymous", "High")
+        return redirect(url_for("login_page", error="invalid_state", provider="gitlab"))
+
+    code = request.args.get("code")
+    if not code:
+        log_security_event("GITLAB_AUTH_FAILED", "Missing Authorization Code", request.remote_addr or "127.0.0.1", "anonymous", "Medium")
+        return redirect(url_for("login_page", error="missing_code", provider="gitlab"))
+
+    try:
+        token_resp = requests.post(
+            "https://gitlab.com/oauth/token",
+            data={
+                "client_id": GITLAB_CLIENT_ID,
+                "client_secret": GITLAB_CLIENT_SECRET,
+                "code": code,
+                "grant_type": "authorization_code",
+                "redirect_uri": GITLAB_REDIRECT_URI
+            },
+            headers={"Accept": "application/json"},
+            timeout=10
+        )
+        if token_resp.status_code != 200:
+            return redirect(url_for("login_page", error="token_exchange_failed", provider="gitlab"))
+
+        tokens = token_resp.json()
+        access_token = tokens.get("access_token")
+        if not access_token:
+            return redirect(url_for("login_page", error="invalid_token_response", provider="gitlab"))
+
+        user_resp = requests.get(
+            "https://gitlab.com/api/v4/user",
+            headers={"Authorization": f"Bearer {access_token}"},
+            timeout=10
+        )
+        if user_resp.status_code != 200:
+            return redirect(url_for("login_page", error="userinfo_failed", provider="gitlab"))
+
+        profile = user_resp.json()
+        email = profile.get("email", "").strip().lower()
+        if not email:
+            return redirect(url_for("login_page", error="missing_email", provider="gitlab"))
+
+        name = profile.get("name") or profile.get("username") or email.split("@")[0].capitalize()
+        picture = profile.get("avatar_url") or ""
+        gitlab_id = str(profile.get("id"))
+    except Exception as e:
+        log_security_event("GitLab OAuth Network Error", str(e), request.remote_addr or "127.0.0.1", "anonymous", "Medium")
+        return redirect(url_for("login_page", error="network_error", provider="gitlab"))
+
+    user_info = registered_users.get(email)
+    if user_info:
+        user_info["gitlab_id"] = gitlab_id
+        if picture and not user_info.get("picture"):
+            user_info["picture"] = picture
+        user_info["last_login_at"] = time.time()
+        user_info["auth_provider"] = "gitlab+local" if user_info.get("password_hash") else "gitlab"
+        log_security_event("GITLAB_AUTH_SUCCESS", "Authorized", request.remote_addr or "127.0.0.1", email, "Low")
+    else:
+        user_info = {
+            "id": len(registered_users) + 1,
+            "name": name,
+            "email": email,
+            "gitlab_id": gitlab_id,
+            "picture": picture,
+            "role": "Team Member",
+            "department": "Engineering",
+            "auth_provider": "gitlab",
+            "email_verified": True,
+            "created_at": time.time(),
+            "last_login_at": time.time()
+        }
+        registered_users[email] = user_info
+        log_security_event("GITLAB_ACCOUNT_CREATED", "Created", request.remote_addr or "127.0.0.1", email, "Low")
+
+    # Sync employee directory
+    existing_emp = next((e for e in employees if e["email"].lower() == email), None)
+    if not existing_emp:
+        name_parts = name.split()
+        avatar = "".join([p[0] for p in name_parts[:2]]).upper() if name_parts else "GL"
+        employees.append({
+            "id": next_id,
+            "name": name.upper(),
+            "role": user_info.get("role", "Team Member"),
+            "department": user_info.get("department", "Engineering"),
+            "email": email,
+            "status": "Active",
+            "avatar": avatar,
+            "location": "Mumbai, India",
+            "phone": "+91 98200 12345"
+        })
+        next_id += 1
+
+    safe_user = sanitize_user(user_info)
+    session.permanent = True
+    session["user"] = safe_user
+    log_activity("GitLab OAuth Authenticated", f"{name} ({email}) signed in via GitLab.", name, "gitlab", "security")
+    return redirect(url_for("index"))
+
+
+# --- 5. Auth API Endpoints (Direct JSON APIs & Session Verification) ---
 @app.route("/api/auth/google", methods=["POST"])
 def auth_google():
     """
@@ -407,19 +663,27 @@ def auth_google():
     if not email:
         return jsonify({"error": "Validation Error", "message": "Google email is required."}), 400
 
-    # Auto-register or update existing profile
-    user_info = {
-        "name": name,
-        "email": email,
-        "picture": picture,
-        "provider": "google",
-        "role": data.get("role", "Team Member"),
-        "department": data.get("department", "Engineering")
-    }
-    registered_users[email] = user_info
-    session["user"] = user_info
+    user_info = registered_users.get(email)
+    if not user_info:
+        user_info = {
+            "id": len(registered_users) + 1,
+            "name": name,
+            "email": email,
+            "picture": picture,
+            "provider": "google",
+            "auth_provider": "google",
+            "role": data.get("role", "Team Member"),
+            "department": data.get("department", "Engineering"),
+            "email_verified": True,
+            "created_at": time.time(),
+            "last_login_at": time.time()
+        }
+        registered_users[email] = user_info
+    else:
+        user_info["last_login_at"] = time.time()
+        if picture:
+            user_info["picture"] = picture
 
-    # Also automatically add to employee directory if not already there!
     existing = next((e for e in employees if e["email"].lower() == email), None)
     if not existing:
         global next_id
@@ -428,8 +692,8 @@ def auth_google():
         employees.append({
             "id": next_id,
             "name": name.upper(),
-            "role": user_info["role"],
-            "department": user_info["department"],
+            "role": user_info.get("role", "Team Member"),
+            "department": user_info.get("department", "Engineering"),
             "email": email,
             "status": "Active",
             "avatar": avatar,
@@ -438,23 +702,27 @@ def auth_google():
         })
         next_id += 1
 
+    safe_user = sanitize_user(user_info)
+    session.permanent = True
+    session["user"] = safe_user
+
     return jsonify({
         "message": "Google authentication successful",
-        "user": user_info,
-        "redirect": "/"
+        "user": safe_user,
+        "redirect": "/dashboard"
     }), 200
 
 
 @app.route("/api/auth/sso", methods=["POST"])
 def auth_sso():
     """
-    Enterprise SSO endpoint supporting Google Account chooser and token authentication.
+    Enterprise SSO endpoint supporting SSO token authentication and provider sync.
     """
     global next_id
     data = request.get_json(silent=True) or {}
     provider = data.get("provider", "google").strip().lower()
     email = data.get("email", "").strip().lower()
-    name = data.get("name", "").strip() or (email.split("@")[0].capitalize() if email else "Google User")
+    name = data.get("name", "").strip() or (email.split("@")[0].capitalize() if email else f"{provider.capitalize()} User")
     picture = data.get("picture", "").strip() or "/static/logo_text_badge.jpg"
 
     action = data.get("action", "signin").strip().lower()
@@ -470,15 +738,13 @@ def auth_sso():
             "name": name,
             "email": email,
             "picture": picture,
-            "google_sub": "109823471092837419283",
-            "google_email": email,
-            "google_picture": picture,
-            "role": data.get("role", "CI/CD & Containerization Engineer"),
+            "role": data.get("role", "Team Member"),
             "department": data.get("department", "Engineering"),
             "provider": provider,
             "auth_provider": provider,
             "email_verified": True,
             "created_via_sso": is_create,
+            "created_at": time.time(),
             "last_login_at": time.time()
         }
         registered_users[email] = user_info
@@ -491,11 +757,11 @@ def auth_sso():
     existing = next((e for e in employees if e["email"].lower() == email), None)
     if not existing:
         name_parts = name.split()
-        avatar = "".join([p[0] for p in name_parts[:2]]).upper() if name_parts else "GU"
+        avatar = "".join([p[0] for p in name_parts[:2]]).upper() if name_parts else "SO"
         employees.append({
             "id": next_id,
             "name": name.upper(),
-            "role": user_info.get("role", "CI/CD & Containerization Engineer (R3)"),
+            "role": user_info.get("role", "Team Member"),
             "department": user_info.get("department", "Engineering"),
             "email": email,
             "status": "Active",
@@ -505,12 +771,15 @@ def auth_sso():
         })
         next_id += 1
 
-    session["user"] = user_info
+    safe_user = sanitize_user(user_info)
+    session.permanent = True
+    session["user"] = safe_user
+
     event_type = f"{provider.upper()}_ACCOUNT_CREATED" if is_create else f"{provider.upper()}_AUTH_SUCCESS"
     log_security_event(event_type, "Authorized", request.remote_addr or "127.0.0.1", email, "Low")
-    
+
     activity_title = f"{provider.capitalize()} Account Created" if is_create else f"{provider.capitalize()} SSO Authenticated"
-    activity_desc = f"{name} ({email}) {'registered a new account and verified' if is_create else 'authenticated'} via {provider.capitalize()} SSO."
+    activity_desc = f"{name} ({email}) {'registered and authenticated' if is_create else 'authenticated'} via {provider.capitalize()} SSO."
     log_activity(activity_title, activity_desc, name, "shield-check", "security")
 
     success_msg = f"{provider.capitalize()} account created and authenticated successfully" if is_create else f"{provider.capitalize()} authentication successful"
@@ -518,64 +787,144 @@ def auth_sso():
     return jsonify({
         "message": success_msg,
         "action": "create" if is_create else "signin",
-        "user": user_info,
-        "redirect": "/"
+        "user": safe_user,
+        "redirect": "/dashboard"
     }), 200
 
 
 @app.route("/api/auth/login", methods=["POST"])
 def auth_login():
+    """
+    Standard Email / Password Authentication API.
+    Validates email format, checks account existence, securely checks password hash,
+    and returns authenticated session with dashboard redirect.
+    """
     data = request.get_json(silent=True) or {}
     email = data.get("email", "").strip().lower()
     password = data.get("password", "")
 
     if not email or not password:
-        return jsonify({"error": "Validation Error", "message": "Email and password are required."}), 400
+        return jsonify({
+            "error": "Validation Error",
+            "message": "Email address and password are required."
+        }), 400
+
+    if not EMAIL_REGEX.match(email):
+        return jsonify({
+            "error": "Validation Error",
+            "message": "Please enter a valid email address format."
+        }), 400
 
     user = registered_users.get(email)
-    if not user or user.get("password") != password:
-        # If user not found, create seamless demo access
-        user = {
-            "name": email.split("@")[0].replace(".", " ").title(),
-            "email": email,
-            "role": "Team Member",
-            "department": "Engineering",
-            "provider": "credentials",
-            "picture": ""
-        }
-        registered_users[email] = user
+    if not user:
+        return jsonify({
+            "error": "Account Not Found",
+            "message": "No account found with this email address. Please create an account."
+        }), 404
 
-    session["user"] = user
+    pwd_hash = user.get("password_hash")
+    # Backward compatibility with legacy entries
+    if not pwd_hash and "password" in user:
+        pwd_hash = generate_password_hash(user.pop("password"))
+        user["password_hash"] = pwd_hash
+
+    if not pwd_hash:
+        return jsonify({
+            "error": "SSO Account",
+            "message": "This account was registered using Single Sign-On. Please sign in using your SSO provider."
+        }), 400
+
+    if not check_password_hash(pwd_hash, password):
+        log_security_event("LOGIN_FAILED", "Incorrect Password", request.remote_addr or "127.0.0.1", email, "Medium")
+        return jsonify({
+            "error": "Invalid Credentials",
+            "message": "Incorrect password. Please verify your credentials and try again."
+        }), 401
+
+    user["last_login_at"] = time.time()
+    safe_user = sanitize_user(user)
+    session.permanent = True
+    session["user"] = safe_user
+
+    log_security_event("LOGIN_SUCCESS", "Authorized", request.remote_addr or "127.0.0.1", email, "Low")
+    log_activity("User Authenticated", f"{safe_user.get('name')} ({email}) signed in successfully.", safe_user.get('name'), "log-in", "security")
+
     return jsonify({
         "message": "Login successful",
-        "user": user,
-        "redirect": "/"
+        "user": safe_user,
+        "redirect": "/dashboard"
     }), 200
 
 
 @app.route("/api/auth/signup", methods=["POST"])
 def auth_signup():
+    """
+    Standard Account Registration API.
+    Validates required fields, password length, confirmation match, duplicate emails,
+    hashes password with Werkzeug PBKDF2, provisions user and directory record,
+    and returns authenticated session with dashboard redirect.
+    """
     global next_id
     data = request.get_json(silent=True) or {}
     name = data.get("name", "").strip()
     email = data.get("email", "").strip().lower()
     password = data.get("password", "")
+    confirm_password = data.get("confirmPassword", "").strip() if "confirmPassword" in data else data.get("confirm_password", "").strip()
     department = data.get("department", "Engineering").strip() or "Engineering"
 
-    if not email or not password or not name:
-        return jsonify({"error": "Validation Error", "message": "Name, email, and password are required."}), 400
+    if not name or not email or not password:
+        return jsonify({
+            "error": "Validation Error",
+            "message": "Full name, email address, and password are required."
+        }), 400
 
+    if len(name) < 2:
+        return jsonify({
+            "error": "Validation Error",
+            "message": "Full name must be at least 2 characters long."
+        }), 400
+
+    if not EMAIL_REGEX.match(email):
+        return jsonify({
+            "error": "Validation Error",
+            "message": "Please enter a valid email address format."
+        }), 400
+
+    if len(password) < 6:
+        return jsonify({
+            "error": "Validation Error",
+            "message": "Password must be at least 6 characters long."
+        }), 400
+
+    if confirm_password and password != confirm_password:
+        return jsonify({
+            "error": "Validation Error",
+            "message": "Passwords do not match. Please verify your confirmation password."
+        }), 400
+
+    # Duplicate account detection
+    if email in registered_users:
+        return jsonify({
+            "error": "Duplicate Account",
+            "message": "An account with this email address already exists. Please sign in instead."
+        }), 409
+
+    # Secure password hashing (Never store plaintext)
+    pwd_hash = generate_password_hash(password)
     user_info = {
+        "id": len(registered_users) + 1,
         "name": name,
         "email": email,
-        "password": password,
+        "password_hash": pwd_hash,
         "role": "Team Member",
         "department": department,
-        "provider": "credentials",
-        "picture": ""
+        "auth_provider": "local",
+        "email_verified": True,
+        "picture": "",
+        "created_at": time.time(),
+        "last_login_at": time.time()
     }
     registered_users[email] = user_info
-    session["user"] = user_info
 
     # Add new registered user directly into employee directory list
     existing = next((e for e in employees if e["email"].lower() == email), None)
@@ -595,16 +944,26 @@ def auth_signup():
         })
         next_id += 1
 
+    safe_user = sanitize_user(user_info)
+    session.permanent = True
+    session["user"] = safe_user
+
+    log_security_event("ACCOUNT_CREATED", "Registered", request.remote_addr or "127.0.0.1", email, "Low")
+    log_activity("Account Created", f"New user {name} ({email}) created an account.", name, "user-plus", "employee")
+
     return jsonify({
         "message": "Account created successfully",
-        "user": user_info,
-        "redirect": "/"
+        "user": safe_user,
+        "redirect": "/dashboard"
     }), 201
 
 
 @app.route("/api/auth/me", methods=["GET"])
 def auth_me():
-    return jsonify({"user": session.get("user")}), 200
+    user = session.get("user")
+    if not user:
+        return jsonify({"authenticated": False, "user": None}), 401
+    return jsonify({"authenticated": True, "user": sanitize_user(user)}), 200
 
 
 # --- 2. Mandatory Endpoints as specified in Practical Handout ---
