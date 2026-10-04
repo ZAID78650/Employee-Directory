@@ -245,51 +245,135 @@ def test_google_oauth_callback_state_mismatch(client):
     assert "error=invalid_state" in response.location
 
 
-def test_google_oauth_callback_success(client, monkeypatch):
-    """Test full GET /auth/google/callback exchanges code, fetches profile, and creates session"""
+class _MockResponse:
+    def __init__(self, json_data, status_code=200):
+        self._json_data = json_data
+        self.status_code = status_code
+
+    def json(self):
+        return self._json_data
+
+
+def _install_google_mocks(monkeypatch, *, sub="998877665544", email="alex.mercer@student.college.edu",
+                          aud="test-client-id", email_verified="true", token_status=200, token_error=None,
+                          userinfo_sub=None):
+    """Mocks ONLY Google's external HTTP endpoints (token, tokeninfo, userinfo) for unit testing."""
     import app as app_module
+    import time as _t
     monkeypatch.setattr(app_module, "GOOGLE_CLIENT_ID", "test-client-id")
     monkeypatch.setattr(app_module, "GOOGLE_CLIENT_SECRET", "test-secret")
 
-    class MockResponse:
-        def __init__(self, json_data, status_code=200):
-            self._json_data = json_data
-            self.status_code = status_code
-
-        def json(self):
-            return self._json_data
-
     def mock_post(url, *args, **kwargs):
         if "oauth2.googleapis.com/token" in url:
-            return MockResponse({"access_token": "mock-access-token-xyz"})
-        return MockResponse({}, 404)
+            if token_status != 200:
+                return _MockResponse({"error": token_error or "invalid_grant"}, token_status)
+            return _MockResponse({"access_token": "mock-access-token-xyz", "id_token": "mock.id.token"})
+        return _MockResponse({}, 404)
 
     def mock_get(url, *args, **kwargs):
+        if "oauth2.googleapis.com/tokeninfo" in url:
+            return _MockResponse({"iss": "https://accounts.google.com", "aud": aud, "sub": sub, "email": email,
+                                  "email_verified": email_verified, "exp": str(int(_t.time()) + 3600)})
         if "googleapis.com/oauth2/v3/userinfo" in url:
-            return MockResponse({
-                "sub": "998877665544",
-                "name": "Alex Mercer",
-                "email": "alex.mercer@student.college.edu",
-                "picture": "https://lh3.googleusercontent.com/avatar",
-                "email_verified": True
-            })
-        return MockResponse({}, 404)
+            return _MockResponse({"sub": userinfo_sub or sub, "name": "Alex Mercer", "email": email,
+                                  "picture": "https://lh3.googleusercontent.com/avatar", "email_verified": True})
+        return _MockResponse({}, 404)
 
     monkeypatch.setattr(app_module.requests, "post", mock_post)
     monkeypatch.setattr(app_module.requests, "get", mock_get)
 
-    with client.session_transaction() as sess:
-        sess["oauth_state"] = "secure_state_token_456"
 
-    response = client.get("/auth/google/callback?code=valid_code_abc&state=secure_state_token_456", follow_redirects=False)
+def _callback(client, state="secure_state_token_456"):
+    with client.session_transaction() as sess:
+        sess["oauth_state"] = state
+    return client.get(f"/auth/google/callback?code=valid_code_abc&state={state}", follow_redirects=False)
+
+
+def test_google_oauth_callback_success(client, monkeypatch):
+    """Callback exchanges code, verifies ID token, fetches profile, creates session, and dashboard loads"""
+    _install_google_mocks(monkeypatch)
+    response = _callback(client)
     assert response.status_code == 302
     assert response.location in ["/", "/dashboard"]
 
-    # Verify session user is authenticated
     with client.session_transaction() as sess:
         assert sess.get("user") is not None
         assert sess["user"]["email"] == "alex.mercer@student.college.edu"
         assert sess["user"]["name"] == "Alex Mercer"
+        assert sess["user"]["google_sub"] == "998877665544"
+
+    assert client.get("/dashboard").status_code == 200
+    assert client.get("/api/auth/me").get_json()["authenticated"] is True
+    assert registered_users["alex.mercer@student.college.edu"]["auth_provider"] == "google"
+
+
+def test_google_callback_rejects_wrong_audience(client, monkeypatch):
+    """ID token issued for a different client must be rejected"""
+    _install_google_mocks(monkeypatch, aud="attacker-client-id", email="aud.test@student.college.edu")
+    response = _callback(client)
+    assert "error=google_identity_invalid" in response.location
+    with client.session_transaction() as sess:
+        assert sess.get("user") is None
+
+
+def test_google_callback_rejects_unverified_email(client, monkeypatch):
+    """Unverified Google email must never authenticate or link an account"""
+    _install_google_mocks(monkeypatch, email="zaid.matinuddin@student.college.edu", email_verified="false")
+    response = _callback(client)
+    assert "error=google_identity_invalid" in response.location
+    with client.session_transaction() as sess:
+        assert sess.get("user") is None
+
+
+def test_google_callback_rejects_sub_mismatch(client, monkeypatch):
+    """UserInfo subject must match the verified ID token subject"""
+    _install_google_mocks(monkeypatch, email="sub.mismatch@student.college.edu", userinfo_sub="other-sub")
+    response = _callback(client)
+    assert "error=google_identity_invalid" in response.location
+
+
+def test_google_callback_links_existing_local_account_and_blocks_takeover(client, monkeypatch):
+    """Verified Google email links to the existing local account once; a different Google subject cannot take it over"""
+    email = "link.owner@student.college.edu"
+    client.post("/api/auth/signup", json={"name": "Link Owner", "email": email, "password": "Password123!"})
+    client.get("/logout")
+
+    _install_google_mocks(monkeypatch, sub="owner-sub-1", email=email)
+    res = _callback(client)
+    assert res.location in ["/", "/dashboard"]
+    assert registered_users[email]["google_sub"] == "owner-sub-1"
+    assert registered_users[email]["auth_provider"] == "google+local"
+    client.get("/logout")
+
+    _install_google_mocks(monkeypatch, sub="attacker-sub-2", email=email)
+    res = _callback(client)
+    assert "error=user_creation_failed" in res.location
+    with client.session_transaction() as sess:
+        assert sess.get("user") is None
+
+
+def test_google_callback_classifies_redirect_uri_mismatch(client, monkeypatch):
+    """Google's redirect_uri_mismatch must surface as INVALID_REDIRECT_URI, not 'not configured'"""
+    _install_google_mocks(monkeypatch, token_status=400, token_error="redirect_uri_mismatch")
+    res = _callback(client)
+    assert "error=invalid_redirect_uri" in res.location
+    assert "oauth_not_configured" not in res.location
+
+
+def test_google_status_endpoint(client, monkeypatch):
+    """GET /api/auth/google/status reports booleans only and never leaks secrets"""
+    import app as app_module
+    monkeypatch.setattr(app_module, "GOOGLE_CLIENT_ID", "")
+    monkeypatch.setattr(app_module, "GOOGLE_CLIENT_SECRET", "")
+    data = client.get("/api/auth/google/status").get_json()
+    assert data["oauthReady"] is False and data["clientIdConfigured"] is False and data["runtime"] == "server"
+
+    monkeypatch.setattr(app_module, "GOOGLE_CLIENT_ID", "id-123.apps.googleusercontent.com")
+    monkeypatch.setattr(app_module, "GOOGLE_CLIENT_SECRET", "super-secret-value")
+    res = client.get("/api/auth/google/status")
+    data = res.get_json()
+    assert data["oauthReady"] is True
+    assert b"super-secret-value" not in res.data
 
 
 # --- 4. GitHub and GitLab OAuth Tests ---
@@ -411,48 +495,26 @@ def test_dashboard_access_and_logout(client):
 
 # --- 6. API Endpoints & SSO Utilities ---
 
-def test_auth_google_login(client):
-    """Test POST /api/auth/google logs in and sets sanitized session"""
-    google_payload = {
-        "name": "Google Test Engineer",
-        "email": "google.tester@student.college.edu",
-        "picture": "https://lh3.googleusercontent.com/test",
-        "provider": "google",
-        "role": "Cloud Tester",
-        "department": "Platform & Cloud"
-    }
-    response = client.post(
-        "/api/auth/google",
-        data=json.dumps(google_payload),
-        content_type="application/json"
-    )
-    assert response.status_code == 200
-    data = response.get_json()
-    assert data["message"] == "Google authentication successful"
-    assert data["user"]["email"] == "google.tester@student.college.edu"
-
-
-def test_auth_sso_endpoint(client):
-    """Test POST /api/auth/sso logs in via SSO provider and auto-provisions user"""
-    sso_payload = {
-        "provider": "google",
-        "name": "Zaid Shaikh",
-        "email": "szaid8364@eng.rizvi.edu.in",
-        "role": "Lead DevOps Architect",
-        "department": "Engineering"
-    }
-    response = client.post(
-        "/api/auth/sso",
-        data=json.dumps(sso_payload),
-        content_type="application/json"
-    )
-    assert response.status_code == 200
-    data = response.get_json()
-    assert "successful" in data["message"]
-    assert data["user"]["email"] == "szaid8364@eng.rizvi.edu.in"
+def test_client_asserted_google_identity_rejected(client):
+    """SECURITY: POST /api/auth/google must NOT create a session from a client-supplied email"""
+    res = client.post("/api/auth/google", json={"email": "zaid.matinuddin@student.college.edu", "name": "Attacker"})
+    assert res.status_code == 400
+    assert res.get_json()["redirect"] == "/auth/google"
     with client.session_transaction() as sess:
-        assert sess.get("user") is not None
-        assert sess["user"]["email"] == "szaid8364@eng.rizvi.edu.in"
+        assert sess.get("user") is None
+    assert client.get("/dashboard").status_code == 302
+
+
+def test_client_asserted_sso_identity_rejected(client):
+    """SECURITY: POST /api/auth/sso must NOT create a session or provision a user from client-supplied data"""
+    for prov in ["google", "github", "gitlab"]:
+        email = f"forged.{prov}@student.college.edu"
+        res = client.post("/api/auth/sso", json={"provider": prov, "email": email, "action": "create"})
+        assert res.status_code == 400
+        assert res.get_json()["redirect"] == f"/auth/{prov}"
+        assert email not in registered_users
+        with client.session_transaction() as sess:
+            assert sess.get("user") is None
 
 
 def test_attendance_endpoints(client):
@@ -530,44 +592,6 @@ def test_login_page_renders_badge_and_google_sso(client):
     assert "openGoogleAccountChooser" in html
     assert "Sign in with Google" in html
     assert "Create Account with Google" in html
-
-
-def test_google_create_account_sso_flow(client):
-    """Test POST /api/auth/sso provisions a new Google account with action='create' and registers employee"""
-    new_email = "new.google.user@eng.rizvi.edu.in"
-    payload = {
-        "provider": "google",
-        "action": "create",
-        "name": "New Google Candidate",
-        "email": new_email,
-        "role": "Full Stack Engineer",
-        "department": "Engineering"
-    }
-    response = client.post(
-        "/api/auth/sso",
-        data=json.dumps(payload),
-        content_type="application/json"
-    )
-    assert response.status_code == 200
-    data = response.get_json()
-    assert data["action"] == "create"
-    assert "created and authenticated" in data["message"]
-    assert data["user"]["email"] == new_email
-    assert data["redirect"] in ["/", "/dashboard"]
-
-
-def test_developer_sso_github_gitlab(client):
-    """Test POST /api/auth/sso for GitHub and GitLab providers"""
-    for prov in ["github", "gitlab"]:
-        payload = {
-            "provider": prov,
-            "name": f"Developer {prov.title()}",
-            "email": f"dev.{prov}@student.college.edu"
-        }
-        res = client.post("/api/auth/sso", data=json.dumps(payload), content_type="application/json")
-        assert res.status_code == 200
-        data = res.get_json()
-        assert data["user"]["auth_provider"] == prov
 
 
 def test_forgot_password_endpoint(client):

@@ -1097,23 +1097,59 @@
           'CSRF state verification failed. Please try signing in again.',
           'error'
         );
-      } else if (err === 'token_exchange_failed') {
+      } else if (err === 'token_exchange_failed' || err === 'oauth_code_exchange_failed') {
         showFeedback(
-          'OAuth Handshake Failed',
-          `Unable to complete OAuth token exchange with ${providerName}. Please check client credentials.`,
+          'Sign-In Could Not Be Completed',
+          `${providerName} returned an authorization code, but it could not be exchanged. Please try again.`,
+          'error'
+        );
+      } else if (err === 'invalid_redirect_uri') {
+        showFeedback(
+          'Redirect URI Mismatch',
+          `${providerName} rejected this site's callback URL. The OAuth client's Authorized Redirect URI must match exactly.`,
+          'error'
+        );
+      } else if (err === 'oauth_provider_error') {
+        showFeedback(
+          `${providerName} Rejected the Request`,
+          `${providerName} refused the sign-in request (client configuration error). Please contact the administrator.`,
+          'error'
+        );
+      } else if (err === 'google_identity_invalid') {
+        showFeedback(
+          'Identity Verification Failed',
+          'Your Google identity could not be verified, or the Google email address is not verified.',
+          'error'
+        );
+      } else if (err === 'user_creation_failed') {
+        showFeedback(
+          'Account Linking Refused',
+          'This email is already linked to a different Google account. Sign in with your password instead.',
+          'error'
+        );
+      } else if (err === 'network_error') {
+        showFeedback(
+          'Network Error',
+          `The server could not reach ${providerName}. Please try again shortly.`,
+          'error'
+        );
+      } else if (err === 'missing_code') {
+        showFeedback(
+          'Incomplete Sign-In Response',
+          `${providerName} did not return an authorization code. Please try again.`,
           'error'
         );
       } else if (err === 'missing_email') {
         showFeedback(
           'Email Address Required',
-          `Your ${providerName} account did not provide a verified public email address.`,
+          `Your ${providerName} account did not provide a verified email address.`,
           'error'
         );
       } else {
         showFeedback(
-          'Authentication Notice',
-          `Authentication event: ${err}`,
-          'info'
+          'Sign-In Failed',
+          'Authentication could not be completed. Please try again.',
+          'error'
         );
       }
     }

@@ -36,7 +36,7 @@ app.secret_key = os.environ.get("SECRET_KEY", "devops-employee-directory-secret-
 app.config.update(
     SESSION_COOKIE_HTTPONLY=True,
     SESSION_COOKIE_SAMESITE="Lax",
-    SESSION_COOKIE_SECURE=False,  # Enforced dynamically on HTTPS/proxy connections
+    SESSION_COOKIE_SECURE=bool(os.environ.get("VERCEL")),  # HTTPS-only cookie on Vercel; plain http allowed for local dev
     PERMANENT_SESSION_LIFETIME=timedelta(hours=24)
 )
 
@@ -136,8 +136,6 @@ registered_users = {
         "name": "Shaikh Zaid Matinuddin",
         "email": "zaid.matinuddin@student.college.edu",
         "password_hash": generate_password_hash("password123"),
-        "google_sub": "109823471092837419283",
-        "google_email": "zaid.matinuddin@student.college.edu",
         "picture": "/static/logo_text_badge.jpg",
         "role": "CI/CD & Containerization Engineer",
         "department": "Engineering",
@@ -282,8 +280,11 @@ def auth_google_redirect():
     """
     action = request.args.get("action", "signin").strip().lower()
     config = get_oauth_config("google")
+    auth_log("google", "INIT", "CONFIG",
+             f"client_id_configured={bool(config['client_id'])} secret_configured={bool(config['client_secret'])} redirect_configured={bool(config['redirect_uri'])}")
     if not config["is_configured"]:
         log_security_event("GOOGLE_AUTH_UNCONFIGURED", "Missing Client Credentials", request.remote_addr or "127.0.0.1", "anonymous", "Low")
+        auth_log("google", "INIT", "CONFIG_MISSING")
         return redirect(url_for("login_page", error="oauth_not_configured", provider="google"))
 
     # Generate cryptographically secure random state parameter for CSRF mitigation
@@ -306,19 +307,65 @@ def auth_google_redirect():
     return redirect(google_auth_url)
 
 
+GOOGLE_ISSUERS = ("accounts.google.com", "https://accounts.google.com")
+
+
+def auth_log(provider: str, stage: str, result: str, detail: str = ""):
+    """Structured, secret-free OAuth stage logging: [AUTH] provider=google stage=CALLBACK result=SUCCESS"""
+    msg = f"[AUTH] provider={provider} stage={stage} result={result}"
+    if detail:
+        msg += f" detail={detail}"
+    print(msg, flush=True)
+
+
+def google_oauth_fail(code: str, stage: str, detail: str = ""):
+    """Logs a classified OAuth failure server-side and redirects with a safe error code."""
+    auth_log("google", stage, code, detail)
+    return redirect(url_for("login_page", error=code.lower(), provider="google"))
+
+
+def verify_google_id_token(id_token: str, client_id: str):
+    """
+    Verifies a Google OIDC ID token server-side via Google's tokeninfo endpoint
+    (Google validates the RS256 signature), then enforces issuer, audience and expiry locally.
+    Returns the verified claims dict, or None if invalid.
+    """
+    resp = requests.get("https://oauth2.googleapis.com/tokeninfo", params={"id_token": id_token}, timeout=10)
+    if resp.status_code != 200:
+        return None
+    claims = resp.json()
+    if claims.get("iss") not in GOOGLE_ISSUERS:
+        return None
+    if claims.get("aud") != client_id:
+        return None
+    try:
+        if int(claims.get("exp", 0)) < int(time.time()):
+            return None
+    except (TypeError, ValueError):
+        return None
+    if not claims.get("sub"):
+        return None
+    return claims
+
+
 @app.route("/auth/google/callback", methods=["GET"])
 def auth_google_callback():
     """
-    Official Google OAuth 2.0 Authorization Callback Handler.
-    Validates state parameter, exchanges code for access token with Google token endpoint,
-    retrieves verified identity from Google UserInfo API, and creates Employee Directory session.
+    Official Google OAuth 2.0 / OIDC Authorization Callback Handler.
+    Validates state, exchanges code for tokens, verifies the ID token (iss/aud/exp/sub),
+    cross-checks the UserInfo identity, enforces verified email for account linking,
+    and creates the same signed session used by email/password login.
     """
     global next_id
+    auth_log("google", "CALLBACK", "RECEIVED")
     error = request.args.get("error")
     if error:
         log_security_event("GOOGLE_AUTH_CANCELLED", f"Consent Denied ({error})", request.remote_addr or "127.0.0.1", "anonymous", "Low")
         log_activity("Google OAuth Cancelled", f"Google authentication was cancelled by the user ({error}).", "Anonymous", "alert-circle", "security")
-        return redirect(url_for("login_page", error="access_denied", provider="google"))
+        if error == "access_denied":
+            auth_log("google", "CALLBACK", "ACCESS_DENIED")
+            return redirect(url_for("login_page", error="access_denied", provider="google"))
+        return google_oauth_fail("OAUTH_PROVIDER_ERROR", "CALLBACK", error[:64])
 
     # CSRF state verification
     received_state = request.args.get("state", "")
@@ -327,14 +374,20 @@ def auth_google_callback():
 
     if not stored_state or not received_state or not secrets.compare_digest(received_state, stored_state):
         log_security_event("GOOGLE_AUTH_FAILED", "State CSRF Mismatch", request.remote_addr or "127.0.0.1", "anonymous", "High")
+        auth_log("google", "CALLBACK", "OAUTH_STATE_INVALID")
         return redirect(url_for("login_page", error="invalid_state", provider="google"))
 
     code = request.args.get("code")
     if not code:
         log_security_event("GOOGLE_AUTH_FAILED", "Missing Authorization Code", request.remote_addr or "127.0.0.1", "anonymous", "Medium")
+        auth_log("google", "CALLBACK", "MISSING_CODE")
         return redirect(url_for("login_page", error="missing_code", provider="google"))
 
     config = get_oauth_config("google")
+    if not config["is_configured"]:
+        auth_log("google", "CALLBACK", "CONFIG_MISSING")
+        return redirect(url_for("login_page", error="oauth_not_configured", provider="google"))
+
     # Exchange authorization code for tokens via Google Token Endpoint
     try:
         token_resp = requests.post(
@@ -351,12 +404,27 @@ def auth_google_callback():
         )
         if token_resp.status_code != 200:
             log_security_event("Token Exchange Failed", "Failed", request.remote_addr or "127.0.0.1", "anonymous", "High")
-            return redirect(url_for("login_page", error="token_exchange_failed", provider="google"))
+            try:
+                g_err = str(token_resp.json().get("error", ""))[:64]
+            except Exception:
+                g_err = f"http_{token_resp.status_code}"
+            if g_err == "redirect_uri_mismatch":
+                return google_oauth_fail("INVALID_REDIRECT_URI", "CODE_EXCHANGE", g_err)
+            if g_err == "invalid_client":
+                return google_oauth_fail("OAUTH_PROVIDER_ERROR", "CODE_EXCHANGE", g_err)
+            return google_oauth_fail("OAUTH_CODE_EXCHANGE_FAILED", "CODE_EXCHANGE", g_err)
+        auth_log("google", "CODE_EXCHANGE", "SUCCESS")
 
         tokens = token_resp.json()
         access_token = tokens.get("access_token")
-        if not access_token:
-            return redirect(url_for("login_page", error="invalid_token_response", provider="google"))
+        id_token = tokens.get("id_token")
+        if not access_token or not id_token:
+            return google_oauth_fail("OAUTH_CODE_EXCHANGE_FAILED", "CODE_EXCHANGE", "missing access_token or id_token")
+
+        # Verify OIDC ID token: signature (by Google), issuer, audience, expiry, subject
+        claims = verify_google_id_token(id_token, config["client_id"])
+        if not claims:
+            return google_oauth_fail("GOOGLE_IDENTITY_INVALID", "IDENTITY", "id_token verification failed")
 
         # Retrieve profile information from Google UserInfo Endpoint
         userinfo_resp = requests.get(
@@ -365,24 +433,36 @@ def auth_google_callback():
             timeout=10
         )
         if userinfo_resp.status_code != 200:
-            return redirect(url_for("login_page", error="userinfo_failed", provider="google"))
+            return google_oauth_fail("GOOGLE_IDENTITY_INVALID", "IDENTITY", f"userinfo http_{userinfo_resp.status_code}")
 
         profile = userinfo_resp.json()
-    except Exception as e:
-        log_security_event("OAuth Network Error", str(e), request.remote_addr or "127.0.0.1", "anonymous", "Medium")
-        return redirect(url_for("login_page", error="network_error", provider="google"))
+    except requests.RequestException as e:
+        log_security_event("OAuth Network Error", type(e).__name__, request.remote_addr or "127.0.0.1", "anonymous", "Medium")
+        return google_oauth_fail("NETWORK_ERROR", "CODE_EXCHANGE", type(e).__name__)
 
-    google_sub = str(profile.get("sub", ""))
-    email = profile.get("email", "").strip().lower()
+    google_sub = str(claims.get("sub", ""))
+    if str(profile.get("sub", "")) != google_sub:
+        return google_oauth_fail("GOOGLE_IDENTITY_INVALID", "IDENTITY", "userinfo sub != id_token sub")
+
+    email = (claims.get("email") or profile.get("email") or "").strip().lower()
     name = profile.get("name", "").strip() or profile.get("given_name", "").strip() or email.split("@")[0].capitalize()
     picture = profile.get("picture", "").strip()
-    email_verified = profile.get("email_verified", False)
+    email_verified = str(claims.get("email_verified", profile.get("email_verified", False))).lower() == "true"
 
     if not email:
+        auth_log("google", "IDENTITY", "MISSING_EMAIL")
         return redirect(url_for("login_page", error="missing_email", provider="google"))
+    if not email_verified:
+        return google_oauth_fail("GOOGLE_IDENTITY_INVALID", "IDENTITY", "email not verified by Google")
+    auth_log("google", "IDENTITY", "SUCCESS")
 
     user_info = registered_users.get(email)
     if user_info:
+        # Account-linking policy: a local account is linked only to a Google identity whose
+        # verified email matches; once linked, a different Google subject can never take it over.
+        linked_sub = user_info.get("google_sub")
+        if linked_sub and linked_sub != google_sub:
+            return google_oauth_fail("USER_CREATION_FAILED", "USER", "account already linked to a different Google identity")
         user_info["google_sub"] = google_sub
         user_info["google_email"] = email
         if picture:
@@ -433,6 +513,7 @@ def auth_google_callback():
     safe_user = sanitize_user(user_info)
     session.permanent = True
     session["user"] = safe_user
+    auth_log("google", "SESSION", "SUCCESS")
     return redirect(url_for("dashboard"))
 
 
@@ -516,20 +597,16 @@ def auth_github_callback():
             return redirect(url_for("login_page", error="userinfo_failed", provider="github"))
 
         profile = user_resp.json()
-        email = profile.get("email")
-        if not email:
-            # Retrieve primary verified email from /user/emails endpoint
-            emails_resp = requests.get(
-                "https://api.github.com/user/emails",
-                headers={"Authorization": f"Bearer {access_token}", "Accept": "application/vnd.github+json"},
-                timeout=10
-            )
-            if emails_resp.status_code == 200:
-                emails_list = emails_resp.json()
-                primary = next((e["email"] for e in emails_list if e.get("primary") and e.get("verified")), None)
-                if not primary and emails_list:
-                    primary = emails_list[0].get("email")
-                email = primary
+        # Always resolve the primary VERIFIED email; the public profile email is not verified by GitHub.
+        email = None
+        emails_resp = requests.get(
+            "https://api.github.com/user/emails",
+            headers={"Authorization": f"Bearer {access_token}", "Accept": "application/vnd.github+json"},
+            timeout=10
+        )
+        if emails_resp.status_code == 200:
+            emails_list = emails_resp.json()
+            email = next((e["email"] for e in emails_list if e.get("primary") and e.get("verified")), None)
 
         if not email:
             return redirect(url_for("login_page", error="missing_email", provider="github"))
@@ -799,149 +876,46 @@ def auth_config_status():
     return jsonify(result), 200
 
 
+@app.route("/api/auth/google/status", methods=["GET"])
+def auth_google_status():
+    """Server-side Google OAuth readiness diagnostic. Returns booleans only - never secrets."""
+    cfg = get_oauth_config("google")
+    has_id, has_secret, has_redirect = bool(cfg["client_id"]), bool(cfg["client_secret"]), bool(cfg["redirect_uri"])
+    return jsonify({
+        "provider": "google",
+        "clientIdConfigured": has_id,
+        "clientSecretConfigured": has_secret,
+        "redirectUriConfigured": has_redirect,
+        "redirectUri": cfg["redirect_uri"],
+        "runtime": "server",
+        "environment": os.environ.get("VERCEL_ENV", "development"),
+        "oauthReady": has_id and has_secret and has_redirect
+    }), 200
+
+
 
 
 # --- 5. Auth API Endpoints (Direct JSON APIs & Session Verification) ---
 @app.route("/api/auth/google", methods=["POST"])
-def auth_google():
-    """
-    Authenticate / Register user via Google Account (Direct JSON API)
-    """
-    data = request.get_json(silent=True) or {}
-    email = data.get("email", "").strip().lower()
-    name = data.get("name", "").strip() or (email.split("@")[0].capitalize() if email else "Google User")
-    picture = data.get("picture", "").strip()
-
-    if not email:
-        return jsonify({"error": "Validation Error", "message": "Google email is required."}), 400
-
-    user_info = registered_users.get(email)
-    if not user_info:
-        user_info = {
-            "id": len(registered_users) + 1,
-            "name": name,
-            "email": email,
-            "picture": picture,
-            "provider": "google",
-            "auth_provider": "google",
-            "role": data.get("role", "Team Member"),
-            "department": data.get("department", "Engineering"),
-            "email_verified": True,
-            "created_at": time.time(),
-            "last_login_at": time.time()
-        }
-        registered_users[email] = user_info
-    else:
-        user_info["last_login_at"] = time.time()
-        if picture:
-            user_info["picture"] = picture
-
-    existing = next((e for e in employees if e["email"].lower() == email), None)
-    if not existing:
-        global next_id
-        name_parts = name.split()
-        avatar = "".join([p[0] for p in name_parts[:2]]).upper() if name_parts else "GU"
-        employees.append({
-            "id": next_id,
-            "name": name.upper(),
-            "role": user_info.get("role", "Team Member"),
-            "department": user_info.get("department", "Engineering"),
-            "email": email,
-            "status": "Active",
-            "avatar": avatar,
-            "location": "Mumbai, India",
-            "phone": "+91 98200 12345"
-        })
-        next_id += 1
-
-    safe_user = sanitize_user(user_info)
-    session.permanent = True
-    session["user"] = safe_user
-
-    return jsonify({
-        "message": "Google authentication successful",
-        "user": safe_user,
-        "redirect": "/dashboard"
-    }), 200
-
-
 @app.route("/api/auth/sso", methods=["POST"])
-def auth_sso():
+def auth_sso_disabled():
     """
-    Enterprise SSO endpoint supporting SSO token authentication and provider sync.
+    SECURITY: These endpoints previously created an authenticated session for ANY email
+    supplied in the JSON body (no password, no provider verification) - a full account
+    takeover. Identity must come from the verified server-side OAuth/OIDC flow, so
+    client-asserted identities are rejected and callers are directed to /auth/<provider>.
     """
-    global next_id
     data = request.get_json(silent=True) or {}
-    provider = data.get("provider", "google").strip().lower()
-    email = data.get("email", "").strip().lower()
-    name = data.get("name", "").strip() or (email.split("@")[0].capitalize() if email else f"{provider.capitalize()} User")
-    picture = data.get("picture", "").strip() or "/static/logo_text_badge.jpg"
-
-    action = data.get("action", "signin").strip().lower()
-    is_create = (action == "create")
-
-    if not email:
-        return jsonify({"error": "Validation Error", "message": "Email address is required for SSO authentication."}), 400
-
-    user_info = registered_users.get(email)
-    if not user_info:
-        user_info = {
-            "id": len(registered_users) + 1,
-            "name": name,
-            "email": email,
-            "picture": picture,
-            "role": data.get("role", "Team Member"),
-            "department": data.get("department", "Engineering"),
-            "provider": provider,
-            "auth_provider": provider,
-            "email_verified": True,
-            "created_via_sso": is_create,
-            "created_at": time.time(),
-            "last_login_at": time.time()
-        }
-        registered_users[email] = user_info
-    else:
-        user_info["last_login_at"] = time.time()
-        user_info["auth_provider"] = provider
-        if picture and not user_info.get("picture"):
-            user_info["picture"] = picture
-
-    existing = next((e for e in employees if e["email"].lower() == email), None)
-    if not existing:
-        name_parts = name.split()
-        avatar = "".join([p[0] for p in name_parts[:2]]).upper() if name_parts else "SO"
-        employees.append({
-            "id": next_id,
-            "name": name.upper(),
-            "role": user_info.get("role", "Team Member"),
-            "department": user_info.get("department", "Engineering"),
-            "email": email,
-            "status": "Active",
-            "avatar": avatar,
-            "location": "Mumbai, India",
-            "phone": "+91 98200 12345"
-        })
-        next_id += 1
-
-    safe_user = sanitize_user(user_info)
-    session.permanent = True
-    session["user"] = safe_user
-
-    event_type = f"{provider.upper()}_ACCOUNT_CREATED" if is_create else f"{provider.upper()}_AUTH_SUCCESS"
-    log_security_event(event_type, "Authorized", request.remote_addr or "127.0.0.1", email, "Low")
-
-    activity_title = f"{provider.capitalize()} Account Created" if is_create else f"{provider.capitalize()} SSO Authenticated"
-    activity_desc = f"{name} ({email}) {'registered and authenticated' if is_create else 'authenticated'} via {provider.capitalize()} SSO."
-    log_activity(activity_title, activity_desc, name, "shield-check", "security")
-
-    success_msg = f"{provider.capitalize()} account created and authenticated successfully" if is_create else f"{provider.capitalize()} authentication successful"
-
+    provider = str(data.get("provider", "google")).strip().lower()
+    if provider not in ("google", "github", "gitlab"):
+        provider = "google"
+    log_security_event("SSO_ASSERTION_REJECTED", "Client-asserted identity refused", request.remote_addr or "127.0.0.1", "anonymous", "High")
+    auth_log(provider, "INIT", "CLIENT_ASSERTION_REJECTED")
     return jsonify({
-        "message": success_msg,
-        "action": "create" if is_create else "signin",
-        "user": safe_user,
-        "redirect": "/dashboard"
-    }), 200
+        "error": "Use OAuth Redirect Flow",
+        "message": "Single Sign-On must be completed through the provider's authorization page.",
+        "redirect": f"/auth/{provider}"
+    }), 400
 
 
 @app.route("/api/auth/login", methods=["POST"])
