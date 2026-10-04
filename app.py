@@ -457,6 +457,9 @@ def auth_sso():
     name = data.get("name", "").strip() or (email.split("@")[0].capitalize() if email else "Google User")
     picture = data.get("picture", "").strip() or "/static/logo_text_badge.jpg"
 
+    action = data.get("action", "signin").strip().lower()
+    is_create = (action == "create")
+
     if not email:
         return jsonify({"error": "Validation Error", "message": "Email address is required for SSO authentication."}), 400
 
@@ -475,6 +478,7 @@ def auth_sso():
             "provider": provider,
             "auth_provider": provider,
             "email_verified": True,
+            "created_via_sso": is_create,
             "last_login_at": time.time()
         }
         registered_users[email] = user_info
@@ -502,11 +506,18 @@ def auth_sso():
         next_id += 1
 
     session["user"] = user_info
-    log_security_event(f"{provider.upper()}_AUTH_SUCCESS", "Authorized", request.remote_addr or "127.0.0.1", email, "Low")
-    log_activity(f"{provider.capitalize()} SSO Authenticated", f"{name} ({email}) authenticated via {provider.capitalize()} SSO.", name, "shield-check", "security")
+    event_type = f"{provider.upper()}_ACCOUNT_CREATED" if is_create else f"{provider.upper()}_AUTH_SUCCESS"
+    log_security_event(event_type, "Authorized", request.remote_addr or "127.0.0.1", email, "Low")
+    
+    activity_title = f"{provider.capitalize()} Account Created" if is_create else f"{provider.capitalize()} SSO Authenticated"
+    activity_desc = f"{name} ({email}) {'registered a new account and verified' if is_create else 'authenticated'} via {provider.capitalize()} SSO."
+    log_activity(activity_title, activity_desc, name, "shield-check", "security")
+
+    success_msg = f"{provider.capitalize()} account created and authenticated successfully" if is_create else f"{provider.capitalize()} authentication successful"
 
     return jsonify({
-        "message": f"{provider.capitalize()} authentication successful",
+        "message": success_msg,
+        "action": "create" if is_create else "signin",
         "user": user_info,
         "redirect": "/"
     }), 200

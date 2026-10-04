@@ -399,7 +399,7 @@ def test_security_scan_and_ai_defense(client):
 
 
 def test_login_page_renders_badge_and_google_sso(client):
-    """Test GET /login renders 3D metallic shield badge, Google auth button, and account chooser modal"""
+    """Test GET /login renders 3D metallic shield badge, both Google buttons, and account chooser modal"""
     response = client.get("/login")
     assert response.status_code == 200
     html = response.data.decode("utf-8")
@@ -408,13 +408,15 @@ def test_login_page_renders_badge_and_google_sso(client):
     assert "googleAccountModal" in html
     assert "openGoogleAccountChooser" in html
     assert "Sign in with Google" in html
+    assert "Create Account with Google" in html
 
 
 def test_google_create_account_sso_flow(client):
-    """Test POST /api/auth/sso provisions a new Google account and registers employee"""
+    """Test POST /api/auth/sso provisions a new Google account with action='create' and registers employee"""
     new_email = "new.google.user@eng.rizvi.edu.in"
     payload = {
         "provider": "google",
+        "action": "create",
         "name": "New Google Candidate",
         "email": new_email,
         "role": "Full Stack Engineer",
@@ -427,6 +429,8 @@ def test_google_create_account_sso_flow(client):
     )
     assert response.status_code == 200
     data = response.get_json()
+    assert data["action"] == "create"
+    assert "created and authenticated" in data["message"]
     assert data["user"]["email"] == new_email
     assert data["redirect"] == "/"
 
