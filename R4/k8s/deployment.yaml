@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: employee-directory-deployment
+  namespace: employee-directory
+  labels:
+    app: employee-directory
+    role: R4-deployment
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: employee-directory
+  template:
+    metadata:
+      labels:
+        app: employee-directory
+    spec:
+      containers:
+      - name: employee-directory
+        image: employee-directory:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 5001
+          name: http
+        envFrom:
+        - configMapRef:
+            name: app-config
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 5001
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 5001
+          initialDelaySeconds: 10
+          periodSeconds: 15
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            cpu: 300m
+            memory: 256Mi

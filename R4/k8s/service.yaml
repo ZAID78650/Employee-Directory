@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: employee-directory-service
+  namespace: employee-directory
+  labels:
+    app: employee-directory
+spec:
+  type: NodePort
+  ports:
+  - port: 5001
+    targetPort: 5001
+    nodePort: 30501
+    name: http
+  selector:
+    app: employee-directory

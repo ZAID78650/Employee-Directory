@@ -9,3 +9,6 @@ venv/
 *.log
 .DS_Store
 .vercel
+__pycache__/
+*.pyc
+.pytest_cache/
