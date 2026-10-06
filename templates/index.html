@@ -1012,118 +1012,25 @@
       <!-- ===================================================================== -->
       <section id="view-departments" class="tab-view-container hidden space-y-8 animate-view-in">
         
-        <div class="flex items-center justify-between pb-4 border-b border-slate-800/80">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-800/80">
           <div>
             <h2 class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight flex items-center gap-3">
               <span>Departmental Hierarchy & Squads</span>
-              <span class="text-xs font-mono font-bold px-3 py-1 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">4 Divisions</span>
+              <span id="deptDivisionCountBadge" class="text-xs font-mono font-bold px-3 py-1 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">4 Divisions</span>
             </h2>
-            <p class="text-sm text-slate-300 mt-1">Structured organizational routing aligned with DevOps Practical 10 roles (R1–R4).</p>
+            <p class="text-sm text-slate-300 mt-1">Real-time organizational squad distribution automatically mapped to all enrolled personnel records.</p>
+          </div>
+          <div class="flex items-center gap-3">
+            <input type="text" id="deptSearchInput" oninput="renderDepartmentsGrid()" placeholder="Search squad or member..." class="px-4 py-2 rounded-2xl bg-slate-900 border border-slate-800 text-xs font-medium text-slate-200 placeholder-slate-500 focus:outline-none focus:border-cyan-500 transition">
+            <button onclick="renderDepartmentsGrid()" class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition cursor-pointer" title="Refresh Squads">
+              <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+            </button>
           </div>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-          
-          <!-- R1: Platform & Cloud -->
-          <div class="card-surface rounded-3xl p-6 space-y-4 hover:border-indigo-500/40 transition">
-            <div class="flex items-center justify-between pb-3 border-b border-slate-800">
-              <div class="flex items-center gap-3">
-                <div class="p-3 rounded-2xl bg-indigo-500/10 text-indigo-400"><i data-lucide="cloud" class="w-6 h-6"></i></div>
-                <div>
-                  <h3 class="text-lg font-bold text-white">Platform & Cloud</h3>
-                  <p class="text-xs text-indigo-300 font-mono font-bold">Role Lead: R1 (Agile & Documentation)</p>
-                </div>
-              </div>
-              <span class="px-3 py-1 rounded-full text-xs font-mono font-bold bg-indigo-950/80 text-indigo-300 border border-indigo-500/40">1 Member</span>
-            </div>
-            <p class="text-sm text-slate-300 leading-relaxed">Responsible for cloud infrastructure provisioning, Docker container orchestration, deployment documentation, and sprint backlog coordination.</p>
-            <div class="p-4 rounded-2xl bg-slate-900/80 border border-slate-800 flex items-center justify-between">
-              <div class="flex items-center gap-3">
-                <div class="w-9 h-9 rounded-xl bg-indigo-600 text-white font-bold text-xs flex items-center justify-center">SR</div>
-                <div>
-                  <p class="text-sm font-bold text-white">SHAIKH RAHMAT</p>
-                  <p class="text-xs text-slate-400">Agile Planner & Documentation Lead</p>
-                </div>
-              </div>
-              <span class="text-xs font-mono text-emerald-400 font-bold">Active</span>
-            </div>
-          </div>
-
-          <!-- R2: AI & Data Science -->
-          <div class="card-surface rounded-3xl p-6 space-y-4 hover:border-cyan-500/40 transition">
-            <div class="flex items-center justify-between pb-3 border-b border-slate-800">
-              <div class="flex items-center gap-3">
-                <div class="p-3 rounded-2xl bg-cyan-500/10 text-cyan-400"><i data-lucide="cpu" class="w-6 h-6"></i></div>
-                <div>
-                  <h3 class="text-lg font-bold text-white">AI & Data Science</h3>
-                  <p class="text-xs text-cyan-300 font-mono font-bold">Role Lead: R2 (Developer & Version Control)</p>
-                </div>
-              </div>
-              <span class="px-3 py-1 rounded-full text-xs font-mono font-bold bg-cyan-950/80 text-cyan-300 border border-cyan-500/40">1 Member</span>
-            </div>
-            <p class="text-sm text-slate-300 leading-relaxed">Responsible for application logic development, code reviews, version control branching models, and AI workforce dataset optimization.</p>
-            <div class="p-4 rounded-2xl bg-slate-900/80 border border-slate-800 flex items-center justify-between">
-              <div class="flex items-center gap-3">
-                <div class="w-9 h-9 rounded-xl bg-cyan-600 text-white font-bold text-xs flex items-center justify-center">YZ</div>
-                <div>
-                  <p class="text-sm font-bold text-white">YADGIR ZUVERIA SALIM</p>
-                  <p class="text-xs text-slate-400">Developer & Version Control Lead</p>
-                </div>
-              </div>
-              <span class="text-xs font-mono text-emerald-400 font-bold">Active</span>
-            </div>
-          </div>
-
-          <!-- R3: Engineering -->
-          <div class="card-surface rounded-3xl p-6 space-y-4 hover:border-emerald-500/40 transition">
-            <div class="flex items-center justify-between pb-3 border-b border-slate-800">
-              <div class="flex items-center gap-3">
-                <div class="p-3 rounded-2xl bg-emerald-500/10 text-emerald-400"><i data-lucide="code-2" class="w-6 h-6"></i></div>
-                <div>
-                  <h3 class="text-lg font-bold text-white">Engineering</h3>
-                  <p class="text-xs text-emerald-300 font-mono font-bold">Role Lead: R3 (CI/CD & Containerization)</p>
-                </div>
-              </div>
-              <span class="px-3 py-1 rounded-full text-xs font-mono font-bold bg-emerald-950/80 text-emerald-300 border border-emerald-500/40">1 Member</span>
-            </div>
-            <p class="text-sm text-slate-300 leading-relaxed">Responsible for automated continuous integration, GitHub Actions workflows, container build pipelines, and production release gating.</p>
-            <div class="p-4 rounded-2xl bg-slate-900/80 border border-slate-800 flex items-center justify-between">
-              <div class="flex items-center gap-3">
-                <div class="w-9 h-9 rounded-xl bg-emerald-600 text-white font-bold text-xs flex items-center justify-center">ZM</div>
-                <div>
-                  <p class="text-sm font-bold text-white">SHAIKH ZAID MATINUDDIN</p>
-                  <p class="text-xs text-slate-400">CI/CD & Containerization Engineer</p>
-                </div>
-              </div>
-              <span class="text-xs font-mono text-emerald-400 font-bold">Active</span>
-            </div>
-          </div>
-
-          <!-- R4: Core Infrastructure -->
-          <div class="card-surface rounded-3xl p-6 space-y-4 hover:border-amber-500/40 transition">
-            <div class="flex items-center justify-between pb-3 border-b border-slate-800">
-              <div class="flex items-center gap-3">
-                <div class="p-3 rounded-2xl bg-amber-500/10 text-amber-400"><i data-lucide="server" class="w-6 h-6"></i></div>
-                <div>
-                  <h3 class="text-lg font-bold text-white">Core Infrastructure</h3>
-                  <p class="text-xs text-amber-300 font-mono font-bold">Role Lead: R4 (Deployment & Monitoring)</p>
-                </div>
-              </div>
-              <span class="px-3 py-1 rounded-full text-xs font-mono font-bold bg-amber-950/80 text-amber-300 border border-amber-500/40">1 Member</span>
-            </div>
-            <p class="text-sm text-slate-300 leading-relaxed">Responsible for runtime server health, Prometheus scraper metric definitions, Grafana alerting dashboards, and latency optimization.</p>
-            <div class="p-4 rounded-2xl bg-slate-900/80 border border-slate-800 flex items-center justify-between">
-              <div class="flex items-center gap-3">
-                <div class="w-9 h-9 rounded-xl bg-amber-600 text-white font-bold text-xs flex items-center justify-center">ZW</div>
-                <div>
-                  <p class="text-sm font-bold text-white">SHAIKH ZAID WAZIDALI</p>
-                  <p class="text-xs text-slate-400">Deployment & Monitoring Engineer</p>
-                </div>
-              </div>
-              <span class="text-xs font-mono text-emerald-400 font-bold">Active</span>
-            </div>
-          </div>
-
+        <!-- Dynamic Department Cards Grid Container -->
+        <div id="dynamicDepartmentsContainer" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <!-- Dynamically populated by renderDepartmentsGrid() in real time -->
         </div>
 
       </section>
@@ -1857,6 +1764,50 @@
               <i data-lucide="check-circle-2" class="w-4 h-4 text-indigo-400"></i>
               <span>Verify Compliance</span>
             </button>
+          </div>
+        </div>
+
+        <!-- Real-Time Personnel Audit & Department Breakdown in Reports -->
+        <div class="card-surface rounded-3xl p-6 sm:p-8 space-y-6 border border-slate-800/80 shadow-2xl">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-800/80">
+            <div>
+              <div class="flex items-center gap-3">
+                <h3 class="text-xl sm:text-2xl font-black text-white tracking-tight">Active Personnel Master Audit</h3>
+                <span id="reportsTotalCountBadge" class="px-3 py-1 rounded-full text-xs font-mono font-bold bg-indigo-950/80 text-indigo-300 border border-indigo-500/40">4 Enrolled</span>
+                <span class="px-2.5 py-0.5 rounded-full text-[11px] font-mono font-bold bg-emerald-950/80 text-emerald-300 border border-emerald-500/30 flex items-center gap-1.5">
+                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                  <span>Live Sync</span>
+                </span>
+              </div>
+              <p class="text-xs sm:text-sm text-slate-400 mt-1">Full breakdown of personnel with assigned squad departments, contact records, locations, and attendance status.</p>
+            </div>
+            <div class="flex items-center gap-3 flex-wrap">
+              <input type="text" id="reportFilterInput" oninput="renderReportsTable()" placeholder="Filter report by name, dept, or role..." class="px-4 py-2 rounded-2xl bg-slate-900 border border-slate-800 text-xs font-medium text-slate-200 placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition">
+              <button onclick="downloadLiveCsvReport()" class="inline-flex items-center gap-2 px-4 py-2 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-bold shadow-md transition cursor-pointer">
+                <i data-lucide="download" class="w-3.5 h-3.5"></i>
+                <span>Export Active CSV</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Real-Time Reports Table -->
+          <div class="overflow-x-auto rounded-2xl border border-slate-800/80 bg-slate-950/40">
+            <table class="w-full text-left text-sm text-slate-300">
+              <thead class="bg-slate-900/90 text-[11px] uppercase tracking-wider text-slate-400 border-b border-slate-800 font-mono">
+                <tr>
+                  <th class="py-3 px-5">ID</th>
+                  <th class="py-3 px-5">Personnel</th>
+                  <th class="py-3 px-5">Assigned Department</th>
+                  <th class="py-3 px-5">Role / Position</th>
+                  <th class="py-3 px-5">Location</th>
+                  <th class="py-3 px-5">Status</th>
+                  <th class="py-3 px-5 text-right">Contact</th>
+                </tr>
+              </thead>
+              <tbody id="reportsTableBody" class="divide-y divide-slate-800/50 font-sans">
+                <!-- Dynamically populated by renderReportsTable() -->
+              </tbody>
+            </table>
           </div>
         </div>
       </section>
@@ -4489,7 +4440,302 @@
       if (tab === 'attendance') {
         loadAttendanceRoster();
       }
+      if (tab === 'departments') {
+        renderDepartmentsGrid();
+      }
+      if (tab === 'reports') {
+        renderReportsTable();
+      }
       lucide.createIcons();
+    }
+
+    // --- Dynamic Department Squads & Real-Time Roster Rendering ---
+    const DEPT_METADATA_PRESETS = {
+      'Platform & Cloud': {
+        lead: 'SHAIKH RAHMAT',
+        leadRole: 'Agile Planner & Documentation Lead',
+        leadInitials: 'SR',
+        color: 'indigo',
+        icon: 'cloud',
+        roleTier: 'Role Lead: R1 (Agile & Documentation)',
+        description: 'Responsible for cloud infrastructure provisioning, Docker container orchestration, deployment documentation, and sprint backlog coordination.'
+      },
+      'AI & Data Science': {
+        lead: 'YADGIR ZUVERIA SALIM',
+        leadRole: 'Developer & Version Control Lead',
+        leadInitials: 'YZ',
+        color: 'cyan',
+        icon: 'cpu',
+        roleTier: 'Role Lead: R2 (Developer & Version Control)',
+        description: 'Responsible for application logic development, code reviews, version control branching models, and AI workforce dataset optimization.'
+      },
+      'Engineering': {
+        lead: 'SHAIKH ZAID MATINUDDIN',
+        leadRole: 'CI/CD & Containerization Engineer',
+        leadInitials: 'ZM',
+        color: 'emerald',
+        icon: 'code-2',
+        roleTier: 'Role Lead: R3 (CI/CD & Containerization)',
+        description: 'Responsible for automated continuous integration, GitHub Actions workflows, container build pipelines, and production release gating.'
+      },
+      'Core Infrastructure': {
+        lead: 'SHAIKH ZAID WAZIDALI',
+        leadRole: 'Deployment & Monitoring Engineer',
+        leadInitials: 'ZW',
+        color: 'amber',
+        icon: 'server',
+        roleTier: 'Role Lead: R4 (Deployment & Monitoring)',
+        description: 'Responsible for runtime server health, Prometheus scraper metric definitions, Grafana alerting dashboards, and latency optimization.'
+      }
+    };
+
+    const DEPT_COLOR_PALETTES = ['indigo', 'cyan', 'emerald', 'amber', 'purple', 'rose', 'teal', 'blue'];
+    const DEPT_ICONS = ['folder', 'layers', 'briefcase', 'database', 'terminal', 'boxes', 'shield', 'activity'];
+
+    async function getAllMergedEmployees() {
+      try {
+        let serverList = [];
+        const res = await fetch('/api/employees?limit=200');
+        if (res.ok) {
+          const json = await res.json();
+          serverList = json.data || [];
+        }
+        const localCustom = getLocalCustomEmployees();
+        const localDeleted = getLocalDeletedIds();
+
+        let merged = serverList.filter(e => !localDeleted.includes(Number(e.id)));
+        for (const c of localCustom) {
+          if (localDeleted.includes(Number(c.id))) continue;
+          if (!merged.some(e => String(e.id) === String(c.id))) {
+            merged.push(c);
+          }
+        }
+        return merged;
+      } catch (err) {
+        const localCustom = getLocalCustomEmployees();
+        const localDeleted = getLocalDeletedIds();
+        return localCustom.filter(e => !localDeleted.includes(Number(e.id)));
+      }
+    }
+
+    async function renderDepartmentsGrid() {
+      const container = document.getElementById('dynamicDepartmentsContainer');
+      if (!container) return;
+
+      const filterQuery = (document.getElementById('deptSearchInput')?.value || '').trim().toLowerCase();
+      const allEmployees = await getAllMergedEmployees();
+
+      // Group employees by department
+      const deptMap = {};
+      allEmployees.forEach(emp => {
+        const d = (emp.department || 'Engineering').trim();
+        if (!deptMap[d]) deptMap[d] = [];
+        deptMap[d].push(emp);
+      });
+
+      // Ensure standard 4 divisions always exist
+      ['Platform & Cloud', 'AI & Data Science', 'Engineering', 'Core Infrastructure'].forEach(name => {
+        if (!deptMap[name]) deptMap[name] = [];
+      });
+
+      const deptNames = Object.keys(deptMap).sort();
+      const badge = document.getElementById('deptDivisionCountBadge');
+      if (badge) badge.textContent = `${deptNames.length} Divisions`;
+
+      let html = '';
+      let colorIdx = 0;
+
+      deptNames.forEach(name => {
+        const members = deptMap[name];
+        // Apply search query filter if typed
+        if (filterQuery) {
+          const matchesDept = name.toLowerCase().includes(filterQuery);
+          const matchesMember = members.some(m => 
+            (m.name && m.name.toLowerCase().includes(filterQuery)) ||
+            (m.role && m.role.toLowerCase().includes(filterQuery))
+          );
+          if (!matchesDept && !matchesMember) return;
+        }
+
+        const preset = DEPT_METADATA_PRESETS[name];
+        const color = preset ? preset.color : DEPT_COLOR_PALETTES[colorIdx % DEPT_COLOR_PALETTES.length];
+        const icon = preset ? preset.icon : DEPT_ICONS[colorIdx % DEPT_ICONS.length];
+        const roleTier = preset ? preset.roleTier : `Squad Division: ${name}`;
+        const description = preset ? preset.description : `Cross-functional squad dedicated to ${name} operations, deliverables, and team collaboration.`;
+        colorIdx++;
+
+        const leadMember = members[0] || { name: preset ? preset.lead : 'Squad Lead Pending', role: preset ? preset.leadRole : 'Lead', avatar: preset ? preset.leadInitials : 'LD', status: 'Active' };
+
+        html += `
+          <div class="card-surface rounded-3xl p-6 space-y-5 hover:border-${color}-500/50 transition border border-slate-800 shadow-xl group">
+            <div class="flex items-center justify-between pb-3.5 border-b border-slate-800/80">
+              <div class="flex items-center gap-3.5">
+                <div class="p-3 rounded-2xl bg-${color}-500/10 text-${color}-400 border border-${color}-500/20">
+                  <i data-lucide="${icon}" class="w-6 h-6"></i>
+                </div>
+                <div>
+                  <h3 class="text-xl font-bold text-white group-hover:text-${color}-300 transition">${name}</h3>
+                  <p class="text-xs text-${color}-300 font-mono font-bold mt-0.5">${roleTier}</p>
+                </div>
+              </div>
+              <span class="px-3.5 py-1.5 rounded-full text-xs font-mono font-bold bg-${color}-950/80 text-${color}-300 border border-${color}-500/40">
+                ${members.length} ${members.length === 1 ? 'Member' : 'Members'}
+              </span>
+            </div>
+
+            <p class="text-xs sm:text-sm text-slate-300 leading-relaxed">${description}</p>
+
+            <!-- Members Roster in this Department -->
+            <div class="space-y-2.5 pt-1">
+              <p class="text-[11px] font-mono uppercase tracking-wider text-slate-400 font-bold flex items-center justify-between">
+                <span>Squad Members (${members.length})</span>
+                <span class="text-emerald-400 font-normal">Active Personnel</span>
+              </p>
+              ${members.map(m => `
+                <div class="p-3 rounded-2xl bg-slate-900/80 hover:bg-slate-850 border border-slate-800 flex items-center justify-between transition group/emp">
+                  <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-brand-600 to-${color}-600 text-white font-black text-xs flex items-center justify-center border border-indigo-400/40 shadow-sm">
+                      ${m.avatar || (m.name ? m.name.substring(0, 2).toUpperCase() : 'EM')}
+                    </div>
+                    <div>
+                      <p class="text-xs sm:text-sm font-bold text-white group-hover/emp:text-${color}-300 transition cursor-pointer" onclick="openDetailsDrawer(${m.id})">${m.name}</p>
+                      <p class="text-[11px] text-slate-400 font-mono">${m.role || 'Member'} &bull; <span class="text-cyan-400">EMP-${String(m.id).padStart(3, '0')}</span></p>
+                    </div>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <span class="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold ${
+                      m.status === 'Active' ? 'bg-emerald-950/80 text-emerald-300 border border-emerald-500/30' :
+                      m.status === 'On Leave' ? 'bg-amber-950/80 text-amber-300 border border-amber-500/30' :
+                      'bg-rose-950/80 text-rose-300 border border-rose-500/30'
+                    }">${m.status || 'Active'}</span>
+                    <button onclick="openDetailsDrawer(${m.id})" class="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition" title="Inspect">
+                      <i data-lucide="eye" class="w-3.5 h-3.5"></i>
+                    </button>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        `;
+      });
+
+      if (!html) {
+        html = `
+          <div class="col-span-2 p-12 text-center card-surface rounded-3xl border border-slate-800">
+            <i data-lucide="search-x" class="w-10 h-10 text-slate-500 mx-auto mb-3"></i>
+            <p class="text-base font-bold text-slate-300">No departments or members match "${filterQuery}"</p>
+            <p class="text-xs text-slate-500 mt-1">Try clearing the search query or enroll new personnel into this department.</p>
+          </div>
+        `;
+      }
+
+      container.innerHTML = html;
+      lucide.createIcons();
+    }
+
+    // --- Dynamic Real-Time Reports Table Rendering ---
+    async function renderReportsTable() {
+      const tbody = document.getElementById('reportsTableBody');
+      if (!tbody) return;
+
+      const filter = (document.getElementById('reportFilterInput')?.value || '').trim().toLowerCase();
+      const allEmployees = await getAllMergedEmployees();
+
+      const filtered = allEmployees.filter(emp => {
+        if (!filter) return true;
+        const name = (emp.name || '').toLowerCase();
+        const dept = (emp.department || '').toLowerCase();
+        const role = (emp.role || '').toLowerCase();
+        const email = (emp.email || '').toLowerCase();
+        const idTag = `emp-${String(emp.id).padStart(3, '0')}`;
+        return name.includes(filter) || dept.includes(filter) || role.includes(filter) || email.includes(filter) || idTag.includes(filter);
+      });
+
+      const badge = document.getElementById('reportsTotalCountBadge');
+      if (badge) badge.textContent = `${filtered.length} Enrolled`;
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="7" class="py-8 px-6 text-center text-slate-400 text-sm">
+              No personnel found matching report query "${filter}".
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      tbody.innerHTML = filtered.map(emp => `
+        <tr class="hover:bg-slate-900/70 transition duration-150 group">
+          <td class="py-3.5 px-5 font-mono text-xs font-bold text-cyan-400">
+            EMP-${String(emp.id).padStart(3, '0')}
+          </td>
+          <td class="py-3.5 px-5">
+            <div class="flex items-center gap-3">
+              <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-brand-600 to-indigo-600 text-white font-bold text-xs flex items-center justify-center border border-indigo-400/40">
+                ${emp.avatar || (emp.name ? emp.name.substring(0, 2).toUpperCase() : 'EM')}
+              </div>
+              <div>
+                <p class="font-bold text-white group-hover:text-cyan-300 transition cursor-pointer text-sm" onclick="openDetailsDrawer(${emp.id})">${emp.name}</p>
+                <p class="text-[11px] text-slate-400 font-mono">${emp.email || 'N/A'}</p>
+              </div>
+            </div>
+          </td>
+          <td class="py-3.5 px-5">
+            <span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-900 text-slate-200 border border-slate-800">
+              ${emp.department || 'Engineering'}
+            </span>
+          </td>
+          <td class="py-3.5 px-5 text-slate-200 text-xs font-medium">
+            ${emp.role || 'Member'}
+          </td>
+          <td class="py-3.5 px-5 text-slate-400 text-xs font-mono">
+            ${emp.location || 'Mumbai, India'}
+          </td>
+          <td class="py-3.5 px-5">
+            <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold ${
+              emp.status === 'Active' ? 'bg-emerald-950/80 text-emerald-300 border border-emerald-500/30' :
+              emp.status === 'On Leave' ? 'bg-amber-950/80 text-amber-300 border border-amber-500/30' :
+              'bg-rose-950/80 text-rose-300 border border-rose-500/30'
+            }">
+              <span class="w-1.5 h-1.5 rounded-full ${emp.status === 'Active' ? 'bg-emerald-400' : emp.status === 'On Leave' ? 'bg-amber-400' : 'bg-rose-400'}"></span>
+              ${emp.status || 'Active'}
+            </span>
+          </td>
+          <td class="py-3.5 px-5 text-right text-xs font-mono text-slate-400">
+            ${emp.phone || '+91 98200 00000'}
+          </td>
+        </tr>
+      `).join('');
+
+      lucide.createIcons();
+    }
+
+    // --- Client-Side Live CSV Exporter for Reports ---
+    async function downloadLiveCsvReport() {
+      const allEmployees = await getAllMergedEmployees();
+      let csv = "ID,Name,Role,Department,Email,Status,Location,Phone\r\n";
+      allEmployees.forEach(emp => {
+        const idTag = `EMP-${String(emp.id).padStart(3, '0')}`;
+        const name = (emp.name || '').replace(/"/g, '""');
+        const role = (emp.role || '').replace(/"/g, '""');
+        const dept = (emp.department || 'Engineering').replace(/"/g, '""');
+        const email = (emp.email || '').replace(/"/g, '""');
+        const status = (emp.status || 'Active').replace(/"/g, '""');
+        const loc = (emp.location || 'Mumbai, India').replace(/"/g, '""');
+        const phone = (emp.phone || '+91 98200 00000').replace(/"/g, '""');
+        csv += `"${idTag}","${name}","${role}","${dept}","${email}","${status}","${loc}","${phone}"\r\n`;
+      });
+
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.setAttribute('href', url);
+      link.setAttribute('download', `executive_personnel_report_${new Date().toISOString().slice(0, 10)}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      showToast("Report Exported", `Downloaded master CSV for ${allEmployees.length} personnel records.`, "success");
     }
 
     // --- Boot & Fetch Lifecycle ---
@@ -4497,6 +4743,8 @@
       lucide.createIcons();
       fetchDashboardSummary();
       loadEmployeesTable();
+      renderDepartmentsGrid();
+      renderReportsTable();
       initAnalyticsCharts();
       fetchRecentActivity();
       checkSystemHealth();
@@ -4506,6 +4754,10 @@
       setInterval(checkSystemHealth, 20000);
       setInterval(fetchDashboardSummary, 10000);
       setInterval(loadAttendanceRoster, 15000);
+      setInterval(() => {
+        if (window.location.hash === '#departments') renderDepartmentsGrid();
+        if (window.location.hash === '#reports') renderReportsTable();
+      }, 10000);
 
       // Initialize route from URL hash (e.g. #reports)
       const initialHash = window.location.hash ? window.location.hash.replace('#', '') : 'overview';
@@ -5498,6 +5750,8 @@
 
         closeEmployeeModal();
         await loadEmployeesTable();
+        await renderDepartmentsGrid();
+        await renderReportsTable();
         await fetchDashboardSummary();
         fetchRecentActivity();
         showToast("Success", id ? "Personnel record updated successfully!" : "New personnel enrolled into directory!", "success");
@@ -5519,6 +5773,8 @@
         saveLocalCustomEmployee(fallbackRecord);
         closeEmployeeModal();
         await loadEmployeesTable();
+        await renderDepartmentsGrid();
+        await renderReportsTable();
         await fetchDashboardSummary();
         showToast("Saved Locally", "Record saved to client directory cache.", "info");
       }
@@ -5591,12 +5847,16 @@
 
         const res = await fetch(`/items/${id}`, { method: 'DELETE' });
         loadEmployeesTable();
+        renderDepartmentsGrid();
+        renderReportsTable();
         fetchDashboardSummary();
         fetchRecentActivity();
         showToast("Deleted", "Employee record removed from directory.", "info");
       } catch (e) {
         removeLocalCustomEmployee(id);
         loadEmployeesTable();
+        renderDepartmentsGrid();
+        renderReportsTable();
         fetchDashboardSummary();
         showToast("Deleted", "Employee record removed locally.", "info");
       }
