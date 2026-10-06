@@ -2146,27 +2146,13 @@ def api_attendance_export():
 
 @app.route("/api/export/csv", methods=["GET"])
 def api_export_csv():
-    """Export complete Employee Directory database with real-time workforce analytics to CSV."""
+    """Export complete Employee Directory database with real-time employee data and attendance to CSV."""
     import io
     import csv
     output = io.StringIO()
     writer = csv.writer(output)
 
-    # Real-Time Workforce Analytics Preamble / Summary
-    total_staff = len(employees)
-    active_count = len([e for e in employees if e.get("status") == "Active"])
-    leave_count = len([e for e in employees if e.get("status") == "On Leave"])
-    depts = sorted(list(set([e.get("department", "Engineering") for e in employees])))
-    present_att = len([a for a in attendance_roster if a.get("status") == "Checked In"])
-    att_rate = round((present_att / max(1, total_staff)) * 100, 1)
-
-    writer.writerow(["# REAL-TIME WORKFORCE & ATTENDANCE ANALYTICS REPORT"])
-    writer.writerow(["# Generated At", time.strftime("%Y-%m-%d %H:%M:%S IST")])
-    writer.writerow(["# Total Headcount", total_staff, "# Active Personnel", active_count, "# On Leave", leave_count])
-    writer.writerow(["# Live Attendance Rate", f"{att_rate}%", "# Active Divisions", len(depts), "# Divisions List", "; ".join(depts)])
-    writer.writerow([])
-
-    # Tabular Data (Standard headers preserved for full test and tool compatibility)
+    # Standard clean CSV headers starting directly on row 1
     writer.writerow(["ID", "Name", "Role", "Department", "Email", "Status", "Location", "Phone", "Attendance Status", "Shift Schedule", "Hours Logged"])
     for emp in employees:
         att = next((a for a in attendance_roster if a.get("emp_id") == emp.get("id") or a.get("id") == emp.get("id")), None)

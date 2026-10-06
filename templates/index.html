@@ -4714,22 +4714,9 @@
     // --- Client-Side Live CSV Exporter for Reports ---
     async function downloadLiveCsvReport() {
       const allEmployees = await getAllMergedEmployees();
-      const totalStaff = allEmployees.length;
-      const activeCount = allEmployees.filter(e => e.status === 'Active').length;
-      const onLeaveCount = allEmployees.filter(e => e.status === 'On Leave').length;
-      const departments = [...new Set(allEmployees.map(e => e.department || 'Engineering'))];
-      const presentCount = (attendanceData && attendanceData.length > 0)
-        ? attendanceData.filter(a => a.status === 'Checked In').length
-        : activeCount;
-      const attendanceRate = totalStaff > 0 ? Math.round((presentCount / totalStaff) * 100) : 100;
 
-      // Real-Time Analytics Preamble Header in CSV
-      let csv = "# REAL-TIME EMPLOYEE WORKFORCE & ATTENDANCE ANALYTICS REPORT\r\n";
-      csv += `# Generated At,${new Date().toISOString().replace('T', ' ').substring(0, 19)} IST\r\n`;
-      csv += `# Total Personnel,${totalStaff},Active Personnel,${activeCount},On Leave,${onLeaveCount}\r\n`;
-      csv += `# Real-Time Attendance Rate,${attendanceRate}%,Active Divisions,${departments.length},Divisions,"${departments.join('; ')}"\r\n\r\n`;
-
-      csv += "ID,Name,Role,Department,Email,Status,Location,Phone,Attendance Status,Shift Schedule,Hours Logged\r\n";
+      // Clean standard CSV without metadata comment lines, starting directly with header row
+      let csv = "ID,Name,Role,Department,Email,Status,Location,Phone,Attendance Status,Shift Schedule,Hours Logged\r\n";
       allEmployees.forEach(emp => {
         const idTag = `EMP-${String(emp.id).padStart(3, '0')}`;
         const name = (emp.name || '').replace(/"/g, '""');
@@ -4750,11 +4737,11 @@
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.setAttribute('href', url);
-      link.setAttribute('download', `executive_workforce_analytics_report_${new Date().toISOString().slice(0, 10)}.csv`);
+      link.setAttribute('download', `executive_personnel_report_${new Date().toISOString().slice(0, 10)}.csv`);
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-      showToast("Report Exported", `Downloaded master CSV with real-time workforce analytics for ${allEmployees.length} personnel records.`, "success");
+      showToast("Report Exported", `Downloaded master CSV for ${allEmployees.length} personnel records.`, "success");
     }
 
     // --- Boot & Fetch Lifecycle ---
