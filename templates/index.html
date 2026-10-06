@@ -4714,7 +4714,22 @@
     // --- Client-Side Live CSV Exporter for Reports ---
     async function downloadLiveCsvReport() {
       const allEmployees = await getAllMergedEmployees();
-      let csv = "ID,Name,Role,Department,Email,Status,Location,Phone\r\n";
+      const totalStaff = allEmployees.length;
+      const activeCount = allEmployees.filter(e => e.status === 'Active').length;
+      const onLeaveCount = allEmployees.filter(e => e.status === 'On Leave').length;
+      const departments = [...new Set(allEmployees.map(e => e.department || 'Engineering'))];
+      const presentCount = (attendanceData && attendanceData.length > 0)
+        ? attendanceData.filter(a => a.status === 'Checked In').length
+        : activeCount;
+      const attendanceRate = totalStaff > 0 ? Math.round((presentCount / totalStaff) * 100) : 100;
+
+      // Real-Time Analytics Preamble Header in CSV
+      let csv = "# REAL-TIME EMPLOYEE WORKFORCE & ATTENDANCE ANALYTICS REPORT\r\n";
+      csv += `# Generated At,${new Date().toISOString().replace('T', ' ').substring(0, 19)} IST\r\n`;
+      csv += `# Total Personnel,${totalStaff},Active Personnel,${activeCount},On Leave,${onLeaveCount}\r\n`;
+      csv += `# Real-Time Attendance Rate,${attendanceRate}%,Active Divisions,${departments.length},Divisions,"${departments.join('; ')}"\r\n\r\n`;
+
+      csv += "ID,Name,Role,Department,Email,Status,Location,Phone,Attendance Status,Shift Schedule,Hours Logged\r\n";
       allEmployees.forEach(emp => {
         const idTag = `EMP-${String(emp.id).padStart(3, '0')}`;
         const name = (emp.name || '').replace(/"/g, '""');
@@ -4724,18 +4739,22 @@
         const status = (emp.status || 'Active').replace(/"/g, '""');
         const loc = (emp.location || 'Mumbai, India').replace(/"/g, '""');
         const phone = (emp.phone || '+91 98200 00000').replace(/"/g, '""');
-        csv += `"${idTag}","${name}","${role}","${dept}","${email}","${status}","${loc}","${phone}"\r\n`;
+        const attRecord = (attendanceData || []).find(a => String(a.emp_id || a.id) === String(emp.id));
+        const attStatus = attRecord ? attRecord.status : (emp.status === 'Active' ? 'Checked In' : 'Checked Out');
+        const shift = attRecord ? (attRecord.shift || '09:00 AM - 06:00 PM (IST)') : '09:00 AM - 06:00 PM (IST)';
+        const hours = attRecord ? `${attRecord.hours_logged || 0}h` : '0.0h';
+        csv += `"${idTag}","${name}","${role}","${dept}","${email}","${status}","${loc}","${phone}","${attStatus}","${shift}","${hours}"\r\n`;
       });
 
       const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.setAttribute('href', url);
-      link.setAttribute('download', `executive_personnel_report_${new Date().toISOString().slice(0, 10)}.csv`);
+      link.setAttribute('download', `executive_workforce_analytics_report_${new Date().toISOString().slice(0, 10)}.csv`);
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-      showToast("Report Exported", `Downloaded master CSV for ${allEmployees.length} personnel records.`, "success");
+      showToast("Report Exported", `Downloaded master CSV with real-time workforce analytics for ${allEmployees.length} personnel records.`, "success");
     }
 
     // --- Boot & Fetch Lifecycle ---
@@ -5752,6 +5771,7 @@
         await loadEmployeesTable();
         await renderDepartmentsGrid();
         await renderReportsTable();
+        await loadAttendanceRoster();
         await fetchDashboardSummary();
         fetchRecentActivity();
         showToast("Success", id ? "Personnel record updated successfully!" : "New personnel enrolled into directory!", "success");
@@ -5775,7 +5795,9 @@
         await loadEmployeesTable();
         await renderDepartmentsGrid();
         await renderReportsTable();
+        await loadAttendanceRoster();
         await fetchDashboardSummary();
+        fetchRecentActivity();
         showToast("Saved Locally", "Record saved to client directory cache.", "info");
       }
     }
@@ -5973,13 +5995,41 @@
           attendanceData = result.roster || [];
           const kpis = result.summary || result.kpis || {};
 
+          // Merge with any client-persisted custom employees to guarantee real-time rendering
+          const localCustom = getLocalCustomEmployees();
+          localCustom.forEach(c => {
+            if (!attendanceData.some(a => String(a.emp_id || a.id) === String(c.id))) {
+              const curTime = new Date().toLocaleTimeString('en-US', { timeZone: 'Asia/Kolkata', hour: '2-digit', minute: '2-digit', hour12: true });
+              const attStatus = c.status === 'Active' ? 'Checked In' : (c.status === 'On Leave' ? 'On Leave' : 'Checked Out');
+              attendanceData.push({
+                id: c.id,
+                emp_id: c.id,
+                name: c.name,
+                role: c.role,
+                department: c.department || 'Engineering',
+                shift: '09:00 AM - 06:00 PM (IST)',
+                shift_type: 'Standard Morning Shift',
+                checkin_time: attStatus === 'Checked In' ? `${curTime} IST` : '—',
+                checkout_time: '—',
+                status: attStatus,
+                mode: attStatus === 'Checked In' ? 'Remote (Mumbai - VPN Active)' : 'Offline',
+                hours_logged: 0.0,
+                target_hours: 8.0,
+                annual_leave_balance: 20,
+                sick_leave_balance: 10,
+                remote_days_used: 0,
+                overtime_hours: 0.0
+              });
+            }
+          });
+
           // Dynamic KPI metrics calculations with fallback to active roster array
           const totalStaff = attendanceData.length || 4;
-          const present = kpis.presentToday !== undefined ? kpis.presentToday : attendanceData.filter(a => a.status === 'Checked In').length;
-          const onLeave = kpis.onLeave !== undefined ? kpis.onLeave : attendanceData.filter(a => a.status === 'On Leave').length;
-          const remote = kpis.remoteActive !== undefined ? kpis.remoteActive : attendanceData.filter(a => a.mode && a.mode.includes('Remote')).length;
-          const onPrem = kpis.onPremises !== undefined ? kpis.onPremises : attendanceData.filter(a => a.mode && a.mode.includes('On-Premises')).length;
-          const rate = kpis.attendanceRate !== undefined ? kpis.attendanceRate : Math.round((present / Math.max(1, totalStaff)) * 100);
+          const present = attendanceData.filter(a => a.status === 'Checked In').length;
+          const onLeave = attendanceData.filter(a => a.status === 'On Leave').length;
+          const remote = attendanceData.filter(a => a.mode && a.mode.includes('Remote')).length;
+          const onPrem = attendanceData.filter(a => a.mode && a.mode.includes('On-Premises')).length;
+          const rate = Math.round((present / Math.max(1, totalStaff)) * 100);
           const avgHours = kpis.avgWorkHours || '7.6 hrs';
 
           // Update KPI Values

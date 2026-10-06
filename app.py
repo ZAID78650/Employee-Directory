@@ -1168,7 +1168,7 @@ def add_item():
     Mandatory Endpoint 3:
     POST /items : adds a new item to the list.
     """
-    global next_id
+    global next_id, attendance_roster
     data = request.get_json(silent=True) or request.form.to_dict()
 
     if not data or not data.get("name") or not data.get("role"):
@@ -1192,6 +1192,52 @@ def add_item():
         "phone": data.get("phone", "+91 98200 00000").strip()
     }
     employees.append(new_employee)
+
+    # Real-Time Attendance Roster Synchronization
+    cur_time = time.strftime("%I:%M %p IST")
+    att_status = "Checked In" if new_employee["status"] == "Active" else ("On Leave" if new_employee["status"] == "On Leave" else "Checked Out")
+    attendance_entry = {
+        "id": next_id,
+        "emp_id": next_id,
+        "name": new_employee["name"],
+        "role": new_employee["role"],
+        "department": new_employee["department"],
+        "shift": "09:00 AM - 06:00 PM (IST)",
+        "shift_type": "Standard Morning Shift",
+        "checkin_time": cur_time if att_status == "Checked In" else "—",
+        "checkout_time": "—",
+        "status": att_status,
+        "mode": "Remote (Mumbai - VPN Active)" if att_status == "Checked In" else "Offline",
+        "hours_logged": 0.0,
+        "target_hours": 8.0,
+        "annual_leave_balance": 20,
+        "sick_leave_balance": 10,
+        "remote_days_used": 0,
+        "overtime_hours": 0.0
+    }
+    if not any(a.get("emp_id") == next_id for a in attendance_roster):
+        attendance_roster.append(attendance_entry)
+
+    # Activity Logging for personnel enrollment and attendance shift initialization
+    log_activity(
+        "New Personnel Enrolled",
+        f"{new_employee['name']} registered into directory roster and assigned to {new_employee['department']}.",
+        new_employee["name"],
+        "user-plus",
+        "employee",
+        "success",
+        "201 Created"
+    )
+    log_activity(
+        "Attendance Shift Assigned",
+        f"Standard Morning Shift schedule assigned to {new_employee['name']} ({new_employee['department']}).",
+        new_employee["name"],
+        "calendar",
+        "attendance",
+        "info",
+        "200 OK"
+    )
+
     next_id += 1
 
     return jsonify({
@@ -1211,11 +1257,12 @@ def get_item(emp_id):
 
 @app.route("/items/<int:emp_id>", methods=["DELETE"])
 def delete_item(emp_id):
-    global employees
+    global employees, attendance_roster
     employee = next((e for e in employees if e["id"] == emp_id), None)
     if not employee:
         return jsonify({"error": "Employee not found"}), 404
     employees = [e for e in employees if e["id"] != emp_id]
+    attendance_roster = [a for a in attendance_roster if a.get("emp_id") != emp_id and a.get("id") != emp_id]
     
     # Record activity
     log_activity("Employee Removed", f"Personnel #{emp_id} was removed from the directory.", session.get("user", {}).get("name", "Administrator"), "trash-2", "employee")
@@ -1585,7 +1632,7 @@ def api_get_employees():
 # --- 4. Single Employee GET / PUT / DELETE ---
 @app.route("/api/employees/<int:emp_id>", methods=["GET", "PUT", "DELETE"])
 def api_single_employee(emp_id):
-    global employees
+    global employees, attendance_roster
     employee = next((e for e in employees if e["id"] == emp_id), None)
     if not employee:
         return jsonify({"error": "Employee not found"}), 404
@@ -1613,10 +1660,21 @@ def api_single_employee(emp_id):
             employee["phone"] = data["phone"].strip()
 
         log_activity("Employee Profile Updated", f"Updated details for {employee['name']}.", session.get("user", {}).get("name", "Administrator"), "edit-3", "employee")
+        # Sync attendance roster if present
+        for att in attendance_roster:
+            if att.get("emp_id") == emp_id or att.get("id") == emp_id:
+                att["name"] = employee["name"]
+                att["role"] = employee["role"]
+                att["department"] = employee["department"]
+                if employee["status"] == "On Leave":
+                    att["status"] = "On Leave"
+                elif employee["status"] == "Active" and att["status"] not in ["Checked In", "Checked Out"]:
+                    att["status"] = "Checked In"
         return jsonify({"message": "Employee updated successfully", "item": employee}), 200
 
     elif request.method == "DELETE":
         employees = [e for e in employees if e["id"] != emp_id]
+        attendance_roster = [a for a in attendance_roster if a.get("emp_id") != emp_id and a.get("id") != emp_id]
         log_activity("Employee Removed", f"Personnel #{emp_id} deleted from directory.", session.get("user", {}).get("name", "Administrator"), "trash-2", "employee")
         return jsonify({"message": f"Employee {emp_id} deleted successfully"}), 200
 
@@ -2088,13 +2146,33 @@ def api_attendance_export():
 
 @app.route("/api/export/csv", methods=["GET"])
 def api_export_csv():
-    """Export complete Employee Directory database to CSV."""
+    """Export complete Employee Directory database with real-time workforce analytics to CSV."""
     import io
     import csv
     output = io.StringIO()
     writer = csv.writer(output)
-    writer.writerow(["ID", "Name", "Role", "Department", "Email", "Status", "Location", "Phone"])
+
+    # Real-Time Workforce Analytics Preamble / Summary
+    total_staff = len(employees)
+    active_count = len([e for e in employees if e.get("status") == "Active"])
+    leave_count = len([e for e in employees if e.get("status") == "On Leave"])
+    depts = sorted(list(set([e.get("department", "Engineering") for e in employees])))
+    present_att = len([a for a in attendance_roster if a.get("status") == "Checked In"])
+    att_rate = round((present_att / max(1, total_staff)) * 100, 1)
+
+    writer.writerow(["# REAL-TIME WORKFORCE & ATTENDANCE ANALYTICS REPORT"])
+    writer.writerow(["# Generated At", time.strftime("%Y-%m-%d %H:%M:%S IST")])
+    writer.writerow(["# Total Headcount", total_staff, "# Active Personnel", active_count, "# On Leave", leave_count])
+    writer.writerow(["# Live Attendance Rate", f"{att_rate}%", "# Active Divisions", len(depts), "# Divisions List", "; ".join(depts)])
+    writer.writerow([])
+
+    # Tabular Data (Standard headers preserved for full test and tool compatibility)
+    writer.writerow(["ID", "Name", "Role", "Department", "Email", "Status", "Location", "Phone", "Attendance Status", "Shift Schedule", "Hours Logged"])
     for emp in employees:
+        att = next((a for a in attendance_roster if a.get("emp_id") == emp.get("id") or a.get("id") == emp.get("id")), None)
+        att_status = att.get("status", "Checked In") if att else ("Checked In" if emp.get("status") == "Active" else "Checked Out")
+        shift = att.get("shift", "09:00 AM - 06:00 PM (IST)") if att else "09:00 AM - 06:00 PM (IST)"
+        hours = f"{att.get('hours_logged', 0.0)}h" if att else "0.0h"
         writer.writerow([
             f"EMP-{emp.get('id', 0):03d}",
             emp.get("name", ""),
@@ -2103,7 +2181,10 @@ def api_export_csv():
             emp.get("email", ""),
             emp.get("status", "Active"),
             emp.get("location", "Mumbai, India"),
-            emp.get("phone", "+91 98200 00000")
+            emp.get("phone", "+91 98200 00000"),
+            att_status,
+            shift,
+            hours
         ])
     return Response(
         output.getvalue(),
