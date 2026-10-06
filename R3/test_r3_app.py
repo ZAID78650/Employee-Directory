@@ -25,10 +25,6 @@ def client():
         yield client
 
 
-# ==============================================================================
-# Group 1: Healthcheck Endpoints (Tests 1 - 7)
-# ==============================================================================
-
 def test_health_status_code(client):
     """Test 1: Verify GET /health returns HTTP 200 OK."""
     response = client.get("/health")
@@ -76,9 +72,6 @@ def test_health_content_type(client):
     assert "application/json" in response.content_type
 
 
-# ==============================================================================
-# Group 2: GET /items Basic Retrieval & Roster Schema (Tests 8 - 12)
-# ==============================================================================
 
 def test_get_items_status_code(client):
     """Test 8: Verify GET /items returns HTTP 200 OK."""
@@ -116,10 +109,6 @@ def test_get_items_contains_r3_engineer(client):
     names = [e["name"] for e in data]
     assert "SHAIKH ZAID MATINUDDIN" in names
 
-
-# ==============================================================================
-# Group 3: GET /items Query Filtering & Search (Tests 13 - 24)
-# ==============================================================================
 
 def test_get_items_filter_department_exact(client):
     """Test 13: Verify exact department filtering for 'Platform & Cloud'."""
@@ -210,10 +199,6 @@ def test_get_items_combined_department_and_search(client):
     assert data[0]["id"] == 3
 
 
-# ==============================================================================
-# Group 4: POST /items Employee Registration & Validation (Tests 25 - 32)
-# ==============================================================================
-
 def test_add_item_success_status(client):
     """Test 25: Verify POST /items with valid payload returns HTTP 201 Created."""
     payload = {
@@ -303,10 +288,6 @@ def test_add_item_empty_string_validation(client):
     response = client.post("/items", json=payload)
     assert response.status_code == 400
 
-
-# ==============================================================================
-# Group 5: Payload Security & Prometheus Telemetry (Tests 33 - 35)
-# ==============================================================================
 
 def test_add_item_invalid_json_body(client):
     """Test 33: Verify invalid non-JSON body returns HTTP 400 Bad Request."""
