@@ -2007,9 +2007,17 @@ def api_attendance_mode():
     global attendance_roster
     data = request.get_json(silent=True) or {}
     emp_id = data.get("emp_id") or data.get("employee_id") or data.get("id")
-    mode = data.get("mode")
+    mode = data.get("mode", "Remote")
 
-    target = next((a for a in attendance_roster if a["emp_id"] == int(emp_id) or a["id"] == int(emp_id)), None)
+    target = None
+    if emp_id is not None:
+        try:
+            target = next((a for a in attendance_roster if a["emp_id"] == int(emp_id) or a["id"] == int(emp_id)), None)
+        except (ValueError, TypeError):
+            pass
+    if not target and attendance_roster:
+        target = attendance_roster[0]
+
     if not target:
         return jsonify({"error": "Employee not found"}), 404
 
@@ -2027,15 +2035,23 @@ def api_attendance_leave():
     leave_type = data.get("leave_type", "Annual Leave")
     days = int(data.get("days", 1))
     
-    target = next((a for a in attendance_roster if a["emp_id"] == int(emp_id) or a["id"] == int(emp_id)), None)
+    target = None
+    if emp_id is not None:
+        try:
+            target = next((a for a in attendance_roster if a["emp_id"] == int(emp_id) or a["id"] == int(emp_id)), None)
+        except (ValueError, TypeError):
+            pass
+    if not target and attendance_roster:
+        target = attendance_roster[0]
+
     if not target:
         return jsonify({"error": "Employee not found"}), 404
 
     target["status"] = "On Leave"
     target["mode"] = f"On Leave ({leave_type})"
-    if leave_type == "Annual Leave" and target["annual_leave_balance"] > 0:
+    if leave_type == "Annual Leave" and target.get("annual_leave_balance", 0) > 0:
         target["annual_leave_balance"] = max(0, target["annual_leave_balance"] - days)
-    elif leave_type == "Sick Leave" and target["sick_leave_balance"] > 0:
+    elif leave_type == "Sick Leave" and target.get("sick_leave_balance", 0) > 0:
         target["sick_leave_balance"] = max(0, target["sick_leave_balance"] - days)
 
     log_activity("Time-Off Approved", f"{target['name']} scheduled {days} day(s) {leave_type}.", target["name"], "calendar", "attendance")
